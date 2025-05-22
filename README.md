@@ -1,35 +1,59 @@
-# keiko
-Keiko es una red social educativa descentralizada (DApp), programada como una aplicación en una cadena de bloques,
-que permitirá el intercambio de conocimiento como capital humano y económico al mismo tiempo.
-Keiko pretende ser el medio con el cual se le permita a cualquier individuo demostrar en una blockchain pública,
-la sucesión o cadena de contratos de aprendizaje en los que éste haya estado involucrado.
+# Keiko
 
-El objetivo de Keiko es desarrollar un medio tecnológico infalsificable que permita
-descentralizar y democratizar el acceso a la educación, y convertir los títulos
-acreditaciones, o certificaciones físicas en instrumentos obsoletos de
-medición de conocimientos y validez de su adquisición, mediante el uso de blockchain.
+**Keiko** es una red social educativa descentralizada (DApp) construida sobre **Substrate**, el framework modular para crear blockchains personalizadas en **Rust**. Su propósito es convertir el aprendizaje en capital humano verificable e interoperable en tiempo real, a través de **interacciones de aprendizaje** registradas en una cadena de bloques pública.
 
-El mecanismo de validez de conocimiento se basa en cuatro principios que serán presentados en un whitepaper.
-1) Libertad económica de los tutores y mentores
-2) Democracia participativa de los educandos
-3) Descentralización de la gestión de la calidad
-4) Auto-determinación de las comunidades
+## ¿Qué es Keiko?
 
-Keiko (稽古) se basa en el concepto de "practicar para adquirir el conocimiento" que se practica en la enseñanza del kendo en Japón.
-El término "keiko" también representa "pensar y estudiar el pasado",
-lo cual queda concretado en digitalizar la adquisición de todo conocimiento posible para cada persona en una cadena de bloques,
-y que cualquier otra persona, empresa o entidad gubernamental,
-pueda tener certeza de la validez de los datos generados durante su aprendizaje.
-http://www.renshinjuku.nl/2012/10/lexicon-keiko/
+Keiko permite a cualquier individuo construir y demostrar su **Pasaporte de Aprendizaje de Vida (LifeLearningPassport)** en blockchain, mediante una sucesión de **interacciones de aprendizaje atómicas (LearningInteractions)** compatibles con el estándar [xAPI (Tin Can)](https://xapi.com/). Estos datos pueden ser enviados desde cualquier **LRS** (Learning Record Store) como [Learning Locker](https://learninglocker.net/) y almacenados mediante un **pallet personalizado** de Substrate.
 
-EmprendeLab R.L. (sociedad de responsabilidad limitada que será fundada por Andrés Peña en Costa Rica,
-en los próximos meses del 2018) seguirá la estrategia de mercado de océanos azules, ésto al no intentar competir con academias existentes,
-sino crear un nuevo mercado que permita la verdadera democratización del acceso a la educación,
-dándole un incentivo social y económico a tutores y mentores a dar clases individuales o grupales,
-mientras éstos y sus educandos se califican recíprocamente.
+El objetivo principal de Keiko es reemplazar las certificaciones tradicionales con evidencia infalsificable de aprendizaje, evaluada por múltiples actores y almacenada de forma descentralizada.
 
-Andrés Peña programará la aplicación descentralizada Keiko en alguna blockchain pre-existente,
-para usar alguna criptomoneda basada en contratos inteligentes como medio de pago,
-tales como Ethereum, NEO, Mijin, Aragon, NEM o EOS.
+## Principios pedagógicos y políticos
 
-Tanto educadores, empresas, inversionistas y estudiantes podrán participar activamente en este mercado.
+Keiko se basa en cuatro pilares:
+
+1. **Libertad económica de tutores y mentores**: Los educadores pueden monetizar sesiones individuales o grupales sin intermediarios.
+2. **Democracia participativa de los educandos**: Los aprendices califican la calidad del conocimiento adquirido y de sus pares.
+3. **Descentralización de la gestión de calidad**: Las comunidades regulan sus propios estándares y métodos de validación.
+4. **Auto-determinación de las comunidades**: Cada red o nodo puede establecer su propia gobernanza educativa.
+
+## ¿Por qué "Keiko" (稽古)?
+
+El nombre **Keiko** significa "practicar para adquirir conocimiento" y también "pensar y estudiar el pasado", un concepto que refleja la idea de digitalizar y conservar la historia del aprendizaje de cada persona en una cadena de bloques, garantizando la validez y trazabilidad de ese conocimiento. Más sobre este concepto en [Lexicon Keiko – Renshinjuku](http://www.renshinjuku.nl/2012/10/lexicon-keiko/).
+
+Además, la organización que aloja este repositorio en GitHub se llama **Keiko (稽古)**, inspirada en la filosofía del **Aikido**, donde *Keiko* es la práctica disciplinada y consciente, que busca no solo la perfección técnica, sino el crecimiento personal y la armonía entre mente y cuerpo. Esta visión del aprendizaje constante y reflexivo es fundamental para el proyecto. Más información sobre el término y su vínculo con el Aikido en [aikido-argentina.com.ar](https://aikido-argentina.com.ar/tag/keiko/).
+
+En suma, el nombre Keiko simboliza la importancia de practicar y reflexionar sobre el aprendizaje a lo largo del tiempo, lo cual se materializa en la plataforma como un pasaporte digital de vida y aprendizaje, descentralizado e infalsificable.
+
+## Características técnicas
+
+- **Framework base:** [Substrate](https://substrate.io/)
+- **Lenguaje:** Rust
+- **Estándar de datos:** [xAPI / Tin Can API (JSON)](https://xapi.com/)
+- **LRS compatible:** [Learning Locker](https://learninglocker.net/), con soporte para integración local vía Docker
+- **Pallet personalizado:** `learning_interactions` para almacenar `LearningInteraction` por usuario en el mapa `LifeLearningPassport`
+- **Middleware opcional:** Lectura desde LRS y envío on-chain via extrinsics
+
+## Casos de uso
+
+- Validación de aprendizajes no formales e informales
+- Trazabilidad de conocimiento en comunidades autónomas
+- Reputación educativa para economías de aprendizaje descentralizadas
+- Portabilidad internacional de credenciales sin certificados físicos
+
+## Roadmap (resumen)
+
+- [x] Diseño del esquema JSON de interacciones xAPI
+- [x] Implementación del pallet en Substrate
+- [ ] Middleware para puente con Learning Locker
+- [ ] Frontend para visualizar el pasaporte de aprendizaje
+- [ ] Módulo de reputación y calificación entre pares
+- [ ] Gobernanza educativa comunitaria
+
+## Contribuyentes
+
+- **Andrés Peña** — Arquitectura y desarrollo principal (Substrate, Rust, xAPI)
+
+## Licencia
+
+Refiérase al archivo LICENSE.md
