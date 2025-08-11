@@ -12,12 +12,464 @@ El objetivo principal de Keiko es reemplazar las certificaciones tradicionales c
 
 ## Principios pedagógicos y políticos
 
-Keiko se basa en cuatro pilares:
+Keiko se basa en cuatro pilares fundamentales inspirados en la base ideológica de 2019:
 
-1. **Libertad económica de tutores y mentores**: Los educadores pueden monetizar sesiones individuales o grupales sin intermediarios.
-2. **Democracia participativa de los educandos**: Los aprendices califican la calidad del conocimiento adquirido y de sus pares.
-3. **Descentralización de la gestión de calidad**: Las comunidades regulan sus propios estándares y métodos de validación.
-4. **Auto-determinación de las comunidades**: Cada red o nodo puede establecer su propia gobernanza educativa.
+1. **Libertad económica de tutores y mentores**: Los educadores pueden monetizar sesiones individuales o grupales sin intermediarios, utilizando keikoins como medio de intercambio descentralizado.
+2. **Democracia participativa de los educandos**: Los aprendices califican la calidad del conocimiento adquirido y de sus pares, influyendo en la reputación y valor de los educadores.
+3. **Descentralización de la gestión de calidad**: Las comunidades regulan sus propios estándares y métodos de validación, sin imposición de una entidad central.
+4. **Auto-determinación de las comunidades**: Cada red o nodo puede establecer su propia gobernanza educativa, eligiendo libremente metodologías como Aprendizaje Cooperativo, Montessori, Neuroeducación, etc.
+
+### Sistema Económico Descentralizado
+
+Tal como se planteó en 2019, Keiko implementa una **economía educativa** que recompensa tanto a educadores como a "mineros" (validadores de la red), garantizando igualdad de oportunidades educativas sin restricciones de acceso. El sistema permite que cualquier individuo pueda enseñar y aprender sin necesidad de acreditaciones tradicionales, validando conocimientos directamente en la cadena de bloques.
+
+## Keikoins: Economía de Aprendizaje Descentralizada
+
+Los **keikoins** son el token nativo de la parachain Keiko, diseñados para crear una economía educativa independiente de monedas fiat. Funcionan como un sistema de intercambio cerrado similar al modelo de Starbucks, pero descentralizado y enfocado en el aprendizaje.
+
+### ¿Qué son los keikoins?
+
+- **Token utilitario**: Medio de intercambio exclusivo para servicios educativos dentro del ecosistema Keiko
+- **Desacoplamiento fiat**: Las tutorías se valoran en keikoins, no en dólares o colones, creando estabilidad interna
+- **Incentivo de participación**: Se obtienen por enseñar, aprender, validar interacciones y contribuir al ecosistema
+
+### Casos de uso de keikoins
+
+- **Pago de tutorías**: Sesiones con educadores humanos (presenciales y virtuales)
+- **Acceso a tutores IA**: Interacciones avanzadas con agentes especializados
+- **Reserva de espacios**: Alquiler de espacios seguros para tutorías presenciales
+- **Certificaciones**: Emisión de credenciales verificables
+- **Gobernanza**: Participación en decisiones comunitarias (voting power)
+- **Recompensas**: Incentivos por calificar, enseñar y mantener la red
+- **Tutorías inclusivas**: Sesiones especializadas en lengua de señas (LESCO, ASL, etc.)
+
+### Distribución y obtención
+
+Los usuarios pueden obtener keikoins mediante:
+
+1. **Compra directa**: Paquetes de keikoins como en videojuegos (Riot Points, V-Bucks)
+2. **Enseñanza**: Recibir pagos por impartir tutorías
+3. **Aprendizaje activo**: Recompensas por completar objetivos educativos
+4. **Validación**: Participar en la validación de interacciones de aprendizaje
+5. **Contribución comunitaria**: Moderar, calificar y mejorar el ecosistema
+
+### Modelo de Paquetes de Keikoins (Gaming-Style)
+
+Similar a League of Legends, Fortnite o Genshin Impact:
+
+- **Paquete Básico**: 100 keikoins - $5 USD
+- **Paquete Estudiante**: 500 keikoins - $20 USD (5% bonus)
+- **Paquete Semestral**: 1,200 keikoins - $45 USD (12% bonus)
+- **Paquete Anual**: 2,500 keikoins - $85 USD (18% bonus)
+
+**Ventajas del modelo gaming:**
+
+- **Familiar**: Los estudiantes ya conocen este sistema
+- **Psicológico**: Reduce la fricción de "gastar dinero real"
+- **Planificación**: Los padres pueden controlar el gasto educativo
+- **Incentivos**: Bonificaciones por compras más grandes
+
+### Sistema de Cuentas por Edad y Trazabilidad Parental
+
+#### Sistema de Perfiles Familiares (Modelo Nintendo)
+
+### Cuenta de Núcleo Familiar (Adulto Responsable/Tutor Legal)
+
+**Perfil del Administrador del Núcleo Familiar:**
+
+- **Dashboard central**: Vista de todas las cuentas de menores bajo su tutela legal
+- **Gestión de keikoins**: Compra paquetes y distribuye entre los menores a su cargo
+- **Controles de supervisión**: Configuración de límites, horarios y restricciones
+- **Historial completo**: Acceso a todas las transacciones de los menores
+- **Alertas personalizadas**: Notificaciones por actividades específicas
+- **Gestión de tutores**: Aprobación/bloqueo de tutores específicos
+- **Sistema de denuncias**: Reportes directos a autoridades por comportamientos ilegales
+
+**Vista del Dashboard del Núcleo Familiar:**
+
+```
+┌─────────────────────────────────────────┐
+│  👨‍👩‍👧‍👦 Núcleo Familiar - Juan Pérez       │
+├─────────────────────────────────────────┤
+│  💰 Balance del núcleo: 500 keikoins    │
+│                                         │
+│  👧 María (15 años) - 50 keikoins       │
+│  👦 Carlos (13 años) - 30 keikoins      │
+│                                         │
+│  📊 Actividad reciente:                 │
+│  • María: Tutoría Matemáticas (10 KC)   │
+│  • Carlos: Inglés con Ana López (15 KC) │
+│                                         │
+│  ⚙️ Configuraciones                      │
+│  🛡️ Controles de supervisión            │
+│  📈 Reportes de progreso                │
+│  🚨 Sistema de denuncias                │
+└─────────────────────────────────────────┘
+```
+
+### Cuenta de Menor (13-17 años)
+
+**Perfil del Estudiante:**
+
+- **Interfaz simplificada**: Diseño gaming-friendly, colorido y atractivo
+- **Balance personal**: Keikoins asignados por los padres
+- **LifeLearningPassport**: Su línea de tiempo de aprendizaje personal
+- **Marketplace de tutores**: Catálogo filtrado según restricciones parentales
+- **Logros y badges**: Gamificación del progreso educativo
+- **Chat supervisado**: Comunicación con tutores bajo monitoreo parental
+
+**Vista del Estudiante:**
+
+```
+┌─────────────────────────────────────────┐
+│  🎮 ¡Hola María! Nivel 15 🌟            │
+├─────────────────────────────────────────┤
+│  💎 Tus keikoins: 50 KC                 │
+│  🏆 Racha de aprendizaje: 7 días        │
+│                                         │
+│  📚 Próximas tutorías:                  │
+│  • Matemáticas - Hoy 4:00 PM (10 KC)   │
+│  • Inglés - Mañana 3:00 PM (15 KC)     │
+│                                         │
+│  🎯 Logros recientes:                   │
+│  • ✅ Completaste 5 sesiones de álgebra │
+│  • 🌟 Calificación perfecta en quiz     │
+│                                         │
+│  🛒 Explorar tutores                    │
+│  📖 Mi pasaporte de aprendizaje         │
+└─────────────────────────────────────────┘
+```
+
+### Controles Parentales Específicos
+
+**Configuraciones disponibles para administradores del núcleo familiar:**
+
+1. **Límites de gasto:**
+
+   - Máximo de keikoins por día/semana/mes
+   - Aprobación requerida para gastos grandes
+   - Límite por tipo de tutoría
+
+2. **Restricciones de tutores:**
+
+   - Lista blanca de tutores aprobados
+   - Bloqueo de tutores específicos
+   - Requerimiento de verificación adicional para tutores nuevos
+
+3. **Horarios permitidos:**
+
+   - Ventanas de tiempo para tutorías
+   - Restricciones por días de la semana
+   - Límite de horas de tutoría por día
+
+4. **Supervisión de contenido:**
+
+   - Materias permitidas/restringidas
+   - Nivel de dificultad apropiado
+   - Filtros de contenido por edad
+
+5. **Comunicación:**
+   - Monitoreo de chats con tutores
+   - Grabación opcional de sesiones
+   - Reportes automáticos de conversaciones
+
+### Transición Gradual de Permisos
+
+**Sistema de "Niveles de Confianza":**
+
+- **Nivel 1 (13-14 años)**: Supervisión máxima, tutores pre-aprobados
+- **Nivel 2 (15-16 años)**: Más autonomía, límites más flexibles
+- **Nivel 3 (17 años)**: Preparación para independencia, controles mínimos
+- **Nivel 4 (18+ años)**: Cuenta independiente completa
+
+### Notificaciones y Reportes
+
+**Para administradores del núcleo familiar:**
+
+- Resumen semanal de actividades
+- Alertas por transacciones inusuales
+- Reportes de progreso académico
+- Notificaciones de nuevos tutores contactados
+- Alertas de seguridad por comportamientos sospechosos
+- Confirmación de denuncias presentadas
+
+**Para estudiantes:**
+
+- Confirmación de compras
+- Recordatorios de tutorías
+- Celebración de logros
+- Sugerencias de aprendizaje
+
+#### Transición a Mayoría de Edad (18+ años)
+
+Cuando un estudiante cumple 18 años, el sistema ofrece:
+
+1. **Graduación de cuenta**: Migración automática a cuenta adulta independiente
+2. **Exportación de claves**: Opción de descargar claves privadas para control total
+3. **Historial preservado**: Todo el LifeLearningPassport se mantiene intacto
+4. **Independencia parental**: Los padres pierden acceso automáticamente
+5. **Opciones de privacidad**: El usuario decide qué información mantener pública
+
+#### Accesibilidad e Inclusión
+
+**Tutorías Virtuales Inclusivas:**
+
+- **Soporte para lengua de señas**: Integración nativa con tutores especializados en LESCO, ASL, LSM y otras lenguas de señas
+- **Filtros de accesibilidad**: Búsqueda específica por tipo de discapacidad y especialización del tutor
+- **Videollamadas de alta calidad**: Integración con plataformas optimizadas para comunicación visual
+- **Subtítulos automáticos**: Transcripción en tiempo real para estudiantes con discapacidad auditiva
+- **Grabaciones accesibles**: Almacenamiento de sesiones con múltiples formatos de accesibilidad
+
+**Categorías de Tutores Inclusivos:**
+
+- **Tutores sordos nativos**: Miembros de la comunidad sorda que enseñan en su lengua natural
+- **Tutores oyentes certificados**: Educadores con certificación oficial en lengua de señas
+- **Intérpretes educativos**: Profesionales que facilitan comunicación entre tutor oyente y estudiante sordo
+- **Tutores con discapacidades**: Educadores con diversas discapacidades que aportan perspectivas únicas
+
+**Plataformas de Videollamada Integradas:**
+
+- **Jitsi Meet**: Plataforma open-source con SDK para Flutter, ideal para privacidad y control total
+- **Agora.io**: SDK especializado en videollamadas de alta calidad con soporte nativo para Flutter
+- **WebRTC nativo**: Implementación directa para máximo control y personalización
+- **Zoom SDK**: Integración empresarial con funciones avanzadas de accesibilidad
+- **Google Meet API**: Integración con ecosistema Google para usuarios familiares con la plataforma
+
+#### Seguridad y Prevención de Abusos
+
+**Para menores:**
+
+- **Registro de tutores**: Verificación de identidad obligatoria para tutores
+- **Sistema de reportes**: Mecanismo fácil para reportar comportamientos inapropiados
+- **Moderación comunitaria**: Revisión de tutores por la comunidad
+- **Espacios seguros**: Priorización de tutorías en espacios públicos autorizados
+- **Grabaciones opcionales**: Posibilidad de grabar sesiones (con consentimiento)
+- **Grabaciones accesibles**: Sesiones grabadas con subtítulos y transcripciones para revisión parental
+
+**Sistema de Denuncias Legales:**
+
+- **Reportes directos**: Los administradores del núcleo familiar pueden reportar tutores directamente a autoridades
+- **Evidencia blockchain**: Todas las interacciones quedan registradas como evidencia inmutable
+- **Integración legal**: Conexión directa con sistemas de denuncia de cada país/jurisdicción
+- **Protección de identidad**: Anonimización de menores en reportes oficiales
+- **Seguimiento de casos**: Tracking del estado de denuncias presentadas
+- **Bloqueo automático**: Suspensión inmediata de tutores bajo investigación
+- **Cooperación con autoridades**: Acceso facilitado para investigaciones oficiales
+
+**Trazabilidad blockchain:**
+
+- **Inmutable**: Todas las transacciones quedan registradas permanentemente
+- **Auditable**: Autoridades pueden rastrear actividades si es necesario
+- **Transparente**: Los padres ven exactamente dónde va cada keikoin
+- **Verificable**: Las calificaciones y reportes no pueden ser alterados
+
+### Pools de Liquidez Comunitarios y Aprendizaje Colaborativo
+
+#### Bancas Estudiantiles (Menores de edad)
+
+**Sistema de "Banca" para Tutorías Grupales:**
+
+- **Pool supervisado**: Los administradores del núcleo familiar deben aprobar la participación
+- **Contribuciones limitadas**: Cada menor puede aportar máximo según límites parentales
+- **Transparencia total**: Todos los padres/tutores ven las contribuciones y gastos
+- **Gestión rotativa**: Un adulto responsable supervisa cada pool estudiantil
+- **Propósito educativo**: Solo para tutorías grupales, no para otros fines
+- **Votación estudiantil**: Los estudiantes eligen centros de estudio por ranking democrático
+- **Aprobación parental**: Los padres aprueban la opción más votada por los estudiantes
+
+**Proceso de Selección de Centro de Estudios:**
+
+1. **Votación Estudiantil**: Los estudiantes del pool votan y rankean centros autorizados
+2. **Ranking Democrático**: Se genera un ranking basado en las preferencias estudiantiles
+3. **Revisión Parental**: Los padres revisan la opción #1 del ranking estudiantil
+4. **Aprobación Mayoritaria**: Si la mayoría de padres aprueban, se confirma el centro
+5. **Plan B Automático**: Si se rechaza, se evalúa automáticamente la opción #2 del ranking
+
+**Ejemplo de Banca Estudiantil con Votación:**
+
+```
+┌─────────────────────────────────────────┐
+│  🎓 Banca "Matemáticas 10mo Grado"      │
+├─────────────────────────────────────────┤
+│  💰 Pool total: 150 keikoins            │
+│  👥 Participantes: 5 estudiantes        │
+│                                         │
+│  📊 Contribuciones:                     │
+│  • María (15): 30 KC ✅ Aprobado        │
+│  • Carlos (16): 30 KC ✅ Aprobado       │
+│  • Ana (15): 30 KC ✅ Aprobado          │
+│  • Luis (16): 30 KC ✅ Aprobado         │
+│  • Sofia (15): 30 KC ✅ Aprobado        │
+│                                         │
+│  🗳️ Votación de Centro (ACTIVA):        │
+│  1. 🥇 Centro StudyHub (3 votos)        │
+│  2. 🥈 Biblioteca Central (2 votos)     │
+│  3. 🥉 Coworking EduSpace (0 votos)     │
+│                                         │
+│  👨‍👩‍👧‍👦 Aprobación Parental (3/5):        │
+│  • Padre de María: ✅ Aprueba StudyHub  │
+│  • Madre de Carlos: ✅ Aprueba StudyHub │
+│  • Padre de Ana: ⏳ Revisando           │
+│  • Madre de Luis: ✅ Aprueba StudyHub   │
+│  • Padre de Sofia: ⏳ Revisando         │
+│                                         │
+│  🎯 Objetivo: Tutoría grupal álgebra    │
+│  👨‍🏫 Tutor: Prof. González (⭐⭐⭐⭐⭐)    │
+│  📍 Centro: StudyHub (Pendiente aprob.) │
+└─────────────────────────────────────────┘
+```
+
+#### Crowdfunding Universitario (Adultos)
+
+**Pools de Aprendizaje Autónomos:**
+
+- **Gestión independiente**: Los estudiantes adultos controlan completamente sus pools
+- **Crowdfunding híbrido**: Pueden recaudar tanto keikoins como dinero fiat
+- **Conversión automática**: El dinero fiat se convierte automáticamente a keikoins
+- **Objetivos flexibles**: Desde tutorías hasta certificaciones especializadas
+- **Gobernanza grupal**: Votación democrática para decisiones del pool
+
+**Tipos de Crowdfunding Educativo:**
+
+1. **Pool de Tutoría Especializada:**
+
+   - Objetivo: Contratar experto en tema específico
+   - Contribución: Keikoins + dinero fiat
+   - Duración: Curso completo o sesiones múltiples
+
+2. **Pool de Certificación:**
+
+   - Objetivo: Obtener certificaciones profesionales costosas
+   - Contribución: Principalmente dinero fiat → keikoins
+   - Beneficio: Certificación grupal con descuento
+
+3. **Pool de Investigación:**
+   - Objetivo: Financiar proyecto de investigación grupal
+   - Contribución: Mixta (tiempo + keikoins + fiat)
+   - Retorno: Conocimiento compartido + posibles ganancias
+
+**Ejemplo de Crowdfunding Universitario:**
+
+```
+┌─────────────────────────────────────────┐
+│  🎓 "Bootcamp IA - Grupo Universidad"   │
+├─────────────────────────────────────────┤
+│  🎯 Meta: 2,000 keikoins ($400 USD)     │
+│  📊 Progreso: 1,650 KC (82.5%)          │
+│  ⏰ Tiempo restante: 5 días             │
+│                                         │
+│  💰 Contribuciones:                     │
+│  • 1,200 KC (de keikoins existentes)    │
+│  • $100 USD → 450 KC (conversión auto)  │
+│                                         │
+│  👥 Contribuyentes: 8 estudiantes       │
+│  🏆 Beneficio: Bootcamp 4 semanas       │
+│  👨‍💻 Instructor: Dr. AI Expert          │
+│                                         │
+│  🗳️ Decisiones pendientes:              │
+│  • Horario de clases (Votación activa)  │
+│  • Modalidad presencial/virtual         │
+└─────────────────────────────────────────┘
+```
+
+#### Mecánicas de Pool Inteligentes
+
+**Para Menores (Supervisado):**
+
+- **Aprobación parental**: Cada contribución requiere autorización
+- **Límites automáticos**: No pueden exceder sus límites individuales
+- **Reembolso garantizado**: Si el pool no se completa, reembolso automático
+- **Tutor pre-aprobado**: Solo tutores en lista blanca familiar
+- **Democracia estudiantil**: Votación para elegir centros de estudio
+- **Veto parental**: Los padres pueden rechazar opciones por seguridad
+
+#### Sistema de Votación Democrática para Centros de Estudio
+
+**Proceso Detallado:**
+
+**Fase 1: Propuesta Estudiantil**
+
+- Los estudiantes del pool pueden proponer centros de estudio autorizados
+- Solo centros con certificación de seguridad pueden ser propuestos
+- Cada estudiante puede proponer máximo 2 opciones
+
+**Fase 2: Votación Estudiantil**
+
+- Votación secreta con sistema de ranking (1ra, 2da, 3ra opción)
+- Cada voto tiene peso igual independientemente de la contribución económica
+- Duración: 48 horas para votar
+- Sistema de puntos: 1ra opción = 3 puntos, 2da = 2 puntos, 3ra = 1 punto
+
+**Fase 3: Revisión Parental**
+
+- Los padres reciben el ranking estudiantil con información detallada de cada centro
+- Información incluye: ubicación, medidas de seguridad, horarios, políticas
+- Los padres votan SÍ/NO sobre la opción #1 del ranking estudiantil
+- Plazo: 72 horas para decidir
+
+**Fase 4: Resolución**
+
+- **Si mayoría de padres aprueba**: Se confirma el centro elegido por estudiantes
+- **Si mayoría rechaza**: Se evalúa automáticamente la opción #2 del ranking
+- **Si todas las opciones son rechazadas**: Los padres proponen alternativas
+- **Empate**: El supervisor del pool (adulto rotativo) tiene voto de desempate
+
+**Ejemplo de Flujo Democrático:**
+
+```
+👥 Estudiantes proponen:
+   • StudyHub, Biblioteca Central, EduSpace
+
+🗳️ Votación estudiantil:
+   • StudyHub: 12 puntos (1ro)
+   • Biblioteca Central: 8 puntos (2do)
+   • EduSpace: 5 puntos (3ro)
+
+👨‍👩‍👧‍👦 Revisión parental de StudyHub:
+   • 4 padres aprueban ✅
+   • 1 padre rechaza ❌
+   • Resultado: APROBADO (mayoría)
+
+✅ Centro confirmado: StudyHub
+```
+
+**Para Adultos (Autónomo):**
+
+- **Contratos inteligentes**: Automatización de contribuciones y reembolsos
+- **Votación ponderada**: Poder de voto según contribución
+- **Escalabilidad**: Desde 2 personas hasta grupos grandes
+- **Integración fiat**: Pasarelas de pago tradicionales
+
+#### Casos de Uso Avanzados
+
+**Pools Híbridos Intergeneracionales:**
+
+- Estudiantes universitarios mentorean a estudiantes de secundaria
+- Los menores aportan keikoins, los universitarios aportan tiempo/conocimiento
+- Supervisión parental para menores, autonomía para adultos
+
+**Pools de Intercambio de Conocimiento:**
+
+- "Yo te enseño programación, tú me enseñas francés"
+- Valoración en keikoins para equilibrar intercambios desiguales
+- Sistema de créditos por tiempo invertido
+
+**Pools de Emergencia Educativa:**
+
+- Fondos comunitarios para estudiantes en situación vulnerable
+- Contribuciones voluntarias de la comunidad
+- Acceso a tutorías gratuitas para quienes lo necesiten
+
+### Ventajas del modelo keikoin
+
+- **Estabilidad interna**: Los precios se mantienen estables dentro del ecosistema educativo
+- **Accesibilidad global**: Elimina barreras de cambio de divisas internacionales
+- **Incentivos alineados**: Recompensa la participación educativa genuina
+- **Resistencia a especulación**: El valor se basa en utilidad educativa real, no en trading
+- **Seguridad familiar**: Trazabilidad completa para protección de menores
+- **Experiencia gaming**: Interfaz familiar para la generación digital nativa
+- **Colaboración natural**: Facilita el aprendizaje grupal y la ayuda mutua
+- **Flexibilidad financiera**: Múltiples formas de contribuir y participar
 
 ## ¿Por qué "Keiko" (稽古)?
 
@@ -304,6 +756,7 @@ Keiko está construido como un **monorepo** que integra:
 - **Framework:** Flutter (Web + Móvil)
 - **Arquitectura:** Clean Architecture con separación en 3 capas (Domain, Data, Presentation)
 - **Gestión de Estado:** BLoC Pattern para cada feature
+- **Videollamadas:** Integración con múltiples SDKs para tutorías virtuales inclusivas
 - **Capas de Clean Architecture:**
   - **Core (Núcleo)**
     - **constants/**: Constantes de la aplicación
@@ -312,6 +765,7 @@ Keiko está construido como un **monorepo** que integra:
     - **usecases/**: Clase base para casos de uso
     - **utils/**: Utilidades compartidas
 - **Features por Dominio:**
+
   - **Passport:** Visualización cronológica del pasaporte de aprendizaje
   - **Tutoring:** Marketplace de tutores humanos e interacción con IA
   - **Reputation:** Sistema de calificaciones y reputación dinámica
@@ -333,7 +787,6 @@ Keiko está construido como un **monorepo** que integra:
 
 - **Inyección de Dependencias:**
   - **injection_container.dart**: Configuración de dependencias con GetIt
-  
 - **Testing:**
   - **unit/**: Tests unitarios por capa
   - **widget/**: Tests de widgets
@@ -351,6 +804,122 @@ Keiko está construido como un **monorepo** que integra:
   - APIs REST/GraphQL para el frontend Flutter
   - Procesamiento de interacciones generadas por tutores IA
 - **Compatibilidad:** APIs de LMS (Moodle, Canvas, Blackboard), plataformas educativas, y aplicaciones cliente
+
+### Integración de Videollamadas para Tutorías Virtuales
+
+#### Opciones Técnicas Recomendadas
+
+**1. Jitsi Meet (Recomendado para privacidad)**
+
+```yaml
+# pubspec.yaml
+dependencies:
+  jitsi_meet_flutter_sdk: ^10.2.0
+```
+
+- **Ventajas**: Open-source, control total, sin límites de tiempo, GDPR compliant
+- **Características**: Grabación, subtítulos, compartir pantalla, chat
+- **Costo**: Gratuito (self-hosted) o $3-8/mes por usuario (Jitsi as a Service)
+- **Accesibilidad**: Soporte nativo para subtítulos y transcripción
+
+**2. Agora.io (Recomendado para calidad)**
+
+```yaml
+# pubspec.yaml
+dependencies:
+  agora_rtc_engine: ^6.3.2
+```
+
+- **Ventajas**: Calidad HD/4K, latencia ultra-baja, SDK robusto para Flutter
+- **Características**: Grabación en la nube, transcripción IA, filtros de ruido
+- **Costo**: $0.99/1000 minutos (muy económico para uso educativo)
+- **Accesibilidad**: API de transcripción en tiempo real, múltiples idiomas
+
+**3. WebRTC Nativo (Máximo control)**
+
+```yaml
+# pubspec.yaml
+dependencies:
+  flutter_webrtc: ^0.9.48
+```
+
+- **Ventajas**: Control total, sin dependencias externas, máxima privacidad
+- **Desventajas**: Requiere más desarrollo, infraestructura propia
+- **Ideal para**: Organizaciones que requieren control total de datos
+
+**4. Zoom SDK (Empresarial)**
+
+```yaml
+# pubspec.yaml
+dependencies:
+  zoom_sdk: ^5.17.11
+```
+
+- **Ventajas**: Funciones empresariales, excelente accesibilidad
+- **Características**: Subtítulos automáticos, interpretación simultánea, grabación
+- **Costo**: $14.99/mes por licencia
+- **Accesibilidad**: Mejor soporte para lengua de señas y subtítulos
+
+#### Funcionalidades Específicas para Inclusión
+
+**Características Técnicas Requeridas:**
+
+1. **Video de Alta Calidad**
+
+   - Resolución mínima 720p para lengua de señas
+   - Frame rate estable (30fps) para movimientos fluidos
+   - Compresión optimizada para gestos y expresiones faciales
+
+2. **Subtítulos y Transcripción**
+
+   - Transcripción automática en tiempo real
+   - Soporte para múltiples idiomas (español, inglés, etc.)
+   - Edición manual de subtítulos por el tutor
+
+3. **Grabación Accesible**
+
+   - Grabación con múltiples pistas (audio, video, subtítulos)
+   - Exportación en formatos accesibles
+   - Almacenamiento seguro con encriptación
+
+4. **Interfaz Adaptativa**
+   - Layouts optimizados para lengua de señas
+   - Controles de accesibilidad (zoom, contraste, etc.)
+   - Navegación por teclado para usuarios con movilidad reducida
+
+#### Implementación Recomendada
+
+**Arquitectura Híbrida:**
+
+```
+┌─────────────────────────────────────────┐
+│  Flutter App (Keiko)                    │
+├─────────────────────────────────────────┤
+│  📹 Video Call Manager                  │
+│  ├── Jitsi Meet (Gratuito/Básico)      │
+│  ├── Agora.io (Premium/HD)             │
+│  ├── Zoom SDK (Empresarial)            │
+│  └── WebRTC (Personalizado)            │
+├─────────────────────────────────────────┤
+│  🎯 Accessibility Layer                 │
+│  ├── Subtítulos automáticos            │
+│  ├── Transcripción IA                  │
+│  ├── Filtros de accesibilidad          │
+│  └── Grabación multi-formato           │
+├─────────────────────────────────────────┤
+│  🔐 Security & Privacy                  │
+│  ├── Encriptación E2E                  │
+│  ├── Grabación segura                  │
+│  └── Cumplimiento GDPR                 │
+└─────────────────────────────────────────┘
+```
+
+**Selección Automática de Plataforma:**
+
+- **Tutorías básicas**: Jitsi Meet (gratuito)
+- **Lengua de señas**: Agora.io (alta calidad)
+- **Empresarial/Institucional**: Zoom SDK
+- **Máxima privacidad**: WebRTC nativo
 
 ## Casos de uso
 
