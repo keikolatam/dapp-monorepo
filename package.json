@@ -1,0 +1,14 @@
+{
+  "name": "keiko",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "middleware/*",
+    "shared/*"
+  ],
+  "scripts": {
+    "build": "yarn workspaces run build",
+    "test": "yarn workspaces run test",
+    "lint": "yarn workspaces run lint"
+  }
+}

@@ -1,0 +1,10 @@
+[workspace]
+members = [
+    "node",
+    "runtime",
+    "pallets/learning_interactions",
+    "pallets/life_learning_passport",
+    "pallets/reputation_system",
+]
+[profile.release]
+panic = "unwind"
