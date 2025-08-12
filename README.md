@@ -562,14 +562,16 @@ keiko/
 │   │       ├── lib.rs
 │   │       └── weights/
 │   ├── pallets/                  # Pallets personalizados
-│   │   ├── learning-interactions/
+│   │   ├── learning_interactions/    # Datos centrales de aprendizaje
 │   │   │   ├── Cargo.toml
 │   │   │   └── src/
 │   │   │       ├── lib.rs
 │   │   │       ├── types.rs
 │   │   │       └── weights.rs
-│   │   ├── reputation/
-│   │   └── governance/
+│   │   ├── life_learning_passport/   # Perfiles de aprendizaje de usuarios
+│   │   ├── reputation_system/        # Reputación de tutores/estudiantes
+│   │   ├── governance/               # Gobernanza educativa comunitaria
+│   │   └── marketplace/              # Marketplace de espacios seguros
 │   └── scripts/                  # Scripts de deployment
 │
 ├── frontend/                     # 📱 Aplicación Flutter (Clean Architecture)
@@ -592,7 +594,7 @@ keiko/
 │   │   │       ├── input_converter.dart
 │   │   │       └── validators.dart
 │   │   ├── features/             # Características por dominio
-│   │   │   ├── passport/         # Pasaporte de Aprendizaje
+│   │   │   ├── passport/         # Pasaporte de Aprendizaje de Vida
 │   │   │   │   ├── domain/
 │   │   │   │   │   ├── entities/
 │   │   │   │   │   │   ├── life_learning_passport.dart
@@ -654,12 +656,28 @@ keiko/
 │   │   │   │   └── presentation/
 │   │   │   │       └── widgets/
 │   │   │   │           └── rating_widget.dart
-│   │   │   ├── learning_spaces/  # Espacios de Aprendizaje
+│   │   │   ├── governance/       # Gobernanza Educativa
+│   │   │   │   ├── domain/
+│   │   │   │   ├── data/
+│   │   │   │   └── presentation/
+│   │   │   ├── marketplace/      # Marketplace de Espacios Seguros
 │   │   │   │   ├── domain/
 │   │   │   │   ├── data/
 │   │   │   │   └── presentation/
 │   │   │   │       └── pages/
 │   │   │   │           └── learning_spaces_page.dart
+│   │   │   ├── assessment/       # Evaluación Pedagógica Inicial
+│   │   │   │   ├── domain/
+│   │   │   │   ├── data/
+│   │   │   │   └── presentation/
+│   │   │   ├── adaptive_plans/   # Planes Adaptativos de Aprendizaje
+│   │   │   │   ├── domain/
+│   │   │   │   ├── data/
+│   │   │   │   └── presentation/
+│   │   │   ├── wallet/           # Billetera Keikoin
+│   │   │   │   ├── domain/
+│   │   │   │   ├── data/
+│   │   │   │   └── presentation/
 │   │   │   └── auth/             # Autenticación
 │   │   │       ├── domain/
 │   │   │       ├── data/
@@ -673,48 +691,64 @@ keiko/
 │       ├── widget/
 │       └── integration/
 │
-├── middleware/                   # 🔗 Servicios de integración
-│   ├── Cargo.toml
-│   ├── api-gateway/              # Gateway principal
-│   │   ├── Cargo.toml
+├── middleware/                   # 🔗 Servicios de integración (Node.js/TypeScript)
+│   ├── api_gateway/              # API principal (NestJS)
+│   │   ├── package.json
 │   │   └── src/
-│   │       ├── main.rs
-│   │       ├── routes/
-│   │       │   ├── xapi.rs
-│   │       │   ├── blockchain.rs
-│   │       │   └── graphql.rs
-│   │       └── middleware/
-│   ├── lrs-connector/            # Conectores LRS
-│   │   ├── Cargo.toml
+│   │       ├── controllers/      # Controladores REST/GraphQL
+│   │       │   ├── passport/
+│   │       │   ├── interactions/
+│   │       │   ├── tutoring/
+│   │       │   ├── reputation/
+│   │       │   ├── governance/
+│   │       │   ├── marketplace/
+│   │       │   ├── assessment/
+│   │       │   └── adaptive_plans/
+│   │       ├── services/         # Lógica de negocio
+│   │       │   ├── blockchain/   # Comunicación con Substrate
+│   │       │   ├── queue/        # Cola de procesamiento
+│   │       │   ├── cache/        # Caché Redis
+│   │       │   └── auth/         # Servicios de autenticación
+│   │       └── validators/       # Validación de datos xAPI
+│   ├── lrs_connector/            # Integración con LRS (Learning Record Stores)
+│   │   ├── package.json
 │   │   └── src/
-│   │       ├── learning_locker.rs
-│   │       ├── scorm_cloud.rs
-│   │       └── moodle.rs
-│   ├── ai-tutor-service/         # Servicio de tutores IA
-│   │   ├── Cargo.toml
+│   │       ├── adapters/         # Adaptadores específicos por LRS
+│   │       │   ├── learning_locker/
+│   │       │   ├── scorm_cloud/
+│   │       │   ├── moodle/
+│   │       │   └── canvas/
+│   │       ├── transformers/     # Transformación de datos
+│   │       │   ├── xapi/         # Procesamiento xAPI
+│   │       │   └── blockchain/   # Mapeo a formatos blockchain
+│   │       └── queue/            # Cola de reintentos
+│   ├── ai_tutor_service/         # Servicio de tutores IA
+│   │   ├── package.json
 │   │   └── src/
-│   │       ├── main.rs
-│   │       ├── models/
-│   │       └── agents/
-│   └── data-transformer/         # Transformación de datos
-│       ├── Cargo.toml
+│   │       ├── models/           # Modelos de IA
+│   │       ├── adapters/         # Adaptadores de LLM
+│   │       │   ├── openai/
+│   │       │   ├── anthropic/
+│   │       │   └── local/
+│   │       ├── validators/       # Validación de respuestas
+│   │       └── personalization/ # Personalización de contenido
+│   └── parachain_bridge/         # Puente con la parachain
+│       ├── package.json
 │       └── src/
-│           ├── xapi_validator.rs
-│           └── blockchain_mapper.rs
+│           ├── connection/       # Gestión de conexiones
+│           ├── transactions/     # Manejo de transacciones
+│           ├── events/           # Escucha de eventos
+│           └── cache/            # Caché de consultas
 │
 ├── shared/                       # 📚 Código compartido
-│   ├── Cargo.toml
-│   ├── types/                    # Tipos compartidos
-│   │   ├── Cargo.toml
-│   │   └── src/
-│   │       ├── xapi.rs
-│   │       ├── learning_models.rs
-│   │       └── blockchain_types.rs
-│   └── utils/                    # Utilidades comunes
-│       ├── Cargo.toml
-│       └── src/
-│           ├── crypto.rs
-│           └── validation.rs
+│   ├── types/                    # Definiciones de tipos compartidos
+│   │   ├── learning/             # Tipos relacionados con aprendizaje
+│   │   ├── blockchain/           # Tipos de blockchain
+│   │   └── api/                  # Tipos de API
+│   └── utils/                    # Utilidades compartidas
+│       ├── crypto/               # Utilidades criptográficas
+│       ├── validation/           # Validación de datos
+│       └── testing/              # Utilidades de testing
 │
 ├── docs/                         # 📖 Documentación
 │   ├── architecture.md
@@ -731,13 +765,19 @@ keiko/
 │   ├── test.sh
 │   └── deploy.sh
 │
+├── .specs/                       # 📋 Especificaciones del proyecto
+│   └── 01-keiko-dapp/
+│       ├── requirements.md       # Requerimientos detallados
+│       ├── design.md             # Documento de diseño
+│       ├── tasks.md              # Tareas de implementación
+│       └── monorepo_structure.md # Estructura del monorepo
+│
 └── .kiro/                        # 🤖 Configuración Kiro IDE
-    ├── settings/
-    └── specs/
-        └── keiko-dapp/
-            ├── requirements.md
-            ├── design.md
-            └── tasks.md
+    ├── settings/                 # Configuraciones del IDE
+    └── steering/                 # Guías de desarrollo
+        ├── structure.md          # Guía de estructura del proyecto
+        ├── tech.md               # Stack tecnológico y comandos
+        └── product.md            # Visión del producto
 ```
 
 ## Arquitectura técnica
