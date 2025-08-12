@@ -1,4 +1,4 @@
-# Branding & Style Dictionary
+# Front-End Branding & Style Dictionary
 
 ## Design Guidelines
 
