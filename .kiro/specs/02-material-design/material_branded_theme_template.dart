@@ -121,12 +121,13 @@ class MaterialTheme {
   }
 
   ThemeData theme(ColorScheme colorScheme) => ThemeData(
-        useMaterial3: true,
-        brightness: colorScheme.brightness,
-        colorScheme: colorScheme,
+    useMaterial3: true,
+    brightness: colorScheme.brightness,
+    colorScheme: colorScheme,
 
-        // Typography
-        textTheme: TextTheme(
+    // Typography
+    textTheme:
+        TextTheme(
           // Display styles
           displayLarge: BrandTypography.headingBold,
           displayMedium: BrandTypography.headingMedium,
@@ -152,109 +153,109 @@ class MaterialTheme {
           displayColor: colorScheme.onSurface,
         ),
 
-        // Base colors
-        scaffoldBackgroundColor: colorScheme.surface,
-        canvasColor: colorScheme.surface,
+    // Base colors
+    scaffoldBackgroundColor: colorScheme.surface,
+    canvasColor: colorScheme.surface,
 
-        // AppBar
-        appBarTheme: AppBarTheme(
-          backgroundColor: colorScheme.primary,
-          foregroundColor: colorScheme.onPrimary,
-          elevation: 0,
-          centerTitle: true,
-          titleTextStyle: BrandTypography.headingMedium,
-          toolbarTextStyle: BrandTypography.accentRegular,
-        ),
+    // AppBar
+    appBarTheme: AppBarTheme(
+      backgroundColor: colorScheme.primary,
+      foregroundColor: colorScheme.onPrimary,
+      elevation: 0,
+      centerTitle: true,
+      titleTextStyle: BrandTypography.headingMedium,
+      toolbarTextStyle: BrandTypography.accentRegular,
+    ),
 
-        // Bottom Navigation Bar
-        bottomNavigationBarTheme: BottomNavigationBarThemeData(
-          backgroundColor: colorScheme.surface,
-          selectedItemColor: colorScheme.primary,
-          unselectedItemColor: colorScheme.onSurfaceVariant,
-          selectedLabelStyle: BrandTypography.accentMedium,
-          unselectedLabelStyle: BrandTypography.accentRegular,
-        ),
+    // Bottom Navigation Bar
+    bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      backgroundColor: colorScheme.surface,
+      selectedItemColor: colorScheme.primary,
+      unselectedItemColor: colorScheme.onSurfaceVariant,
+      selectedLabelStyle: BrandTypography.accentMedium,
+      unselectedLabelStyle: BrandTypography.accentRegular,
+    ),
 
-        // Buttons
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: colorScheme.primary,
-            foregroundColor: colorScheme.onPrimary,
-            textStyle: BrandTypography.accentMedium,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          ),
-        ),
+    // Buttons
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: colorScheme.primary,
+        foregroundColor: colorScheme.onPrimary,
+        textStyle: BrandTypography.accentMedium,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      ),
+    ),
 
-        floatingActionButtonTheme: FloatingActionButtonThemeData(
-          backgroundColor: colorScheme.secondary,
-          foregroundColor: colorScheme.onSecondary,
-          elevation: 6,
-        ),
+    floatingActionButtonTheme: FloatingActionButtonThemeData(
+      backgroundColor: colorScheme.secondary,
+      foregroundColor: colorScheme.onSecondary,
+      elevation: 6,
+    ),
 
-        // Input Fields
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: Colors.transparent,
-          labelStyle: BrandTypography.accentRegular
-              .copyWith(color: colorScheme.onSurfaceVariant),
-          floatingLabelStyle: BrandTypography.accentRegular
-              .copyWith(color: colorScheme.primary),
-          border: OutlineInputBorder(
-            borderSide: BorderSide(color: colorScheme.outline),
-            borderRadius: BorderRadius.circular(4),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: colorScheme.outline),
-            borderRadius: BorderRadius.circular(4),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: colorScheme.primary, width: 2),
-            borderRadius: BorderRadius.circular(4),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: colorScheme.error),
-            borderRadius: BorderRadius.circular(4),
-          ),
-        ),
+    // Input Fields
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: Colors.transparent,
+      labelStyle: BrandTypography.accentRegular.copyWith(
+        color: colorScheme.onSurfaceVariant,
+      ),
+      floatingLabelStyle: BrandTypography.accentRegular.copyWith(
+        color: colorScheme.primary,
+      ),
+      border: OutlineInputBorder(
+        borderSide: BorderSide(color: colorScheme.outline),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: colorScheme.outline),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: colorScheme.primary, width: 2),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: colorScheme.error),
+        borderRadius: BorderRadius.circular(4),
+      ),
+    ),
 
-        // Cards
-        cardTheme: CardThemeData(
-          color: colorScheme.surface,
-          elevation: 1,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
+    // Cards
+    cardTheme: CardThemeData(
+      color: colorScheme.surface,
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    ),
 
-        // Chips
-        chipTheme: ChipThemeData(
-          backgroundColor: colorScheme.surfaceContainerHighest,
-          labelStyle: BrandTypography.accentRegular,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        ),
+    // Chips
+    chipTheme: ChipThemeData(
+      backgroundColor: colorScheme.surfaceContainerHighest,
+      labelStyle: BrandTypography.accentRegular,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    ),
 
-        // Data Tables
-        dataTableTheme: DataTableThemeData(
-          headingRowColor:
-              WidgetStateProperty.all(colorScheme.surfaceContainerHighest),
-          headingTextStyle: BrandTypography.accentMedium,
-          dataTextStyle: BrandTypography.bodyRegular,
-          dividerThickness: 1,
-        ),
+    // Data Tables
+    dataTableTheme: DataTableThemeData(
+      headingRowColor: WidgetStateProperty.all(
+        colorScheme.surfaceContainerHighest,
+      ),
+      headingTextStyle: BrandTypography.accentMedium,
+      dataTextStyle: BrandTypography.bodyRegular,
+      dividerThickness: 1,
+    ),
 
-        // Dialog
-        dialogTheme: DialogThemeData(
-          backgroundColor: colorScheme.surface,
-          elevation: 24,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        ),
-      );
+    // Dialog
+    dialogTheme: DialogThemeData(
+      backgroundColor: colorScheme.surface,
+      elevation: 24,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+    ),
+  );
 
   List<ExtendedColor> get extendedColors => [
-        // Add extended colors if needed
-      ];
+    // Add extended colors if needed
+  ];
 }
 
 class ExtendedColor {
