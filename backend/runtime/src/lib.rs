@@ -58,8 +58,8 @@ use polkadot_runtime_common::{BlockHashCount, SlowAdjustingFeeUpdate};
 use xcm_config::{XcmConfig, XcmOriginToTransactDispatchOrigin};
 
 // XCM Imports
-use xcm::latest::prelude::BodyId;
-use xcm_executor::XcmExecutor;
+use staging_xcm::latest::prelude::BodyId;
+use staging_xcm_executor::XcmExecutor;
 
 /// Alias to 512-bit hash when used in the context of a transaction signature on the chain.
 pub type Signature = MultiSignature;
@@ -435,7 +435,7 @@ parameter_types! {
 impl cumulus_pallet_parachain_system::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type OnSystemEvent = ();
-	type SelfParaId = parachain_info::Pallet<Runtime>;
+	type SelfParaId = staging_parachain_info::Pallet<Runtime>;
 	type OutboundXcmpMessageSource = XcmpQueue;
 	type DmpMessageHandler = DmpQueue;
 	type ReservedDmpWeight = ReservedDmpWeight;
@@ -444,7 +444,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
 }
 
-impl parachain_info::Config for Runtime {}
+impl staging_parachain_info::Config for Runtime {}
 
 impl cumulus_pallet_aura_ext::Config for Runtime {}
 
@@ -517,7 +517,7 @@ construct_runtime!(
 			Pallet, Call, Config, Storage, Inherent, Event<T>, ValidateUnsigned,
 		} = 1,
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = 2,
-		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 3,
+		ParachainInfo: staging_parachain_info::{Pallet, Storage, Config} = 3,
 
 		// Monetary stuff.
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 10,
@@ -787,15 +787,15 @@ mod xcm_config {
 		traits::{Everything, Nothing},
 		weights::Weight,
 	};
-	use xcm::latest::prelude::*;
-	use xcm_builder::{
+	use staging_xcm::latest::prelude::*;
+	use staging_xcm_builder::{
 		AccountId32Aliases, AllowExplicitUnpaidExecutionFrom, AllowTopLevelPaidExecutionFrom,
 		CurrencyAdapter, EnsureXcmOrigin, FixedWeightBounds, IsConcrete, LocationInverter,
 		NativeAsset, ParentAsSuperuser, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
 		SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32,
 		SovereignSignedViaLocation, TakeWeightCredit, UsingComponents, WithComputedOrigin,
 	};
-	use xcm_executor::XcmExecutor;
+	use staging_xcm_executor::XcmExecutor;
 
 	parameter_types! {
 		pub const RelayLocation: MultiLocation = MultiLocation::parent();
@@ -812,7 +812,7 @@ mod xcm_config {
 		// The parent (Relay-chain) origin converts to the parent `AccountId`.
 		ParentIsPreset<AccountId>,
 		// Sibling parachain origins convert to AccountId via the `ParaId::into`.
-		SiblingParachainConvertsVia<polkadot_parachain::primitives::Sibling, AccountId>,
+		SiblingParachainConvertsVia<polkadot_parachain_primitives::primitives::Sibling, AccountId>,
 		// Straight up local `AccountId32` origins just alias directly to `AccountId`.
 		AccountId32Aliases<RelayNetwork, AccountId>,
 	);
@@ -941,7 +941,7 @@ mod xcm_config {
 	>;
 
 	pub struct XcmConfig;
-	impl xcm_executor::Config for XcmConfig {
+	impl staging_xcm_executor::Config for XcmConfig {
 		type RuntimeCall = RuntimeCall;
 		type XcmSender = XcmRouter;
 		// How to withdraw and deposit an asset.
@@ -1058,7 +1058,7 @@ impl BuildStorage for RuntimeGenesisConfig {
 		}.assimilate_storage(&mut storage)?;
 		
 		// Initialize parachain info
-		parachain_info::GenesisConfig {
+		staging_parachain_info::GenesisConfig {
 			parachain_id: 1000.into(), // Default test parachain ID
 		}.assimilate_storage(&mut storage)?;
 		

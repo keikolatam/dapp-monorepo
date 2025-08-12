@@ -22,7 +22,13 @@
   - Escribir tests básicos de funcionamiento del nodo
   - _Requerimientos: 14.1, 14.2_
 
-- [ ] 3. Implementar runtime base de la parachain
+- [x] 3. Implementar runtime base de la parachain
+
+
+
+
+
+
 
 
 
@@ -109,7 +115,10 @@
   - _Requerimientos: 12.3, 12.4, 12.6_
 
 - [ ] 6. Desarrollar pallet Reputation System
-- [ ] 6.1 Crear estructura base del pallet
+- [x] 6.1 Crear estructura base del pallet
+
+
+
 
   - Crear archivo lib.rs en backend/pallets/reputation_system/
   - Implementar estructura básica del pallet con Config trait
