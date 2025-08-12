@@ -1,0 +1,19 @@
+[env]
+# Deshabilitar jemalloc completamente en Windows
+JEMALLOC_SYS_WITH_LG_PAGE = "12"
+JEMALLOC_SYS_WITH_MALLOC_CONF = ""
+# Configurar libclang para bindgen
+LIBCLANG_PATH = "C:\\Program Files\\LLVM\\bin"
+# Mejorar compilación incremental
+CARGO_INCREMENTAL = "1"
+
+[build]
+# Usar el allocador del sistema en lugar de jemalloc
+rustflags = ["-C", "target-feature=+crt-static"]
+# Usar directorio target específico para evitar conflictos
+target-dir = "target-windows"
+
+[profile.dev]
+# Optimizar para compilación rápida
+incremental = true
+debug = 1  # Menos información de debug = compilación más rápida

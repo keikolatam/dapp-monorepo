@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "wsl-filesystem": {
+      "command": "uvx",
+      "args": ["mcp-server-filesystem"],
+      "env": {
+        "FILESYSTEM_ROOT": "\\\\wsl$\\Ubuntu-24.04\\home\\lapc9"
+      },
+      "disabled": false,
+      "autoApprove": ["read_file", "write_file", "list_directory"]
+    }
+  }
+}

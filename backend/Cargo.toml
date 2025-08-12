@@ -1,3 +1,10 @@
+# Business Source License 1.1
+# 
+# Licensed Work: keiko-dapp Version 0.0.1 or later.
+# The Licensed Work is (c) 2025 Luis Andrés Peña Castillo
+# 
+# For full license terms, see LICENSE file in the repository root.
+
 [workspace]
 members = [
     "node",
@@ -6,5 +13,13 @@ members = [
     "pallets/life_learning_passport",
     "pallets/reputation_system",
 ]
+resolver = "2"
+
 [profile.release]
 panic = "unwind"
+
+[patch.crates-io]
+# Deshabilitar jemalloc en Windows usando un patch
+tikv-jemalloc-sys = { git = "https://github.com/tikv/jemallocator.git", branch = "main" }
+# Deshabilitar librocksdb-sys que requiere bindgen/libclang
+librocksdb-sys = { git = "https://github.com/rust-rocksdb/rust-rocksdb.git", branch = "master" }

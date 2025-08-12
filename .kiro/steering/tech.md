@@ -43,7 +43,14 @@ cargo clippy
 - `flutter_bloc` - State management
 - `polkadot_dart` - Blockchain connectivity
 - `jitsi_meet_flutter_sdk` - Video calling for tutoring
+- `agora_rtc_engine` - High-quality video calling
 - `web3dart` - Web3 integration
+- `cristalyse` - Data visualization and analytics
+- `timeline_tile` - Timeline UI components
+- `hive` - Local storage and caching
+- `dio` - HTTP client for API communication
+- `get_it` - Dependency injection
+- `injectable` - Code generation for DI
 
 ### Common Commands
 

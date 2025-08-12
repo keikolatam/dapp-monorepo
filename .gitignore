@@ -1,0 +1,111 @@
+# Rust/Cargo (Backend)
+backend/target/
+backend/**/*.rs.bk
+backend/Cargo.lock
+backend/chain-spec-raw.json
+backend/chain-spec.json
+backend/db/
+backend/keystore/
+backend/network/
+backend/offchain-worker/
+backend/data/
+backend/chains/
+backend/*.wasm
+backend/*.compact.wasm
+backend/*.compact.compressed.wasm
+
+# Flutter (Frontend)
+frontend/.dart_tool/
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+frontend/.packages
+frontend/.pub-cache/
+frontend/.pub/
+frontend/build/
+frontend/ios/Flutter/flutter_assets/
+frontend/ios/Flutter/flutter_export_environment.sh
+frontend/ios/Runner.xcworkspace/
+frontend/android/app/debug
+frontend/android/app/profile
+frontend/android/app/release
+
+# Node.js (Middleware)
+middleware/*/node_modules/
+middleware/*/dist/
+middleware/*/build/
+middleware/*/.env
+middleware/*/.env.local
+middleware/*/.env.*.local
+middleware/*/logs/
+middleware/*/coverage/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Build artifacts
+target/
+target-windows/
+dist/
+build/
+out/
+
+# Documentation
+doc/
+docs/build/
+
+# Test coverage
+coverage/
+*.lcov
+
+# Backup files
+*.bak
+*.backup
+
+# Package manager locks (keep only root level)
+**/package-lock.json
+**/yarn.lock
+!package-lock.json
+!yarn.lock
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Cache directories
+.cache/
+.parcel-cache/
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
