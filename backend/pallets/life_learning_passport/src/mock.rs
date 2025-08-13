@@ -55,6 +55,10 @@ impl frame_system::Config for Test {
 
 impl pallet_life_learning_passport::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
+	type MaxInteractionsPerPassport = frame_support::traits::ConstU32<1000>;
+	type MaxSkillsPerProfile = frame_support::traits::ConstU32<50>;
+	type MaxTextLength = frame_support::traits::ConstU32<256>;
+	type DefaultLinkExpiration = ConstU64<10080>; // 7 days in blocks (assuming 6s blocks)
 }
 
 pub fn new_test_ext() -> sp_io::TestExternalities {

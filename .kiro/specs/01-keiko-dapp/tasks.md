@@ -92,8 +92,17 @@
   - Escribir tests para diferentes tipos de interacciones (pregunta, respuesta, ejercicio, etc.)
   - _Requerimientos: 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10_
 
-- [ ] 5. Desarrollar pallet Life Learning Passport
-- [ ] 5.1 Crear estructura base del pallet
+- [x] 5. Desarrollar pallet Life Learning Passport
+
+
+
+
+
+- [x] 5.1 Crear estructura base del pallet
+
+
+
+
 
   - Crear archivo lib.rs en backend/pallets/life_learning_passport/
   - Implementar estructura básica del pallet con Config trait
@@ -102,25 +111,36 @@
   - Escribir tests básicos de compilación
   - _Requerimientos: 1.1, 1.2_
 
-- [ ] 5.2 Implementar estructura del pasaporte
+
+
+- [x] 5.2 Implementar estructura del pasaporte
+
+
 
   - Crear estructura LifeLearningPassport con referencias a interacciones
   - Implementar configuraciones de privacidad granulares
   - Crear extrinsic para inicializar pasaporte al registrar usuario
   - Implementar queries para recuperar datos del pasaporte
   - Escribir tests para creación y gestión de pasaportes
+
+
   - _Requerimientos: 1.1, 1.2, 10.3_
 
-- [ ] 5.3 Implementar sistema de compartir pasaportes
+- [x] 5.3 Implementar sistema de compartir pasaportes
+
+
 
   - Crear funcionalidad para generar enlaces verificables de pasaportes
   - Implementar verificación criptográfica de autenticidad de datos
   - Crear sistema de permisos para compartir datos específicos
   - Implementar expiración de enlaces compartidos
+
+
   - Escribir tests para verificación y compartir de pasaportes
   - _Requerimientos: 1.4, 1.5, 10.4_
 
-- [ ] 5.4 Implementar perfiles de aprendizaje
+
+- [x] 5.4 Implementar perfiles de aprendizaje
 
   - Crear estructura LearningProfile con estilos y preferencias de aprendizaje
   - Implementar almacenamiento de resultados de evaluaciones pedagógicas
