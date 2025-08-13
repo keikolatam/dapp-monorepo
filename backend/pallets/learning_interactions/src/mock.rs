@@ -56,6 +56,9 @@ impl frame_system::Config for Test {
 
 impl pallet_learning_interactions::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
+	type MaxTextLength = frame_support::traits::ConstU32<1000>;
+	type MaxInteractionsPerSession = frame_support::traits::ConstU32<100>;
+	type MaxClassesPerCourse = frame_support::traits::ConstU32<50>;
 }
 
 // Build genesis storage according to the mock runtime.

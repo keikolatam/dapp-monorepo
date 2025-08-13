@@ -77,10 +77,6 @@ dist/
 build/
 out/
 
-# Documentation
-doc/
-docs/build/
-
 # Test coverage
 coverage/
 *.lcov

@@ -15,6 +15,9 @@ members = [
 ]
 resolver = "2"
 
+[workspace.dependencies]
+tokio = { version = "1.47", features = ["net", "rt-multi-thread", "macros"] }
+
 [profile.release]
 panic = "unwind"
 

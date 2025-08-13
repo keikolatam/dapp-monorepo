@@ -41,8 +41,15 @@
   - Escribir tests básicos del runtime
   - _Requerimientos: 14.3, 14.4, 14.5, 14.6, 14.7_
 
-- [ ] 4. Desarrollar pallet Learning Interactions
-- [ ] 4.1 Crear estructura base del pallet
+- [x] 4. **Desarrollar** pallet Learning Interactions
+
+
+
+
+- [x] 4.1 Crear estructura base del pallet
+
+
+
 
   - Crear archivo lib.rs en backend/pallets/learning_interactions/
   - Implementar estructura básica del pallet con Config trait
@@ -51,24 +58,32 @@
   - Escribir tests básicos de compilación
   - _Requerimientos: 2.1, 2.2_
 
-- [ ] 4.2 Implementar estructuras de datos xAPI
+
+
+- [x] 4.2 Implementar estructuras de datos xAPI
+
 
   - Crear tipos Rust para LearningInteraction, Actor, Verb, Object según estándar xAPI
   - Implementar validación de estructura xAPI en el pallet
   - Crear funciones de serialización/deserialización para compatibilidad JSON
+
+
   - Escribir tests unitarios para validación de datos xAPI
   - _Requerimientos: 2.1, 2.2, 9.1, 9.2_
 
-- [ ] 4.3 Implementar jerarquía de experiencias de aprendizaje
+- [x] 4.3 Implementar jerarquía de experiencias de aprendizaje
+
 
   - Crear estructuras Course, Class, TutorialSession en el pallet
   - Implementar relaciones jerárquicas entre contenedores educativos
+
   - Crear extrinsics para crear y gestionar cursos, clases y sesiones
   - Implementar queries para recuperar jerarquías completas
   - Escribir tests de integración para jerarquías de datos
   - _Requerimientos: 16.1, 16.2, 16.3, 16.4, 16.5, 16.6, 16.7, 16.8, 16.9, 16.10, 16.11, 17.1, 17.2, 17.3, 17.4, 17.5, 17.6, 17.7, 17.8, 17.9, 17.10, 17.11, 17.12_
 
-- [ ] 4.4 Implementar registro de interacciones atómicas
+- [x] 4.4 Implementar registro de interacciones atómicas
+
 
   - Crear extrinsic create_interaction para registrar interacciones individuales
   - Implementar validación de contenido y estructura de interacciones

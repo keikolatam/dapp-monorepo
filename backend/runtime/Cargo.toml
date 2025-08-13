@@ -29,7 +29,7 @@ log = { version = "0.4.17", default-features = false }
 scale-info = { version = "2.5.0", default-features = false, features = ["derive"] }
 serde = { version = "1.0.145", optional = true, features = ["derive"] }
 smallvec = "1.9.0"
-tokio = { version = "1.47", features = ["net", "rt-multi-thread"] }
+tokio = { workspace = true }
 
 # Local Dependencies
 pallet-learning-interactions = { path = "../pallets/learning_interactions", default-features = false }
