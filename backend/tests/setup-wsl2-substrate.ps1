@@ -140,16 +140,37 @@ function Setup-RustInWSL2 {
         return $false
     }
     
-    Write-Host "📦 Installing Rust in $ubuntuDistro..." -ForegroundColor $colors.Info
+    Write-Host "📦 Installing system dependencies in $ubuntuDistro..." -ForegroundColor $colors.Info
     
-    # Install Rust
+    # Install system dependencies first
+    $systemDepsCommand = @"
+sudo apt update && 
+sudo apt install -y build-essential pkg-config libssl-dev git curl && 
+echo "System dependencies installed successfully"
+"@
+    
+    wsl -d $ubuntuDistro bash -c $systemDepsCommand
+    
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "⚠️  System dependencies installation had issues, but continuing..." -ForegroundColor $colors.Warning
+    }
+    
+    Write-Host "🦀 Installing Rust in $ubuntuDistro..." -ForegroundColor $colors.Info
+    
+    # Install Rust with all necessary components for Substrate development
     $rustInstallCommand = @"
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && 
 source ~/.cargo/env && 
 rustup default stable && 
 rustup update && 
+rustup component add rust-src && 
+rustup component add rustfmt && 
+rustup component add clippy && 
 rustup target add wasm32-unknown-unknown && 
-echo "Rust installation completed successfully"
+rustup target add x86_64-unknown-linux-gnu && 
+rustup toolchain install nightly && 
+rustup component add rust-src --toolchain nightly && 
+echo "Rust installation with all components completed successfully"
 "@
     
     wsl -d $ubuntuDistro bash -c $rustInstallCommand
@@ -189,6 +210,17 @@ function Test-SubstrateBuild {
     
     Write-Host "📁 Testing in directory: $wslBackendPath" -ForegroundColor $colors.Info
     
+    # Set up environment for proc-macro compilation
+    Write-Host "🔧 Configuring Rust environment for Substrate..." -ForegroundColor $colors.Info
+    $envSetupCommand = @"
+cd '$wslBackendPath' && 
+source ~/.cargo/env && 
+export RUSTFLAGS='-C target-cpu=native' && 
+export CARGO_TARGET_DIR='target' && 
+rustup show
+"@
+    wsl -d $ubuntuDistro bash -c $envSetupCommand
+    
     # Test cargo check
     Write-Host "🔍 Running cargo check..." -ForegroundColor $colors.Info
     wsl -d $ubuntuDistro bash -c "cd '$wslBackendPath' && source ~/.cargo/env && cargo check"
@@ -204,11 +236,15 @@ function Test-SubstrateBuild {
             Write-Host "✅ Pallet test passed! Substrate development environment is ready." -ForegroundColor $colors.Success
             return $true
         } else {
-            Write-Host "⚠️  Cargo check passed but pallet test failed. Check dependencies." -ForegroundColor $colors.Warning
+            Write-Host "⚠️  Cargo check passed but pallet test failed. This may be due to proc-macro compilation issues." -ForegroundColor $colors.Warning
+            Write-Host "💡 Try running: cargo clean && cargo build --release" -ForegroundColor $colors.Info
             return $false
         }
     } else {
         Write-Host "❌ Cargo check failed. Check Rust installation and dependencies." -ForegroundColor $colors.Error
+        Write-Host "💡 Common fixes:" -ForegroundColor $colors.Warning
+        Write-Host "  - Install build essentials: sudo apt update && sudo apt install build-essential" -ForegroundColor $colors.Info
+        Write-Host "  - Install additional dependencies: sudo apt install pkg-config libssl-dev" -ForegroundColor $colors.Info
         return $false
     }
 }

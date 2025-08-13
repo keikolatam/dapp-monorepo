@@ -177,15 +177,22 @@ try {
     foreach ($pallet in $pallets) {
         $testName = "$($pallet.Description) - Unit Tests"
         $wslRunnerPath = Join-Path $PSScriptRoot "run-wsl2-command.ps1"
-        $showDetailsFlag = if ($Verbose) { "-ShowDetails" } else { "" }
-        $command = "& `"$wslRunnerPath`" `"cargo test -p pallet-$($pallet.Name) --lib`" $showDetailsFlag"
+        if ($Verbose) {
+            $command = "& `"$wslRunnerPath`" `"cargo test -p pallet-$($pallet.Name) --lib`" -ShowDetails"
+        } else {
+            $command = "& `"$wslRunnerPath`" `"cargo test -p pallet-$($pallet.Name) --lib`""
+        }
         Invoke-TimedTest -TestName $testName -Category "Pallet Tests" -Command $command
         
         if (-not $Fast) {
             # Run integration tests for each pallet
             $integrationTestName = "$($pallet.Description) - Integration Tests"
             $wslRunnerPath = Join-Path $PSScriptRoot "run-wsl2-command.ps1"
-            $integrationCommand = "& `"$wslRunnerPath`" `"cargo test -p pallet-$($pallet.Name)`""
+            if ($Verbose) {
+                $integrationCommand = "& `"$wslRunnerPath`" `"cargo test -p pallet-$($pallet.Name)`" -ShowDetails"
+            } else {
+                $integrationCommand = "& `"$wslRunnerPath`" `"cargo test -p pallet-$($pallet.Name)`""
+            }
             Invoke-TimedTest -TestName $integrationTestName -Category "Pallet Tests" -Command $integrationCommand
         }
     }
@@ -196,11 +203,19 @@ try {
         
         # Runtime compilation test
         $wslRunnerPath = Join-Path $PSScriptRoot "run-wsl2-command.ps1"
-        Invoke-TimedTest -TestName "Runtime Compilation" -Category "Runtime Tests" -Command "& `"$wslRunnerPath`" `"cargo test --manifest-path runtime/Cargo.toml --lib`""
+        if ($Verbose) {
+            Invoke-TimedTest -TestName "Runtime Compilation" -Category "Runtime Tests" -Command "& `"$wslRunnerPath`" `"cargo test --manifest-path runtime/Cargo.toml --lib`" -ShowDetails"
+        } else {
+            Invoke-TimedTest -TestName "Runtime Compilation" -Category "Runtime Tests" -Command "& `"$wslRunnerPath`" `"cargo test --manifest-path runtime/Cargo.toml --lib`""
+        }
         
         # Runtime build test
         $wslRunnerPath = Join-Path $PSScriptRoot "run-wsl2-command.ps1"
-        Invoke-TimedTest -TestName "Runtime Build" -Category "Runtime Tests" -Command "& `"$wslRunnerPath`" `"cargo build --release --manifest-path runtime/Cargo.toml`""
+        if ($Verbose) {
+            Invoke-TimedTest -TestName "Runtime Build" -Category "Runtime Tests" -Command "& `"$wslRunnerPath`" `"cargo build --release --manifest-path runtime/Cargo.toml`" -ShowDetails"
+        } else {
+            Invoke-TimedTest -TestName "Runtime Build" -Category "Runtime Tests" -Command "& `"$wslRunnerPath`" `"cargo build --release --manifest-path runtime/Cargo.toml`""
+        }
     }
     
     # 3. NODE TESTS
@@ -209,12 +224,20 @@ try {
         
         # Node compilation test
         $wslRunnerPath = Join-Path $PSScriptRoot "run-wsl2-command.ps1"
-        Invoke-TimedTest -TestName "Node Compilation" -Category "Node Tests" -Command "& `"$wslRunnerPath`" `"cargo test --manifest-path node/Cargo.toml --lib`""
+        if ($Verbose) {
+            Invoke-TimedTest -TestName "Node Compilation" -Category "Node Tests" -Command "& `"$wslRunnerPath`" `"cargo test --manifest-path node/Cargo.toml --lib`" -ShowDetails"
+        } else {
+            Invoke-TimedTest -TestName "Node Compilation" -Category "Node Tests" -Command "& `"$wslRunnerPath`" `"cargo test --manifest-path node/Cargo.toml --lib`""
+        }
         
         # Node build test (this can be slow)
         Write-Host "⚠️  Node build test may take several minutes..." -ForegroundColor $colors.Warning
         $wslRunnerPath = Join-Path $PSScriptRoot "run-wsl2-command.ps1"
-        Invoke-TimedTest -TestName "Node Build" -Category "Node Tests" -Command "& `"$wslRunnerPath`" `"cargo build --release --manifest-path node/Cargo.toml`""
+        if ($Verbose) {
+            Invoke-TimedTest -TestName "Node Build" -Category "Node Tests" -Command "& `"$wslRunnerPath`" `"cargo build --release --manifest-path node/Cargo.toml`" -ShowDetails"
+        } else {
+            Invoke-TimedTest -TestName "Node Build" -Category "Node Tests" -Command "& `"$wslRunnerPath`" `"cargo build --release --manifest-path node/Cargo.toml`""
+        }
     }
     
     # 4. WORKSPACE TESTS
@@ -223,15 +246,27 @@ try {
     # Clippy linting
     $wslRunnerPath = Join-Path $PSScriptRoot "run-wsl2-command.ps1"
     
-    Invoke-TimedTest -TestName "Clippy Linting" -Category "Quality Tests" -Command "& `"$wslRunnerPath`" `"cargo clippy --all-targets --all-features -- -D warnings`""
+    if ($Verbose) {
+        Invoke-TimedTest -TestName "Clippy Linting" -Category "Quality Tests" -Command "& `"$wslRunnerPath`" `"cargo clippy --all-targets --all-features -- -D warnings`" -ShowDetails"
+    } else {
+        Invoke-TimedTest -TestName "Clippy Linting" -Category "Quality Tests" -Command "& `"$wslRunnerPath`" `"cargo clippy --all-targets --all-features -- -D warnings`""
+    }
     
     # Format checking
-    Invoke-TimedTest -TestName "Format Check" -Category "Quality Tests" -Command "& `"$wslRunnerPath`" `"cargo fmt --all -- --check`""
+    if ($Verbose) {
+        Invoke-TimedTest -TestName "Format Check" -Category "Quality Tests" -Command "& `"$wslRunnerPath`" `"cargo fmt --all -- --check`" -ShowDetails"
+    } else {
+        Invoke-TimedTest -TestName "Format Check" -Category "Quality Tests" -Command "& `"$wslRunnerPath`" `"cargo fmt --all -- --check`""
+    }
     
     # Workspace-wide test
     if (-not $Fast) {
         $wslRunnerPath = Join-Path $PSScriptRoot "run-wsl2-command.ps1"
-        Invoke-TimedTest -TestName "Workspace Tests" -Category "Workspace Tests" -Command "& `"$wslRunnerPath`" `"cargo test --workspace`""
+        if ($Verbose) {
+            Invoke-TimedTest -TestName "Workspace Tests" -Category "Workspace Tests" -Command "& `"$wslRunnerPath`" `"cargo test --workspace`" -ShowDetails"
+        } else {
+            Invoke-TimedTest -TestName "Workspace Tests" -Category "Workspace Tests" -Command "& `"$wslRunnerPath`" `"cargo test --workspace`""
+        }
     }
     
 } finally {
@@ -280,9 +315,11 @@ if ($failedTests -gt 0) {
     
     Write-Host ""
     Write-Host "💡 Recommendations:" -ForegroundColor $colors.Warning
-    Write-Host "  1. Check WSL2 setup and Rust installation" -ForegroundColor $colors.Info
-    Write-Host "  2. Run individual tests with --verbose for detailed output" -ForegroundColor $colors.Info
-    Write-Host "  3. Ensure all dependencies are properly configured" -ForegroundColor $colors.Info
+    Write-Host "  1. Check WSL2 setup: .\setup-wsl2-substrate.ps1 -Status" -ForegroundColor $colors.Info
+    Write-Host "  2. Install/setup Rust: .\setup-wsl2-substrate.ps1 -SetupRust" -ForegroundColor $colors.Info
+    Write-Host "  3. Test environment: .\setup-wsl2-substrate.ps1 -Test" -ForegroundColor $colors.Info
+    Write-Host "  4. Run individual tests with -Verbose for detailed output" -ForegroundColor $colors.Info
+    Write-Host "  5. Use .\run-wsl2-command.ps1 for direct command execution" -ForegroundColor $colors.Info
 }
 
 Write-Host ""
