@@ -9,12 +9,12 @@ use crate as pallet_reputation_system;
 use frame_support::{
 	derive_impl,
 	parameter_types,
-	traits::{ConstU16, ConstU32, ConstU64},
+	traits::{ConstU16, ConstU64},
 };
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
-	BuildStorage,
 };
+use sp_core::H256;
 
 type Block = frame_system::mocking::MockBlock<Test>;
 
@@ -36,7 +36,7 @@ impl frame_system::Config for Test {
 	type RuntimeOrigin = RuntimeOrigin;
 	type RuntimeCall = RuntimeCall;
 	type Nonce = u64;
-	type Hash = sp_core::H256;
+	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = u64;
 	type Lookup = IdentityLookup<Self::AccountId>;
@@ -57,15 +57,17 @@ impl frame_system::Config for Test {
 parameter_types! {
 	pub const MaxCommentLength: u32 = 500;
 	pub const RatingExpirationBlocks: u32 = 432_000; // 30 days
+	pub const MaxCommentResponses: u32 = 10;
 }
 
 impl pallet_reputation_system::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
 	type MaxCommentLength = MaxCommentLength;
 	type RatingExpirationBlocks = RatingExpirationBlocks;
+	type MaxCommentResponses = MaxCommentResponses;
 }
 
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {
+	use sp_runtime::BuildStorage;
 	frame_system::GenesisConfig::<Test>::default().build_storage().unwrap().into()
 }

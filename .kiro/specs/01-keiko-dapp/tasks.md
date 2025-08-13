@@ -149,7 +149,9 @@
   - Escribir tests para gestión de perfiles de aprendizaje
   - _Requerimientos: 12.3, 12.4, 12.6_
 
-- [ ] 6. Desarrollar pallet Reputation System
+- [-] 6. Desarrollar pallet Reputation System
+
+
 - [x] 6.1 Crear estructura base del pallet
 
 
@@ -162,7 +164,10 @@
   - Escribir tests básicos de compilación
   - _Requerimientos: 5.1, 5.2_
 
-- [ ] 6.2 Implementar sistema de calificaciones con expiración
+- [x] 6.2 Implementar sistema de calificaciones con expiración
+
+
+
 
   - Crear estructura Rating con timestamp de expiración (30 días)
   - Implementar extrinsic create_rating para calificar usuarios
@@ -171,7 +176,13 @@
   - Escribir tests para expiración y cálculo de reputación
   - _Requerimientos: 5.1, 5.2, 5.4, 5.5, 5.9_
 
-- [ ] 6.3 Implementar sistema bidireccional de calificaciones
+- [x] 6.3 Implementar sistema bidireccional de calificaciones
+
+
+
+
+
+
 
   - Crear funcionalidad para que tutores califiquen estudiantes
   - Implementar sistema de comentarios detallados en calificaciones

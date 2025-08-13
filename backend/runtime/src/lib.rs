@@ -504,6 +504,28 @@ impl cumulus_pallet_xcm::Config for Runtime {
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 }
 
+// Configure Keiko custom pallets
+parameter_types! {
+	pub const MaxCommentLength: u32 = 500;
+	pub const RatingExpirationBlocks: u32 = 432_000; // 30 days
+	pub const MaxCommentResponses: u32 = 10;
+}
+
+impl pallet_learning_interactions::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+}
+
+impl pallet_life_learning_passport::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+}
+
+impl pallet_reputation_system::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type MaxCommentLength = MaxCommentLength;
+	type RatingExpirationBlocks = RatingExpirationBlocks;
+	type MaxCommentResponses = MaxCommentResponses;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
