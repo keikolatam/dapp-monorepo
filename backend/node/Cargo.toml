@@ -3,11 +3,11 @@ name = "keiko-node"
 version = "0.1.0"
 description = "Keiko parachain node implementation"
 authors = ["Keiko Team"]
-homepage = "https://keiko.network"
+homepage = "http://keiko-dapp.xyz/"
 edition = "2021"
 license-file = "../../LICENSE"
 publish = false
-repository = "https://github.com/keiko-network/keiko-dapp"
+repository = "https://github.com/keikolatam/keiko-dapp"
 build = "build.rs"
 
 [package.metadata.docs.rs]

@@ -10,11 +10,11 @@ name = "keiko-runtime"
 version = "0.1.0"
 description = "Keiko parachain runtime"
 authors = ["Keiko Team"]
-homepage = "https://keiko.network"
+homepage = "http://keiko-dapp.xyz/"
 edition = "2021"
 license-file = "../../LICENSE"
 publish = false
-repository = "https://github.com/lapc506/keiko"
+repository = "https://github.com/keikolatam/keiko-dapp"
 
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]

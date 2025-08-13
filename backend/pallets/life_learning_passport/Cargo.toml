@@ -3,11 +3,11 @@ name = "pallet-life-learning-passport"
 version = "0.1.0"
 description = "Life learning passport pallet for Keiko parachain"
 authors = ["Keiko Team"]
-homepage = "https://keiko.network"
+homepage = "http://keiko-dapp.xyz/"
 edition = "2021"
 license-file = "../../../LICENSE"
 publish = false
-repository = "https://github.com/keiko-network/keiko-dapp"
+repository = "https://github.com/keikolatam/keiko-dapp"
 
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]

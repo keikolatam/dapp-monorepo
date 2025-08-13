@@ -963,7 +963,7 @@ pub mod pallet {
 				_ => {
 					display.insert(b"en".to_vec(), verb_type.as_bytes().to_vec());
 					Verb {
-						id: format!("http://keiko.network/verbs/{}", verb_type).as_bytes().to_vec(),
+						id: format!("http://keiko-dapp.xyz/verbs/{}", verb_type).as_bytes().to_vec(),
 						display,
 					}
 				}
@@ -1003,7 +1003,7 @@ pub mod pallet {
 
 			let verb = Self::create_verb("asked");
 			let object = Self::create_activity_object(
-				&format!("http://keiko.network/question/{}", topic),
+				&format!("http://keiko-dapp.xyz/question/{}", topic),
 				&format!("Question about {}", topic),
 				question_text,
 			);
@@ -1032,7 +1032,7 @@ pub mod pallet {
 
 			let verb = Self::create_verb("answered");
 			let object = Self::create_activity_object(
-				&format!("http://keiko.network/answer/{}", question_id),
+				&format!("http://keiko-dapp.xyz/answer/{}", question_id),
 				"Answer to question",
 				answer_text,
 			);
@@ -1061,7 +1061,7 @@ pub mod pallet {
 
 			let verb = Self::create_verb("completed");
 			let object = Self::create_activity_object(
-				&format!("http://keiko.network/exercise/{}", exercise_name),
+				&format!("http://keiko-dapp.xyz/exercise/{}", exercise_name),
 				exercise_name,
 				&format!("Exercise: {}", exercise_name),
 			);
