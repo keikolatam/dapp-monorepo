@@ -4,11 +4,18 @@
 
 Keiko es una red social educativa descentralizada (DApp) construida como un monorepo que integra un backend desarrollado en Rust sobre Substrate y un frontend multiplataforma desarrollado en Flutter. Su propósito es convertir el aprendizaje en capital humano verificable e interoperable en tiempo real. La plataforma permite a cualquier individuo construir y demostrar su Pasaporte de Aprendizaje de Vida (LifeLearningPassport) en blockchain, mediante interacciones de aprendizaje atómicas (LearningInteractions) compatibles con el estándar xAPI (Tin Can). El objetivo principal es reemplazar las certificaciones tradicionales con evidencia infalsificable de aprendizaje, evaluada por múltiples actores y almacenada de forma descentralizada.
 
-La arquitectura del proyecto se organiza en:
+La arquitectura del proyecto se organiza en cuatro capas principales con estructura de carpetas correspondiente:
 
-- **Backend**: Blockchain personalizada en Rust usando Substrate con pallets especializados
-- **Middleware**: Servicios Rust unificados incluyendo servidor GraphQL con Juniper, frontend web con Leptos SSR/CSR, servicios de IA, integración con LRS, y puente nativo con la parachain
-- **Stack Completo en Rust**: Eliminación de Node.js/TypeScript en favor de un ecosistema Rust completo para mejor rendimiento, type safety y mantenibilidad
+- **Blockchain Layer** (`blockchain/`): Parachain Substrate con pallets especializados para almacenamiento inmutable y consenso
+- **Service Layer** (`services/`): Microservicios Rust con comunicación gRPC, cache PostgreSQL local, y eventos Redis Streams
+- **API Layer** (`api-gateway/`): API Gateway GraphQL que traduce queries del frontend a llamadas gRPC y orquesta respuestas
+- **Frontend Layer** (`frontend/`): Aplicación Flutter multiplataforma que se comunica exclusivamente via GraphQL
+
+**Flujo de Datos Híbrido:**
+
+- **Escritura**: Flutter → GraphQL → Microservicio → Parachain → Evento Redis → GraphQL Subscription
+- **Lectura**: Flutter → GraphQL → Microservicio → Cache/DB local → (fallback) Parachain RPC
+- **Tiempo Real**: Parachain → Microservicio → Redis Streams → API Gateway → GraphQL Subscription → Flutter
 
 ## Requerimientos
 
@@ -47,33 +54,33 @@ La arquitectura del proyecto se organiza en:
 
 ### Requerimiento 3: Integración con Learning Record Stores (LRS)
 
-**Componente:** Middleware + Backend
+**Componente:** API Gateway + Microservicios
 
-**Historia de Usuario:** Como institución educativa, quiero integrar mi Learning Record Store existente con Keiko, para transferir automáticamente los registros de aprendizaje a la blockchain.
+**Historia de Usuario:** Como institución educativa, quiero integrar mi Learning Record Store existente con Keiko, para transferir automáticamente los registros de aprendizaje a los microservicios.
 
 #### Criterios de Aceptación
 
-1. CUANDO un LRS compatible envía datos a Keiko ENTONCES el sistema DEBERÁ procesar y validar estos datos.
-2. CUANDO se configura la integración con un LRS ENTONCES el sistema DEBERÁ proporcionar las credenciales y endpoints necesarios.
-3. CUANDO se reciben datos de Learning Locker ENTONCES el sistema DEBERÁ transformarlos al formato requerido por el pallet learning_interactions.
-4. SI la conexión con el LRS falla ENTONCES el sistema DEBERÁ almacenar los datos en una cola para reintento.
-5. CUANDO se actualiza el LRS ENTONCES el sistema DEBERÁ sincronizar los nuevos registros con la blockchain.
+1. CUANDO un LRS compatible envía datos via REST webhook ENTONCES el API Gateway DEBERÁ procesar y validar estos datos xAPI
+2. CUANDO se configura la integración con un LRS ENTONCES el sistema DEBERÁ proporcionar endpoints REST y credenciales de webhook
+3. CUANDO se reciben datos de Learning Locker ENTONCES el API Gateway DEBERÁ transformarlos y enviarlos via gRPC al Learning Service
+4. SI la conexión con microservicios falla ENTONCES el API Gateway DEBERÁ almacenar los datos en Redis Streams para reintento
+5. CUANDO se actualiza el LRS ENTONCES el sistema DEBERÁ sincronizar los nuevos registros via eventos de dominio en Redis Streams
 
 ### Requerimiento 4: Ecosistema de Aprendizaje Híbrido (Humano-IA)
 
-**Componente:** Backend + Frontend
+**Componente:** Microservicios + Frontend
 
 **Historia de Usuario:** Como usuario, quiero acceder tanto a educadores humanos como a tutores basados en IA, para obtener la mejor experiencia de aprendizaje según mis necesidades y preferencias.
 
 #### Criterios de Aceptación
 
-1. CUANDO un usuario busca recursos educativos ENTONCES el sistema DEBERÁ ofrecer opciones tanto de tutores humanos como de agentes IA.
-2. CUANDO un educador humano crea una oferta educativa ENTONCES el sistema DEBERÁ permitir establecer un precio en tokens nativos o personalizados.
-3. CUANDO un usuario interactúa con un tutor IA ENTONCES el sistema DEBERÁ registrar estas interacciones en su pasaporte de aprendizaje.
-4. CUANDO se completa una sesión educativa con un humano ENTONCES el sistema DEBERÁ liberar los fondos al educador automáticamente.
-5. CUANDO un tutor IA proporciona contenido educativo ENTONCES el sistema DEBERÁ verificar la calidad y precisión de la información.
-6. SI una sesión con educador humano es disputada ENTONCES el sistema DEBERÁ iniciar un proceso de resolución basado en la gobernanza de la comunidad.
-7. CUANDO se utilizan tutores IA ENTONCES el sistema DEBERÁ permitir personalizar la experiencia según el estilo de aprendizaje del usuario.
+1. CUANDO un usuario busca recursos educativos ENTONCES el Marketplace Service DEBERÁ ofrecer opciones tanto de tutores humanos como de agentes IA via gRPC
+2. CUANDO un educador humano crea una oferta educativa ENTONCES el Marketplace Service DEBERÁ permitir establecer precios y publicar evento de dominio
+3. CUANDO un usuario interactúa con un tutor IA ENTONCES el Learning Service DEBERÁ registrar estas interacciones via gRPC y emitir eventos
+4. CUANDO se completa una sesión educativa ENTONCES el sistema DEBERÁ coordinar pago via eventos entre Marketplace y Identity Services
+5. CUANDO un tutor IA proporciona contenido ENTONCES el AI Tutor Service DEBERÁ verificar calidad antes de enviar via gRPC
+6. SI una sesión es disputada ENTONCES el Governance Service DEBERÁ iniciar proceso de resolución via eventos de dominio
+7. CUANDO se utilizan tutores IA ENTONCES el sistema DEBERÁ personalizar experiencia basándose en datos del Passport Service via gRPC
 
 ### Requerimiento 5: Sistema de Calificación, Comentarios y Reputación Dinámica
 
@@ -111,28 +118,30 @@ La arquitectura del proyecto se organiza en:
 
 **Componente:** Frontend (Flutter)
 
-**Historia de Usuario:** Como usuario, quiero una aplicación Flutter que funcione tanto en web como en dispositivos móviles para visualizar mi pasaporte de aprendizaje como una línea de tiempo vertical, conectándose a la API GraphQL del middleware, para poder acceder y comprender fácilmente mi progreso educativo desde cualquier dispositivo.
+**Historia de Usuario:** Como usuario, quiero una aplicación Flutter que funcione tanto en web como en dispositivos móviles para visualizar mi pasaporte de aprendizaje como una línea de tiempo vertical, conectándose exclusivamente a la API GraphQL del middleware, para poder acceder y comprender fácilmente mi progreso educativo desde cualquier dispositivo.
 
 #### Criterios de Aceptación
 
-1. CUANDO un usuario accede a la aplicación desde web o móvil ENTONCES el sistema DEBERÁ mostrar una visualización cronológica vertical (línea de tiempo) de su pasaporte de aprendizaje, optimizada para scroll vertical en dispositivos móviles.
-2. CUANDO se visualiza el pasaporte ENTONCES el sistema DEBERÁ agrupar visualmente las interacciones de aprendizaje que pertenecen a una misma sesión tutorial.
+1. CUANDO un usuario accede a la aplicación desde web o móvil ENTONCES el sistema DEBERÁ mostrar una visualización cronológica vertical (línea de tiempo) de su pasaporte de aprendizaje, optimizada para scroll vertical en dispositivos móviles
+2. CUANDO se visualiza el pasaporte ENTONCES el sistema DEBERÁ agrupar visualmente las interacciones de aprendizaje que pertenecen a una misma sesión tutorial
 3. CUANDO existen diferentes tipos de interacciones ENTONCES el sistema DEBERÁ diferenciar visualmente entre:
    - Sesiones tutoriales con educadores humanos
    - Sesiones con tutores IA
    - Interacciones de aprendizaje individuales (preguntas puntuales a IA)
    - Sesiones de estudio personal
-4. CUANDO se selecciona una sesión tutorial en la línea de tiempo ENTONCES el sistema DEBERÁ expandir la vista para mostrar todas las interacciones de aprendizaje contenidas en ella.
-5. CUANDO se selecciona una interacción específica ENTONCES el sistema DEBERÁ mostrar todos los detalles y evidencias asociadas.
-6. CUANDO un usuario quiere compartir logros específicos ENTONCES el sistema DEBERÁ generar certificados visuales verificables.
-7. CUANDO se accede desde diferentes dispositivos ENTONCES el sistema DEBERÁ mantener sincronización de datos y experiencia consistente, adaptando la visualización al tamaño de pantalla.
-8. CUANDO la aplicación se ejecuta en móvil ENTONCES el sistema DEBERÁ aprovechar las capacidades nativas del dispositivo como notificaciones push.
-9. CUANDO la aplicación se ejecuta en web ENTONCES el sistema DEBERÁ ser completamente funcional sin necesidad de instalación adicional.
-10. CUANDO la aplicación Flutter se comunica con el backend ENTONCES el sistema DEBERÁ usar GraphQL queries y mutations para obtener y enviar datos de manera eficiente.
+4. CUANDO se selecciona una sesión tutorial en la línea de tiempo ENTONCES el sistema DEBERÁ expandir la vista para mostrar todas las interacciones de aprendizaje contenidas en ella
+5. CUANDO se selecciona una interacción específica ENTONCES el sistema DEBERÁ mostrar todos los detalles y evidencias asociadas
+6. CUANDO un usuario quiere compartir logros específicos ENTONCES el sistema DEBERÁ generar certificados visuales verificables
+7. CUANDO se accede desde diferentes dispositivos ENTONCES el sistema DEBERÁ mantener sincronización de datos y experiencia consistente, adaptando la visualización al tamaño de pantalla
+8. CUANDO la aplicación se ejecuta en móvil ENTONCES el sistema DEBERÁ aprovechar las capacidades nativas del dispositivo como notificaciones push
+9. CUANDO la aplicación se ejecuta en web ENTONCES el sistema DEBERÁ ser completamente funcional sin necesidad de instalación adicional
+10. CUANDO la aplicación Flutter se comunica con el backend ENTONCES el sistema DEBERÁ usar EXCLUSIVAMENTE GraphQL queries, mutations y subscriptions a través del API Gateway middleware
+11. CUANDO se requieran datos en tiempo real ENTONCES el sistema DEBERÁ usar GraphQL subscriptions que se alimentan de eventos Redis Streams
+12. CUANDO el frontend necesite datos de múltiples microservicios ENTONCES el API Gateway DEBERÁ orquestar las llamadas gRPC y devolver una respuesta GraphQL unificada
 
 ### Requerimiento 8: Panel Administrativo Web con Leptos
 
-**Componente:** Middleware (Panel Admin Leptos)
+**Componente:** API Gateway (Panel Admin Leptos)
 
 **Historia de Usuario:** Como administrador del sistema, quiero un panel web construido con Leptos para gestionar usuarios, validar interacciones y monitorear el sistema, para tener control administrativo completo con una interfaz web moderna y eficiente.
 
@@ -147,27 +156,27 @@ La arquitectura del proyecto se organiza en:
 7. CUANDO se accede al panel ENTONCES el sistema DEBERÁ requerir autenticación administrativa y permisos apropiados.
 8. CUANDO se realizan cambios administrativos ENTONCES el sistema DEBERÁ registrar todas las acciones en un log de auditoría.
 
-### Requerimiento 9: Middleware Rust para Integración con Sistemas Externos
+### Requerimiento 9: API Gateway GraphQL
 
-**Componente:** Middleware (Rust)
+**Componente:** API Gateway (Rust)
 
-**Historia de Usuario:** Como desarrollador, quiero un middleware construido completamente en Rust que facilite la comunicación entre sistemas externos y la blockchain de Keiko mediante GraphQL, para integrar fácilmente otras plataformas educativas con máximo rendimiento y type safety.
+**Historia de Usuario:** Como desarrollador de frontend, quiero un API Gateway GraphQL que traduzca mis queries a llamadas gRPC a microservicios, para tener una interfaz unificada y type-safe desde el frontend Flutter sin conocer la arquitectura interna de microservicios.
 
 #### Criterios de Aceptación
 
-1. CUANDO un sistema externo envía datos ENTONCES el middleware Rust DEBERÁ validar y transformar estos datos xAPI al formato de la parachain usando type-safe structs.
-2. CUANDO se procesan datos válidos ENTONCES el middleware DEBERÁ enviar extrinsics a la blockchain de Keiko usando substrate-api-client nativo.
-3. CUANDO tutores o estudiantes registran nuevas interacciones ENTONCES el middleware DEBERÁ procesar y almacenar estas interacciones en la blockchain con validación compile-time.
-4. CUANDO el frontend Leptos solicita datos ENTONCES el middleware DEBERÁ proporcionar APIs GraphQL usando Juniper para comunicación type-safe.
-5. CUANDO tutores IA generan interacciones ENTONCES el middleware DEBERÁ procesar y validar estas interacciones antes del registro usando async Rust.
-6. CUANDO la blockchain confirma una transacción ENTONCES el middleware DEBERÁ notificar al sistema de origen usando channels async.
-7. SI ocurre un error en la comunicación ENTONCES el middleware DEBERÁ implementar mecanismos de reintento usando tokio y anyhow para manejo de errores.
-8. CUANDO se requiere escalabilidad ENTONCES el middleware DEBERÁ soportar procesamiento en lotes y paralelización usando async/await nativo de Rust.
-9. CUANDO se integra con LMS existentes ENTONCES el middleware DEBERÁ ser compatible con APIs de Moodle, Canvas, Blackboard usando reqwest y serde para HTTP clients type-safe.
+1. CUANDO el frontend Flutter envía queries GraphQL ENTONCES el API Gateway DEBERÁ traducir automáticamente a llamadas gRPC a los microservicios correspondientes
+2. CUANDO se requieran datos de múltiples microservicios ENTONCES el API Gateway DEBERÁ orquestar llamadas gRPC paralelas y agregar resultados
+3. CUANDO se ejecuten mutations GraphQL ENTONCES el API Gateway DEBERÁ traducir a llamadas gRPC y manejar transacciones distribuidas
+4. CUANDO ocurran errores en microservicios ENTONCES el API Gateway DEBERÁ mapear errores gRPC a errores GraphQL comprensibles
+5. CUANDO se requiera autenticación ENTONCES el API Gateway DEBERÁ validar tokens JWT y propagar contexto de usuario via gRPC metadata
+6. CUANDO se necesite cache ENTONCES el API Gateway DEBERÁ implementar cache de queries GraphQL con invalidación basada en eventos Redis
+7. CUANDO se reciban eventos de dominio ENTONCES el API Gateway DEBERÁ actualizar subscriptions GraphQL en tiempo real
+8. CUANDO sistemas externos requieran integración ENTONCES el API Gateway DEBERÁ exponer endpoints REST para webhooks y APIs de terceros
+9. CUANDO se requiera observabilidad ENTONCES el API Gateway DEBERÁ instrumentar todas las llamadas GraphQL → gRPC con OpenTelemetry
 
 ### Requerimiento 10: Interoperabilidad y Estándares Abiertos
 
-**Componente:** Backend + Middleware
+**Componente:** Blockchain + API Gateway
 
 **Historia de Usuario:** Como institución educativa, quiero que Keiko utilice estándares abiertos e interoperables, para integrarme fácilmente con el ecosistema educativo existente.
 
@@ -181,7 +190,7 @@ La arquitectura del proyecto se organiza en:
 
 ### Requerimiento 11: Seguridad y Privacidad de Datos
 
-**Componente:** Backend + Frontend + Middleware
+**Componente:** Blockchain + Frontend + API Gateway
 
 **Historia de Usuario:** Como usuario, quiero tener control sobre mis datos educativos y su privacidad, para proteger mi información personal mientras demuestro mis habilidades.
 
@@ -195,7 +204,7 @@ La arquitectura del proyecto se organiza en:
 
 ### Requerimiento 12: Tutores IA Avanzados
 
-**Componente:** Backend + Frontend + Middleware
+**Componente:** Services + Frontend + API Gateway
 
 **Historia de Usuario:** Como estudiante, quiero acceder a tutores IA especializados que puedan adaptarse a mi estilo de aprendizaje y necesidades específicas, para maximizar mi progreso educativo sin depender exclusivamente de educadores humanos.
 
@@ -295,7 +304,26 @@ La arquitectura del proyecto se organiza en:
 10. CUANDO se analiza el progreso de aprendizaje ENTONCES el sistema DEBERÁ proporcionar métricas tanto a nivel de sesiones tutoriales como de interacciones individuales.
 11. CUANDO se exportan datos de aprendizaje ENTONCES el sistema DEBERÁ mantener la jerarquía entre sesiones tutoriales e interacciones atómicas.
 
-### Requerimiento 18: Jerarquía Completa de Experiencias de Aprendizaje
+### Requerimiento 18: Arquitectura Híbrida Parachain-Microservicios
+
+**Componente:** Blockchain + Services + API Gateway
+
+**Historia de Usuario:** Como arquitecto de software, quiero una arquitectura híbrida donde la parachain Substrate sea la fuente de verdad y los microservicios actúen como capa de servicio, para combinar las ventajas de blockchain (inmutabilidad, consenso) con la flexibilidad de microservicios (escalabilidad, cache, APIs modernas).
+
+#### Criterios de Aceptación
+
+1. CUANDO se escriban datos críticos ENTONCES los microservicios DEBERÁ enviar transacciones a la parachain Substrate como fuente de verdad inmutable
+2. CUANDO se lean datos frecuentemente ENTONCES los microservicios DEBERÁ servir desde cache local con fallback a RPC de parachain
+3. CUANDO ocurran cambios en la parachain ENTONCES los microservicios DEBERÁ detectar eventos y actualizar cache local automáticamente
+4. CUANDO se requiera comunicación entre microservicios ENTONCES DEBERÁ usar exclusivamente gRPC con service discovery
+5. CUANDO se publiquen eventos de dominio ENTONCES los microservicios DEBERÁ usar Redis Streams (NUNCA la parachain)
+6. CUANDO el API Gateway reciba queries GraphQL ENTONCES DEBERÁ traducir a llamadas gRPC y orquestar respuestas de múltiples microservicios
+7. CUANDO se requieran subscriptions en tiempo real ENTONCES el API Gateway DEBERÁ usar Redis Streams para alimentar GraphQL subscriptions
+8. CUANDO sistemas externos requieran integración ENTONCES DEBERÁ usar endpoints REST solo en el API Gateway (no en microservicios)
+9. CUANDO se desplieguen microservicios ENTONCES cada uno DEBERÁ tener su propia base de datos PostgreSQL independiente
+10. CUANDO se requiera observabilidad ENTONCES DEBERÁ instrumentar toda la cadena: GraphQL → gRPC → Parachain RPC
+
+### Requerimiento 19: Jerarquía Completa de Experiencias de Aprendizaje
 
 **Componente:** Backend + Frontend
 
