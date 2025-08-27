@@ -4,7 +4,6 @@
 
 - [x] 1. Configurar estructura del monorepo y herramientas de desarrollo
 
-
   - Crear estructura de directorios del monorepo con backend/, frontend/, middleware/, shared/ y docs/
   - Configurar Cargo workspace para el backend Rust
   - Configurar Flutter workspace para el frontend multiplataforma
@@ -13,9 +12,6 @@
 
 - [x] 2. Implementar configuración base del nodo Substrate
 
-
-
-
   - Crear configuración inicial del nodo Substrate en backend/node/ con main.rs y service.rs
   - Implementar configuración de red y consenso para desarrollo local
   - Configurar CLI básico para el nodo con parámetros de desarrollo
@@ -23,16 +19,6 @@
   - _Requerimientos: 14.1, 14.2_
 
 - [x] 3. Implementar runtime base de la parachain
-
-
-
-
-
-
-
-
-
-
 
   - Crear runtime básico de parachain en backend/runtime/ con lib.rs
   - Configurar pallets básicos de Substrate (System, Timestamp, Balances, etc.)
@@ -43,13 +29,7 @@
 
 - [x] 4. **Desarrollar** pallet Learning Interactions
 
-
-
-
 - [x] 4.1 Crear estructura base del pallet
-
-
-
 
   - Crear archivo lib.rs en backend/pallets/learning_interactions/
   - Implementar estructura básica del pallet con Config trait
@@ -58,21 +38,16 @@
   - Escribir tests básicos de compilación
   - _Requerimientos: 2.1, 2.2_
 
-
-
 - [x] 4.2 Implementar estructuras de datos xAPI
-
 
   - Crear tipos Rust para LearningInteraction, Actor, Verb, Object según estándar xAPI
   - Implementar validación de estructura xAPI en el pallet
   - Crear funciones de serialización/deserialización para compatibilidad JSON
 
-
   - Escribir tests unitarios para validación de datos xAPI
   - _Requerimientos: 2.1, 2.2, 9.1, 9.2_
 
 - [x] 4.3 Implementar jerarquía de experiencias de aprendizaje
-
 
   - Crear estructuras Course, Class, TutorialSession en el pallet
   - Implementar relaciones jerárquicas entre contenedores educativos
@@ -84,7 +59,6 @@
 
 - [x] 4.4 Implementar registro de interacciones atómicas
 
-
   - Crear extrinsic create_interaction para registrar interacciones individuales
   - Implementar validación de contenido y estructura de interacciones
   - Crear sistema de eventos para notificar interacciones registradas
@@ -94,15 +68,7 @@
 
 - [x] 5. Desarrollar pallet Life Learning Passport
 
-
-
-
-
 - [x] 5.1 Crear estructura base del pallet
-
-
-
-
 
   - Crear archivo lib.rs en backend/pallets/life_learning_passport/
   - Implementar estructura básica del pallet con Config trait
@@ -111,11 +77,7 @@
   - Escribir tests básicos de compilación
   - _Requerimientos: 1.1, 1.2_
 
-
-
 - [x] 5.2 Implementar estructura del pasaporte
-
-
 
   - Crear estructura LifeLearningPassport con referencias a interacciones
   - Implementar configuraciones de privacidad granulares
@@ -123,22 +85,17 @@
   - Implementar queries para recuperar datos del pasaporte
   - Escribir tests para creación y gestión de pasaportes
 
-
   - _Requerimientos: 1.1, 1.2, 10.3_
 
 - [x] 5.3 Implementar sistema de compartir pasaportes
-
-
 
   - Crear funcionalidad para generar enlaces verificables de pasaportes
   - Implementar verificación criptográfica de autenticidad de datos
   - Crear sistema de permisos para compartir datos específicos
   - Implementar expiración de enlaces compartidos
 
-
   - Escribir tests para verificación y compartir de pasaportes
   - _Requerimientos: 1.4, 1.5, 10.4_
-
 
 - [x] 5.4 Implementar perfiles de aprendizaje
 
@@ -151,11 +108,7 @@
 
 - [-] 6. Desarrollar pallet Reputation System
 
-
 - [x] 6.1 Crear estructura base del pallet
-
-
-
 
   - Crear archivo lib.rs en backend/pallets/reputation_system/
   - Implementar estructura básica del pallet con Config trait
@@ -166,9 +119,6 @@
 
 - [x] 6.2 Implementar sistema de calificaciones con expiración
 
-
-
-
   - Crear estructura Rating con timestamp de expiración (30 días)
   - Implementar extrinsic create_rating para calificar usuarios
   - Crear sistema automático de expiración de calificaciones
@@ -177,12 +127,6 @@
   - _Requerimientos: 5.1, 5.2, 5.4, 5.5, 5.9_
 
 - [x] 6.3 Implementar sistema bidireccional de calificaciones
-
-
-
-
-
-
 
   - Crear funcionalidad para que tutores califiquen estudiantes
   - Implementar sistema de comentarios detallados en calificaciones
@@ -274,129 +218,148 @@
   - Escribir tests de integración del runtime completo
   - _Requerimientos: Todos los requerimientos de backend dependen de esta integración_
 
-- [ ] 10. Desarrollar middleware - API Gateway
+- [ ] 10. Desarrollar middleware - Servidor GraphQL (Juniper)
 - [ ] 10.1 Crear estructura base del servicio
 
-  - Crear directorio src/ en middleware/api_gateway/
-  - Implementar main.ts con configuración básica de NestJS
-  - Crear módulos base (app.module.ts, controllers, services)
-  - Configurar TypeScript y dependencias en package.json
+  - Crear directorio src/ en middleware/graphql_server/
+  - Implementar main.rs con configuración básica de Axum + Juniper
+  - Crear módulos base (schema.rs, context.rs, handlers.rs)
+  - Configurar Cargo.toml con dependencias Rust necesarias
   - Escribir tests básicos de compilación y arranque
   - _Requerimientos: 8.1, 8.2_
 
-- [ ] 10.2 Implementar APIs REST/GraphQL básicas
+- [ ] 10.2 Implementar esquema GraphQL con Juniper
 
-  - Crear servidor NestJS con endpoints REST para usuarios e interacciones
-  - Implementar esquema GraphQL para consultas complejas de datos
-  - Crear middleware de autenticación y autorización
-  - Implementar validación de datos de entrada
-  - Escribir tests de integración para APIs
+  - Crear tipos GraphQL para usuarios, interacciones y pasaportes usando derive macros
+  - Implementar Query root con resolvers async para consultas complejas
+  - Implementar Mutation root para operaciones de escritura
+  - Crear Context para acceso a servicios y base de datos
+  - Escribir tests de integración para esquema GraphQL
   - _Requerimientos: 8.4, 9.3_
 
-- [ ] 10.3 Implementar puente con parachain
+- [ ] 10.3 Implementar puente nativo con parachain
 
-  - Crear servicio ParachainBridge para comunicación con Substrate
-  - Implementar pool de conexiones y manejo de transacciones
-  - Crear sistema de cola para transacciones fallidas con reintentos
-  - Implementar cache de datos frecuentemente consultados
+  - Crear servicio ParachainBridge usando substrate-api-client
+  - Implementar pool de conexiones async y manejo de transacciones
+  - Crear sistema de cola para transacciones fallidas con tokio
+  - Implementar cache usando Redis con async clients
   - Escribir tests para comunicación con parachain
   - _Requerimientos: 8.1, 8.2, 8.6, 8.7_
 
 - [ ] 10.4 Implementar procesamiento en lotes y optimizaciones
 
-  - Crear sistema de batching para múltiples transacciones
-  - Implementar paralelización de operaciones independientes
-  - Crear sistema de métricas y monitoreo de rendimiento
-  - Implementar cache distribuido para escalabilidad
-  - Escribir tests de rendimiento y carga
+  - Crear sistema de batching usando async streams
+  - Implementar paralelización con tokio::spawn y futures
+  - Crear sistema de métricas usando prometheus crate
+  - Implementar cache distribuido con Redis cluster
+  - Escribir tests de rendimiento y carga con criterion
   - _Requerimientos: 8.8_
 
-- [ ] 11. Desarrollar middleware - Servicio de Integración LRS
+- [ ] 11. Desarrollar middleware - Servicio de Integración LRS (Rust)
 - [ ] 11.1 Crear estructura base del servicio
 
   - Crear directorio src/ en middleware/lrs_connector/
-  - Crear package.json con dependencias necesarias
-  - Implementar main.ts con configuración básica de NestJS
+  - Crear Cargo.toml con dependencias Rust necesarias (reqwest, serde, tokio)
+  - Implementar main.rs con configuración básica usando tokio runtime
   - Crear módulos base para diferentes adaptadores LRS
   - Escribir tests básicos de compilación
   - _Requerimientos: 3.1, 3.2_
 
 - [ ] 11.2 Implementar transformación de datos LRS
 
-  - Crear transformadores para Learning Locker, SCORM Cloud, Moodle y Canvas
-  - Implementar validación de datos xAPI entrantes
-  - Crear sistema de mapeo de usuarios entre sistemas
-  - Implementar normalización de datos de diferentes fuentes
-  - Escribir tests para transformación de datos
+  - Crear transformadores para Learning Locker, SCORM Cloud, Moodle y Canvas usando serde
+  - Implementar validación de datos xAPI entrantes con type-safe structs
+  - Crear sistema de mapeo de usuarios entre sistemas usando HashMap
+  - Implementar normalización de datos usando traits y generics
+  - Escribir tests para transformación de datos con proptest
   - _Requerimientos: 3.1, 3.2, 8.9_
 
 - [ ] 11.3 Implementar sincronización automática
 
-  - Crear sistema de webhooks para recibir datos en tiempo real
-  - Implementar polling para sistemas que no soportan webhooks
-  - Crear sistema de detección de cambios y sincronización incremental
-  - Implementar manejo de errores y reintentos con backoff exponencial
-  - Escribir tests para sincronización automática
+  - Crear sistema de webhooks usando axum para recibir datos en tiempo real
+  - Implementar polling usando tokio::time::interval para sistemas sin webhooks
+  - Crear sistema de detección de cambios usando async streams
+  - Implementar manejo de errores y reintentos con exponential backoff usando tokio-retry
+  - Escribir tests para sincronización automática con tokio-test
   - _Requerimientos: 3.3, 3.4, 3.5_
 
-- [ ] 12. Desarrollar middleware - Servicio de Tutores IA
+- [ ] 12. Desarrollar middleware - Servicio de Tutores IA (Rust)
 - [ ] 12.1 Crear estructura base del servicio
 
   - Crear directorio src/ en middleware/ai_tutor_service/
-  - Crear package.json con dependencias para integración de LLMs
-  - Implementar main.ts con configuración básica de NestJS
+  - Crear Cargo.toml con dependencias para integración de LLMs (reqwest, serde_json, async-openai)
+  - Implementar main.rs con configuración básica usando tokio runtime
   - Crear módulos base para diferentes proveedores de IA
   - Escribir tests básicos de compilación
   - _Requerimientos: 4.1, 4.2_
 
 - [ ] 12.2 Implementar motor de IA personalizable
 
-  - Integrar modelos de IA (GPT, Claude, etc.) para tutoría personalizada
-  - Crear sistema de adaptación de contenido basado en perfiles de aprendizaje
-  - Implementar generación de contenido educativo especializado por dominio
-  - Crear sistema de verificación de precisión de información
-  - Escribir tests para generación de contenido IA
+  - Integrar modelos de IA (GPT, Claude, etc.) usando async HTTP clients
+  - Crear sistema de adaptación de contenido usando pattern matching y structs
+  - Implementar generación de contenido educativo usando templates y serde
+  - Crear sistema de verificación de precisión usando validation traits
+  - Escribir tests para generación de contenido IA con mock servers
   - _Requerimientos: 4.2, 11.1, 11.2, 11.3, 11.7_
 
 - [ ] 12.3 Implementar sistema de recomendaciones adaptativas
 
-  - Crear algoritmos de recomendación basados en historial de aprendizaje
-  - Implementar detección de dificultades y sugerencias de recursos adicionales
-  - Crear sistema de escalación a tutores humanos cuando sea necesario
-  - Implementar mejora continua basada en feedback de usuarios
-  - Escribir tests para sistema de recomendaciones
+  - Crear algoritmos de recomendación usando machine learning crates (candle, tch)
+  - Implementar detección de dificultades usando pattern analysis
+  - Crear sistema de escalación usando async channels
+  - Implementar mejora continua usando feedback loops con tokio streams
+  - Escribir tests para sistema de recomendaciones con property-based testing
   - _Requerimientos: 11.4, 11.5, 11.6, 13.1, 13.2, 13.3, 13.4, 13.5, 13.6, 13.7, 13.8_
 
 - [ ] 12.4 Implementar evaluación pedagógica inicial
 
-  - Crear cuestionarios adaptativos para identificar estilos de aprendizaje
-  - Implementar análisis de respuestas y generación de perfiles personalizados
-  - Crear sistema de reevaluación periódica y actualización de perfiles
-  - Implementar construcción gradual de perfiles basada en interacciones
-  - Escribir tests para evaluación pedagógica
+  - Crear cuestionarios adaptativos usando enum-based state machines
+  - Implementar análisis de respuestas usando statistical analysis crates
+  - Crear sistema de reevaluación usando cron-like scheduling con tokio-cron-scheduler
+  - Implementar construcción gradual de perfiles usando incremental updates
+  - Escribir tests para evaluación pedagógica con quickcheck
   - _Requerimientos: 12.1, 12.2, 12.5, 12.7_
 
-- [ ] 13. Desarrollar frontend Flutter - Configuración base
-- [ ] 13.1 Implementar estructura base de la aplicación
+- [ ] 13. Desarrollar panel admin Leptos - Configuración base
+- [ ] 13.1 Implementar estructura base del panel administrativo
 
-  - Crear main.dart con configuración básica de la aplicación
+  - Crear main.rs con configuración básica de Leptos SSR/CSR en middleware/admin_panel/
+  - Implementar estructura de módulos src/ con app, components, pages, services
+  - Configurar Leptos.toml para build configuration y features administrativas
+  - Crear configuración base para autenticación administrativa
+  - Escribir tests básicos de configuración con wasm-bindgen-test
+  - _Requerimientos: 8.1, 8.7_
+
+- [ ] 13.2 Implementar gestión de estado administrativo con Leptos Signals
+
+  - Configurar signals y resources para gestión de estado del panel admin
+  - Crear hooks personalizados para autenticación admin y navegación
+  - Implementar servicios para abstracción de datos administrativos
+  - Crear cliente GraphQL para comunicación con APIs usando reqwest
+  - Escribir tests unitarios para hooks y servicios administrativos
+  - _Requerimientos: 8.2, 8.3, 8.4, 8.5, 8.6, 8.8_
+
+- [ ] 14. Desarrollar frontend Flutter - Configuración base
+- [ ] 14.1 Implementar estructura base de la aplicación
+
+  - Crear main.dart con configuración básica de la aplicación Flutter
   - Implementar estructura de carpetas core/ con constants, errors, network, utils
   - Configurar inyección de dependencias con get_it e injectable
   - Crear configuración base para diferentes entornos (dev, staging, prod)
   - Escribir tests básicos de configuración
   - _Requerimientos: 7.7, 7.8, 7.9_
 
-- [ ] 13.2 Implementar gestión de estado con Bloc
+- [ ] 14.2 Implementar gestión de estado con Bloc
 
   - Configurar flutter_bloc para gestión de estado reactivo
   - Crear blocs base para autenticación, navegación y datos globales
   - Implementar patrón repository para abstracción de datos
-  - Crear servicios de red para comunicación con APIs
+  - Crear cliente GraphQL para comunicación con APIs usando graphql_flutter
   - Escribir tests unitarios para blocs y repositorios
   - _Requerimientos: Todos los requerimientos de frontend dependen de esta base_
 
-- [ ] 14. Desarrollar frontend Flutter - Visualización de pasaporte
-- [ ] 14.1 Crear estructura del módulo passport
+- [ ] 15. Desarrollar frontend Flutter - Visualización de pasaporte
+- [ ] 15.1 Crear estructura del módulo passport
 
   - Crear directorio features/passport/ con estructura Clean Architecture
   - Implementar domain/entities/ con modelos de pasaporte e interacciones
@@ -405,7 +368,7 @@
   - Escribir tests unitarios para entidades y casos de uso
   - _Requerimientos: 1.1, 1.2, 1.3_
 
-- [ ] 14.2 Implementar línea de tiempo vertical
+- [ ] 15.2 Implementar línea de tiempo vertical
 
   - Crear widget TimelineView con scroll vertical optimizado para móvil
   - Implementar visualización cronológica de interacciones de aprendizaje
@@ -414,26 +377,26 @@
   - Escribir tests de widgets para línea de tiempo
   - _Requerimientos: 7.1, 7.2, 7.5_
 
-- [ ] 14.3 Implementar navegación jerárquica
+- [ ] 15.3 Implementar navegación jerárquica
 
   - Crear sistema de navegación entre niveles de jerarquía educativa
   - Implementar badges y etiquetas para mostrar relaciones jerárquicas
   - Crear filtros para diferentes tipos de experiencias de aprendizaje
   - Implementar búsqueda dentro del historial de aprendizaje
   - Escribir tests para navegación jerárquica
-  - _Requerimientos: 7.3, 7.4, 17.9, 17.10_
+  - _Requerimientos: 7.3, 7.4, 18.9, 18.10_
 
-- [ ] 14.4 Implementar funcionalidades de compartir
+- [ ] 15.4 Implementar funcionalidades de compartir
 
   - Crear generador de certificados visuales verificables
   - Implementar sistema de compartir logros específicos en redes sociales
   - Crear enlaces verificables para compartir pasaportes completos
   - Implementar configuraciones de privacidad granulares
   - Escribir tests para funcionalidades de compartir
-  - _Requerimientos: 7.6, 1.5, 10.3_
+  - _Requerimientos: 7.6, 1.5, 11.3_
 
-- [ ] 15. Desarrollar frontend Flutter - Interacción con tutores IA
-- [ ] 15.1 Crear estructura del módulo tutoring
+- [ ] 16. Desarrollar frontend Flutter - Interacción con tutores IA
+- [ ] 16.1 Crear estructura del módulo tutoring
 
   - Crear directorio features/tutoring/ con estructura Clean Architecture
   - Implementar domain/entities/ con modelos de sesiones y tutores
@@ -442,32 +405,32 @@
   - Escribir tests unitarios para entidades y casos de uso
   - _Requerimientos: 4.1, 4.2_
 
-- [ ] 15.2 Implementar interfaz de chat con IA
+- [ ] 16.2 Implementar interfaz de chat con IA
 
   - Crear widget de chat conversacional para interacción con tutores IA
   - Implementar diferentes tipos de mensajes (texto, imágenes, diagramas)
   - Crear sistema de sugerencias y respuestas rápidas
   - Implementar indicadores de typing y estado de conexión
   - Escribir tests para interfaz de chat
-  - _Requerimientos: 4.1, 11.1_
+  - _Requerimientos: 4.1, 12.1_
 
-- [ ] 15.3 Implementar personalización basada en perfil
+- [ ] 16.3 Implementar personalización basada en perfil
 
   - Crear sistema de adaptación de UI basado en estilo de aprendizaje
   - Implementar contenido visual para aprendices visuales
   - Crear elementos interactivos para aprendices kinestésicos
   - Implementar opciones de audio para aprendices auditivos
   - Escribir tests para personalización de UI
-  - _Requerimientos: 4.2, 11.2, 12.4_
+  - _Requerimientos: 4.2, 12.2, 13.4_
 
-- [ ] 15.4 Implementar evaluación pedagógica inicial
+- [ ] 16.4 Implementar evaluación pedagógica inicial
 
   - Crear wizard de evaluación inicial para nuevos usuarios
   - Implementar diferentes tipos de preguntas (opción múltiple, escenarios, escalas)
   - Crear visualización de resultados de evaluación
   - Implementar sistema de reevaluación periódica opcional
   - Escribir tests para evaluación pedagógica
-  - _Requerimientos: 12.1, 12.2, 12.5, 12.7_
+  - _Requerimientos: 13.1, 13.2, 13.5, 13.7_
 
 - [ ] 16. Desarrollar frontend Flutter - Marketplace de espacios
 - [ ] 16.1 Crear estructura del módulo marketplace
@@ -610,3 +573,5 @@
   - Crear scripts de despliegue para entornos de desarrollo
   - Configurar notificaciones de estado de builds
   - _Requerimientos: Todos los requerimientos necesitan despliegue automatizado_
+
+

@@ -3,12 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "workspaces": [
-    "middleware/*",
     "shared/*"
   ],
   "scripts": {
-    "build": "yarn workspaces run build",
-    "test": "yarn workspaces run test",
-    "lint": "yarn workspaces run lint"
+    "build": "cargo build --release",
+    "test": "cargo test",
+    "lint": "cargo clippy",
+    "dev": "cargo leptos watch",
+    "serve": "cargo leptos serve"
   }
 }

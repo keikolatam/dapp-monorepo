@@ -90,6 +90,7 @@ pub mod pallet {
 
     /// Rating type to distinguish different kinds of ratings
     #[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug, TypeInfo, MaxEncodedLen)]
+    #[codec(mel_bound())]
     pub enum RatingType {
         /// Student rating tutor after session
         StudentToTutor,
@@ -151,6 +152,7 @@ pub mod pallet {
 
     /// Detailed rating aspects for comprehensive feedback
     #[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug, TypeInfo, MaxEncodedLen)]
+    #[codec(mel_bound())]
     pub struct RatingAspects {
         /// Communication skills (1-5)
         pub communication: Option<u8>,

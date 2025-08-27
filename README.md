@@ -796,6 +796,8 @@ Keiko está construido como un **monorepo** que integra:
 - **Framework:** Flutter (Web + Móvil)
 - **Arquitectura:** Clean Architecture con separación en 3 capas (Domain, Data, Presentation)
 - **Gestión de Estado:** BLoC Pattern para cada feature
+- **Comunicación:** Cliente GraphQL para conectar con el middleware
+- **Visualización de Datos:** Cristalyse para analytics educativos y dashboards interactivos
 - **Videollamadas:** Integración con múltiples SDKs para tutorías virtuales inclusivas
 - **Capas de Clean Architecture:**
   - **Core (Núcleo)**
@@ -832,17 +834,24 @@ Keiko está construido como un **monorepo** que integra:
   - **widget/**: Tests de widgets
   - **integration/**: Tests de integración
 
-### Middleware de Integración
+### Middleware de Integración (Rust)
 
-- **Propósito:**
-  - Migración de datos históricos desde LRS existentes ([Learning Locker](https://learninglocker.net/), SCORM Cloud, etc.)
-  - Registro de nuevas interacciones de aprendizaje desde tutores y estudiantes
+- **Servidor GraphQL (Juniper):**
+  - API GraphQL type-safe para comunicación con frontend Flutter
+  - Resolvers async para consultas complejas de datos
+  - Integración directa con la parachain usando substrate-api-client
+- **Panel Administrativo (Leptos):**
+  - Interfaz web para administradores con SSR/CSR
+  - CRUD para gestión de usuarios, tutores y validación de contenido
+  - Dashboard con métricas y monitoreo del sistema
+- **Servicios Backend:**
+  - Migración de datos históricos desde LRS existentes
+  - Procesamiento de interacciones de tutores IA
   - Integración con sistemas educativos externos
 - **Funcionalidades:**
   - Validación y transformación de datos xAPI al formato de la parachain
   - Envío de extrinsics a la blockchain para registrar interacciones
-  - APIs REST/GraphQL para el frontend Flutter
-  - Procesamiento de interacciones generadas por tutores IA
+  - Procesamiento async con tokio para alta concurrencia
 - **Compatibilidad:** APIs de LMS (Moodle, Canvas, Blackboard), plataformas educativas, y aplicaciones cliente
 
 ### Integración de Videollamadas para Tutorías Virtuales
@@ -993,6 +1002,32 @@ dependencies:
 - [ ] APIs de integración con LMS (Moodle, Canvas, Blackboard)
 - [ ] Servicios de migración de datos históricos
 - [ ] Validación y transformación de datos xAPI
+
+## Tecnologías Clave
+
+### Backend
+
+- **Blockchain**: Substrate, Polkadot, FRAME pallets
+- **Lenguaje**: Rust con async/await nativo
+
+### Middleware
+
+- **GraphQL**: Juniper para APIs type-safe
+- **Admin Panel**: Leptos para SSR/CSR
+- **Servicios**: Tokio, Axum, Redis
+
+### Frontend
+
+- **Framework**: Flutter multiplataforma
+- **Arquitectura**: Clean Architecture + BLoC
+- **Visualización**: Cristalyse para analytics educativos
+- **Comunicación**: Cliente GraphQL
+- **Videollamadas**: Jitsi Meet, Agora.io, Zoom SDK
+
+### Estándares
+
+- **Datos**: xAPI (Tin Can API) para interoperabilidad
+- **Blockchain**: Polkadot parachain para escalabilidad
 
 ## Contribuyentes
 

@@ -45,6 +45,7 @@ middleware/*/coverage/
 *.swp
 *.swo
 *~
+.kiro/settings/mcp.json
 
 # OS generated files
 .DS_Store
@@ -105,3 +106,6 @@ pids/
 *.pid
 *.seed
 *.pid.lock
+.kiro/settings/mcp.json
+.kiro/settings/mcp.json
+.kiro/settings/mcp.json

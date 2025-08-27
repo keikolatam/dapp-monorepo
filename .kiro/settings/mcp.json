@@ -8,6 +8,70 @@
       },
       "disabled": false,
       "autoApprove": ["read_file", "write_file", "list_directory"]
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"],
+      "disabled": false,
+      "autoApprove": ["resolve-library-id"]
+    },
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "env": {
+        "MEMORY_FILE_PATH": "${input:memory_file_path}"
+      },
+      "disabled": false,
+      "autoApprove": []
+    },
+    "sequentialthinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "disabled": false,
+      "autoApprove": ["sequentialthinking"]
+    },
+    "terraform": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "hashicorp/terraform-mcp-server"],
+      "disabled": true,
+      "autoApprove": []
+    },
+    "github": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "-e",
+        "GITHUB_TOOLSETS",
+        "-e",
+        "GITHUB_READ_ONLY",
+        "ghcr.io/github/github-mcp-server"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "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",
+        "GITHUB_TOOLSETS": "",
+        "GITHUB_READ_ONLY": ""
+      },
+      "disabled": true,
+      "autoApprove": []
+    },
+    "figma-dev-mode": {
+      "args": [],
+      "disabled": true,
+      "autoApprove": []
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "C:/Users/lapc9/Documents/GitHub"
+      ],
+      "disabled": false,
+      "autoApprove": []
     }
   }
 }

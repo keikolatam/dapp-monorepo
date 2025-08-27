@@ -7,8 +7,8 @@ Keiko es una red social educativa descentralizada (DApp) construida como un mono
 La arquitectura del proyecto se organiza en:
 
 - **Backend**: Blockchain personalizada en Rust usando Substrate con pallets especializados
-- **Frontend**: Aplicación Flutter que funciona tanto en web como en dispositivos móviles
-- **Middleware**: Servicios de integración para migración de datos históricos desde LRS existentes ([Learning Locker](https://learninglocker.net/), SCORM Cloud, etc.), registro de nuevas interacciones de aprendizaje desde tutores y estudiantes, e integración con sistemas educativos externos
+- **Middleware**: Servicios Rust unificados incluyendo servidor GraphQL con Juniper, frontend web con Leptos SSR/CSR, servicios de IA, integración con LRS, y puente nativo con la parachain
+- **Stack Completo en Rust**: Eliminación de Node.js/TypeScript en favor de un ecosistema Rust completo para mejor rendimiento, type safety y mantenibilidad
 
 ## Requerimientos
 
@@ -109,9 +109,9 @@ La arquitectura del proyecto se organiza en:
 
 ### Requerimiento 7: Aplicación Frontend Multiplataforma con Visualización Cronológica
 
-**Componente:** Frontend
+**Componente:** Frontend (Flutter)
 
-**Historia de Usuario:** Como usuario, quiero una aplicación Flutter que funcione tanto en web como en dispositivos móviles para visualizar mi pasaporte de aprendizaje como una línea de tiempo vertical, para poder acceder y comprender fácilmente mi progreso educativo desde cualquier dispositivo.
+**Historia de Usuario:** Como usuario, quiero una aplicación Flutter que funcione tanto en web como en dispositivos móviles para visualizar mi pasaporte de aprendizaje como una línea de tiempo vertical, conectándose a la API GraphQL del middleware, para poder acceder y comprender fácilmente mi progreso educativo desde cualquier dispositivo.
 
 #### Criterios de Aceptación
 
@@ -128,26 +128,44 @@ La arquitectura del proyecto se organiza en:
 7. CUANDO se accede desde diferentes dispositivos ENTONCES el sistema DEBERÁ mantener sincronización de datos y experiencia consistente, adaptando la visualización al tamaño de pantalla.
 8. CUANDO la aplicación se ejecuta en móvil ENTONCES el sistema DEBERÁ aprovechar las capacidades nativas del dispositivo como notificaciones push.
 9. CUANDO la aplicación se ejecuta en web ENTONCES el sistema DEBERÁ ser completamente funcional sin necesidad de instalación adicional.
+10. CUANDO la aplicación Flutter se comunica con el backend ENTONCES el sistema DEBERÁ usar GraphQL queries y mutations para obtener y enviar datos de manera eficiente.
 
-### Requerimiento 8: Middleware para Integración con Sistemas Externos
+### Requerimiento 8: Panel Administrativo Web con Leptos
 
-**Componente:** Middleware
+**Componente:** Middleware (Panel Admin Leptos)
 
-**Historia de Usuario:** Como desarrollador, quiero un middleware que facilite la comunicación entre sistemas externos y la blockchain de Keiko, para integrar fácilmente otras plataformas educativas y registrar nuevas interacciones de aprendizaje.
+**Historia de Usuario:** Como administrador del sistema, quiero un panel web construido con Leptos para gestionar usuarios, validar interacciones y monitorear el sistema, para tener control administrativo completo con una interfaz web moderna y eficiente.
 
 #### Criterios de Aceptación
 
-1. CUANDO un sistema externo envía datos ENTONCES el middleware DEBERÁ validar y transformar estos datos xAPI al formato de la parachain.
-2. CUANDO se procesan datos válidos ENTONCES el middleware DEBERÁ enviar extrinsics a la blockchain de Keiko.
-3. CUANDO tutores o estudiantes registran nuevas interacciones ENTONCES el middleware DEBERÁ procesar y almacenar estas interacciones en la blockchain.
-4. CUANDO el frontend Flutter solicita datos ENTONCES el middleware DEBERÁ proporcionar APIs REST/GraphQL para la comunicación.
-5. CUANDO tutores IA generan interacciones ENTONCES el middleware DEBERÁ procesar y validar estas interacciones antes del registro.
-6. CUANDO la blockchain confirma una transacción ENTONCES el middleware DEBERÁ notificar al sistema de origen.
-7. SI ocurre un error en la comunicación ENTONCES el middleware DEBERÁ implementar mecanismos de reintento y notificación.
-8. CUANDO se requiere escalabilidad ENTONCES el middleware DEBERÁ soportar procesamiento en lotes y paralelización.
-9. CUANDO se integra con LMS existentes ENTONCES el middleware DEBERÁ ser compatible con APIs de Moodle, Canvas, Blackboard y otras plataformas educativas.
+1. CUANDO un administrador accede al panel ENTONCES el sistema DEBERÁ mostrar un dashboard con métricas del sistema usando Server-Side Rendering.
+2. CUANDO se requiere gestionar usuarios ENTONCES el sistema DEBERÁ proporcionar CRUD completo para usuarios, tutores y estudiantes.
+3. CUANDO se necesita validar interacciones ENTONCES el sistema DEBERÁ mostrar interacciones pendientes de validación con herramientas de aprobación/rechazo.
+4. CUANDO se requiere monitoreo ENTONCES el sistema DEBERÁ mostrar estadísticas en tiempo real del uso de la plataforma.
+5. CUANDO se necesita moderar contenido ENTONCES el sistema DEBERÁ proporcionar herramientas para revisar y moderar tutorías y comentarios.
+6. CUANDO se requiere configuración ENTONCES el sistema DEBERÁ permitir configurar parámetros del sistema y políticas de la plataforma.
+7. CUANDO se accede al panel ENTONCES el sistema DEBERÁ requerir autenticación administrativa y permisos apropiados.
+8. CUANDO se realizan cambios administrativos ENTONCES el sistema DEBERÁ registrar todas las acciones en un log de auditoría.
 
-### Requerimiento 9: Interoperabilidad y Estándares Abiertos
+### Requerimiento 9: Middleware Rust para Integración con Sistemas Externos
+
+**Componente:** Middleware (Rust)
+
+**Historia de Usuario:** Como desarrollador, quiero un middleware construido completamente en Rust que facilite la comunicación entre sistemas externos y la blockchain de Keiko mediante GraphQL, para integrar fácilmente otras plataformas educativas con máximo rendimiento y type safety.
+
+#### Criterios de Aceptación
+
+1. CUANDO un sistema externo envía datos ENTONCES el middleware Rust DEBERÁ validar y transformar estos datos xAPI al formato de la parachain usando type-safe structs.
+2. CUANDO se procesan datos válidos ENTONCES el middleware DEBERÁ enviar extrinsics a la blockchain de Keiko usando substrate-api-client nativo.
+3. CUANDO tutores o estudiantes registran nuevas interacciones ENTONCES el middleware DEBERÁ procesar y almacenar estas interacciones en la blockchain con validación compile-time.
+4. CUANDO el frontend Leptos solicita datos ENTONCES el middleware DEBERÁ proporcionar APIs GraphQL usando Juniper para comunicación type-safe.
+5. CUANDO tutores IA generan interacciones ENTONCES el middleware DEBERÁ procesar y validar estas interacciones antes del registro usando async Rust.
+6. CUANDO la blockchain confirma una transacción ENTONCES el middleware DEBERÁ notificar al sistema de origen usando channels async.
+7. SI ocurre un error en la comunicación ENTONCES el middleware DEBERÁ implementar mecanismos de reintento usando tokio y anyhow para manejo de errores.
+8. CUANDO se requiere escalabilidad ENTONCES el middleware DEBERÁ soportar procesamiento en lotes y paralelización usando async/await nativo de Rust.
+9. CUANDO se integra con LMS existentes ENTONCES el middleware DEBERÁ ser compatible con APIs de Moodle, Canvas, Blackboard usando reqwest y serde para HTTP clients type-safe.
+
+### Requerimiento 10: Interoperabilidad y Estándares Abiertos
 
 **Componente:** Backend + Middleware
 
@@ -161,7 +179,7 @@ La arquitectura del proyecto se organiza en:
 4. CUANDO se requiere interoperabilidad con otras blockchains ENTONCES el sistema DEBERÁ implementar puentes compatibles.
 5. CUANDO cambian los estándares de la industria ENTONCES el sistema DEBERÁ adaptarse manteniendo compatibilidad hacia atrás.
 
-### Requerimiento 10: Seguridad y Privacidad de Datos
+### Requerimiento 11: Seguridad y Privacidad de Datos
 
 **Componente:** Backend + Frontend + Middleware
 
@@ -175,7 +193,7 @@ La arquitectura del proyecto se organiza en:
 4. CUANDO se comparten datos con terceros ENTONCES el sistema DEBERÁ requerir consentimiento explícito del usuario.
 5. SI se detecta una brecha de seguridad ENTONCES el sistema DEBERÁ notificar a los usuarios afectados y tomar medidas correctivas inmediatas.
 
-### Requerimiento 11: Tutores IA Avanzados
+### Requerimiento 12: Tutores IA Avanzados
 
 **Componente:** Backend + Frontend + Middleware
 
@@ -191,7 +209,7 @@ La arquitectura del proyecto se organiza en:
 6. SI un tutor IA no puede resolver una consulta compleja ENTONCES el sistema DEBERÁ ofrecer la opción de conectar con un educador humano especializado.
 7. CUANDO se utilizan tutores IA ENTONCES el sistema DEBERÁ garantizar transparencia sobre la naturaleza artificial del tutor.
 
-### Requerimiento 12: Evaluación Pedagógica Inicial
+### Requerimiento 13: Evaluación Pedagógica Inicial
 
 **Componente:** Backend + Frontend
 
@@ -207,7 +225,7 @@ La arquitectura del proyecto se organiza en:
 6. CUANDO se detectan cambios significativos en el comportamiento de aprendizaje ENTONCES el sistema DEBERÁ sugerir una reevaluación del perfil.
 7. SI un usuario decide no realizar la evaluación inicial ENTONCES el sistema DEBERÁ construir gradualmente un perfil basado en sus interacciones posteriores.
 
-### Requerimiento 13: Planes de Acción Tutorial Adaptativos para Aprendizaje Asíncrono
+### Requerimiento 14: Planes de Acción Tutorial Adaptativos para Aprendizaje Asíncrono
 
 **Componente:** Backend + Frontend
 
@@ -224,7 +242,7 @@ La arquitectura del proyecto se organiza en:
 7. SI un usuario desea más estructura ENTONCES el sistema DEBERÁ permitir la creación de planes de aprendizaje más formales a partir de sus interacciones asíncronas previas.
 8. CUANDO un usuario aprende de manera asíncrona ENTONCES el sistema DEBERÁ mantener la coherencia y progresión lógica entre sesiones discontinuas.
 
-### Requerimiento 14: Integración con Polkadot como Parachain
+### Requerimiento 15: Integración con Polkadot como Parachain
 
 **Componente:** Backend
 
@@ -240,7 +258,7 @@ La arquitectura del proyecto se organiza en:
 6. CUANDO un usuario necesita interactuar con otras parachains ENTONCES el sistema DEBERÁ proporcionar una interfaz unificada para estas interacciones.
 7. CUANDO se implementan nuevas funcionalidades ENTONCES el sistema DEBERÁ seguir las mejores prácticas y estándares del ecosistema Polkadot.
 
-### Requerimiento 15: Marketplace de Espacios de Aprendizaje Seguros
+### Requerimiento 16: Marketplace de Espacios de Aprendizaje Seguros
 
 **Componente:** Backend + Frontend
 
@@ -257,7 +275,7 @@ La arquitectura del proyecto se organiza en:
 7. CUANDO padres de familia buscan opciones para menores ENTONCES el sistema DEBERÁ priorizar espacios con certificaciones de seguridad infantil.
 8. CUANDO un espacio acumula calificaciones negativas ENTONCES el sistema DEBERÁ revisar su autorización y tomar medidas correctivas.
 
-### Requerimiento 16: Modelado de Sesiones Tutoriales y sus Interacciones de Aprendizaje
+### Requerimiento 17: Modelado de Sesiones Tutoriales y sus Interacciones de Aprendizaje
 
 **Componente:** Backend + Frontend
 
@@ -277,7 +295,7 @@ La arquitectura del proyecto se organiza en:
 10. CUANDO se analiza el progreso de aprendizaje ENTONCES el sistema DEBERÁ proporcionar métricas tanto a nivel de sesiones tutoriales como de interacciones individuales.
 11. CUANDO se exportan datos de aprendizaje ENTONCES el sistema DEBERÁ mantener la jerarquía entre sesiones tutoriales e interacciones atómicas.
 
-### Requerimiento 17: Jerarquía Completa de Experiencias de Aprendizaje
+### Requerimiento 18: Jerarquía Completa de Experiencias de Aprendizaje
 
 **Componente:** Backend + Frontend
 
