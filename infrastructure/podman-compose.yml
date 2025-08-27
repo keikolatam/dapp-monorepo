@@ -1,0 +1,168 @@
+# Business Source License 1.1
+# 
+# Licensed Work: keiko-dapp Version 0.0.1 or later.
+# The Licensed Work is (c) 2025 Luis Andrés Peña Castillo
+# 
+# For full license terms, see LICENSE file in the repository root.
+
+# Keiko Development Services - Podman Compose
+# Cada microservicio tiene su propia instancia de PostgreSQL para arquitectura híbrida
+
+version: '3.8'
+
+services:
+  # Redis para eventos y cache distribuido
+  redis:
+    image: docker.io/redis:7-alpine
+    container_name: keiko-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # PostgreSQL para Identity Service
+  postgres-identity:
+    image: docker.io/postgres:15-alpine
+    container_name: keiko-postgres-identity
+    environment:
+      POSTGRES_DB: identity_service
+      POSTGRES_USER: keiko_identity
+      POSTGRES_PASSWORD: dev_password_identity
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_identity_data:/var/lib/postgresql/data
+      - ./sql/identity-init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keiko_identity -d identity_service"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # PostgreSQL para Learning Service
+  postgres-learning:
+    image: docker.io/postgres:15-alpine
+    container_name: keiko-postgres-learning
+    environment:
+      POSTGRES_DB: learning_service
+      POSTGRES_USER: keiko_learning
+      POSTGRES_PASSWORD: dev_password_learning
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_learning_data:/var/lib/postgresql/data
+      - ./sql/learning-init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keiko_learning -d learning_service"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # PostgreSQL para Reputation Service
+  postgres-reputation:
+    image: docker.io/postgres:15-alpine
+    container_name: keiko-postgres-reputation
+    environment:
+      POSTGRES_DB: reputation_service
+      POSTGRES_USER: keiko_reputation
+      POSTGRES_PASSWORD: dev_password_reputation
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_reputation_data:/var/lib/postgresql/data
+      - ./sql/reputation-init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keiko_reputation -d reputation_service"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # PostgreSQL para Passport Service
+  postgres-passport:
+    image: docker.io/postgres:15-alpine
+    container_name: keiko-postgres-passport
+    environment:
+      POSTGRES_DB: passport_service
+      POSTGRES_USER: keiko_passport
+      POSTGRES_PASSWORD: dev_password_passport
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_passport_data:/var/lib/postgresql/data
+      - ./sql/passport-init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keiko_passport -d passport_service"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # PostgreSQL para Governance Service
+  postgres-governance:
+    image: docker.io/postgres:15-alpine
+    container_name: keiko-postgres-governance
+    environment:
+      POSTGRES_DB: governance_service
+      POSTGRES_USER: keiko_governance
+      POSTGRES_PASSWORD: dev_password_governance
+    ports:
+      - "5436:5432"
+    volumes:
+      - postgres_governance_data:/var/lib/postgresql/data
+      - ./sql/governance-init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keiko_governance -d governance_service"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # PostgreSQL para Marketplace Service
+  postgres-marketplace:
+    image: docker.io/postgres:15-alpine
+    container_name: keiko-postgres-marketplace
+    environment:
+      POSTGRES_DB: marketplace_service
+      POSTGRES_USER: keiko_marketplace
+      POSTGRES_PASSWORD: dev_password_marketplace
+    ports:
+      - "5437:5432"
+    volumes:
+      - postgres_marketplace_data:/var/lib/postgresql/data
+      - ./sql/marketplace-init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keiko_marketplace -d marketplace_service"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Adminer para administración de bases de datos (opcional)
+  adminer:
+    image: docker.io/adminer:4
+    container_name: keiko-adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres-identity
+      - postgres-learning
+      - postgres-reputation
+      - postgres-passport
+      - postgres-governance
+      - postgres-marketplace
+
+volumes:
+  redis_data:
+  postgres_identity_data:
+  postgres_learning_data:
+  postgres_reputation_data:
+  postgres_passport_data:
+  postgres_governance_data:
+  postgres_marketplace_data:
+
+networks:
+  default:
+    name: keiko-network

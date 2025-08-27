@@ -1,0 +1,31 @@
+# Business Source License 1.1
+# 
+# Licensed Work: keiko-dapp Version 0.0.1 or later.
+# The Licensed Work is (c) 2025 Luis Andrés Peña Castillo
+# 
+# For full license terms, see LICENSE file in the repository root.
+
+[package]
+name = "governance-service"
+version = "0.1.0"
+edition = "2025"
+authors = ["Keiko Team"]
+homepage = "http://keiko-dapp.xyz/"
+repository = "https://github.com/keikolatam/keiko-dapp"
+license-file = "../../LICENSE"
+publish = false
+
+[dependencies]
+tokio = { workspace = true }
+tonic = { workspace = true }
+prost = { workspace = true }
+sqlx = { workspace = true }
+redis = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+substrate-api-client = { workspace = true }
+
+[build-dependencies]
+tonic-build = { workspace = true }

@@ -1,0 +1,89 @@
+# Docker Compose para desarrollo local de Keiko
+# Servicios de infraestructura necesarios para los microservicios
+
+version: '3.8'
+
+services:
+  # PostgreSQL para microservicios
+  postgres:
+    image: postgres:15-alpine
+    container_name: keiko-postgres
+    environment:
+      POSTGRES_DB: keiko_dev
+      POSTGRES_USER: keiko
+      POSTGRES_PASSWORD: keiko_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - keiko-network
+
+  # Redis para eventos y cache
+  redis:
+    image: redis:7-alpine
+    container_name: keiko-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - keiko-network
+    command: redis-server --appendonly yes
+
+  # Redis Commander para debugging
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: keiko-redis-commander
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    ports:
+      - "8081:8081"
+    networks:
+      - keiko-network
+    depends_on:
+      - redis
+
+  # pgAdmin para debugging PostgreSQL
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: keiko-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@keiko.dev
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8080:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - keiko-network
+    depends_on:
+      - postgres
+
+  # Jaeger para tracing distribuido (opcional)
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: keiko-jaeger
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "14268:14268"  # HTTP collector
+    environment:
+      COLLECTOR_OTLP_ENABLED: true
+    networks:
+      - keiko-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+networks:
+  keiko-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

@@ -2,22 +2,36 @@
   "mcpServers": {
     "wsl-filesystem": {
       "command": "uvx",
-      "args": ["mcp-server-filesystem"],
+      "args": [
+        "mcp-server-filesystem"
+      ],
       "env": {
         "FILESYSTEM_ROOT": "\\\\wsl$\\Ubuntu-24.04\\home\\lapc9"
       },
       "disabled": false,
-      "autoApprove": ["read_file", "write_file", "list_directory"]
+      "autoApprove": [
+        "read_file",
+        "write_file",
+        "list_directory"
+      ]
     },
     "context7": {
       "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp@latest"],
+      "args": [
+        "-y",
+        "@upstash/context7-mcp@latest"
+      ],
       "disabled": false,
-      "autoApprove": ["resolve-library-id"]
+      "autoApprove": [
+        "resolve-library-id"
+      ]
     },
     "memory": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ],
       "env": {
         "MEMORY_FILE_PATH": "${input:memory_file_path}"
       },
@@ -26,13 +40,23 @@
     },
     "sequentialthinking": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
       "disabled": false,
-      "autoApprove": ["sequentialthinking"]
+      "autoApprove": [
+        "sequentialthinking"
+      ]
     },
     "terraform": {
       "command": "docker",
-      "args": ["run", "-i", "--rm", "hashicorp/terraform-mcp-server"],
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "hashicorp/terraform-mcp-server"
+      ],
       "disabled": true,
       "autoApprove": []
     },
@@ -71,7 +95,10 @@
         "C:/Users/lapc9/Documents/GitHub"
       ],
       "disabled": false,
-      "autoApprove": []
+      "autoApprove": [
+        "create_directory",
+        "create_directory"
+      ]
     }
   }
 }

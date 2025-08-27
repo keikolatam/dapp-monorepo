@@ -1,31 +1,77 @@
 # Plan de Implementación - Keiko DApp
 
+## Estado Actual del Proyecto
+
+**✅ COMPLETADO:**
+- Backend Substrate: 3 pallets personalizados completamente implementados y funcionales
+  - `pallet_learning_interactions`: xAPI completo con jerarquías educativas
+  - `pallet_life_learning_passport`: Perfiles de usuario y privacidad
+  - `pallet_reputation_system`: Reputación dinámica con expiración
+- Runtime: Pallets integrados correctamente en parachain Substrate
+- Tests: Tests unitarios para todos los pallets
+
+**⚠️ PENDIENTE (Solo archivos de configuración):**
+- Middleware: Solo package.json, sin implementación real
+- Frontend: Solo archivos de tema, sin main.dart ni aplicación Flutter
+- API Gateway: Requiere migración completa a Rust
+- Microservicios: No implementados
+
+**🔄 MIGRACIÓN REQUERIDA:**
+- Reestructurar proyecto: backend/ → blockchain/, middleware/ → api-gateway/
+- Migrar de NestJS/TypeScript a Rust para servicios
+- Implementar arquitectura de microservicios cloud-native
+
 ## Tareas de Implementación
 
-- [x] 1. Configurar estructura del monorepo y herramientas de desarrollo
+### Fase 0: Migración y Reestructuración del Proyecto
 
-  - Crear estructura de directorios del monorepo con blockchain/, services/, api-gateway/, frontend/, shared/ y docs/
-  - Configurar Cargo workspace para blockchain/ y services/ Rust
-  - Configurar Flutter workspace para el frontend multiplataforma
-  - Configurar herramientas de CI/CD y linting para todos los componentes
-  - _Requerimientos: Todos los requerimientos dependen de esta estructura base_
+- [x] 0.1 Reestructurar directorios según nueva arquitectura
+
+  - Crear nueva estructura de directorios: blockchain/, services/, api-gateway/, frontend/, shared/, infrastructure/
+  - Migrar backend/ → blockchain/ (mantener parachain Substrate existente)
+  - Migrar middleware/ → api-gateway/ (preparar para conversión a Rust)
+  - Crear services/ para microservicios independientes
+  - Crear shared/ para código compartido entre servicios
+  - Crear infrastructure/ para IaC (Terraform, Kubernetes manifests)
+  - Actualizar todos los Cargo.toml y referencias de paths
+  - _Requerimientos: Preparación para arquitectura de microservicios_
+
+- [x] 0.2 Actualizar documentación y configuración
+
+  - Actualizar README.md con nueva estructura de proyecto
+  - Actualizar .gitignore para nueva estructura
+  - Configurar workspace Cargo.toml para blockchain/ y services/
+  - Actualizar scripts de build y desarrollo
+  - Documentar proceso de migración
+  - _Requerimientos: Documentación actualizada_
+
+### Fase 1: Backend Blockchain
+
+- [x] 1. Pallets Substrate implementados y funcionales
+
+  - ✅ Pallet Learning Interactions: Implementación completa con xAPI, jerarquías educativas
+  - ✅ Pallet Life Learning Passport: Perfiles de usuario y configuraciones de privacidad  
+  - ✅ Pallet Reputation System: Sistema de reputación dinámica con expiración
+  - ✅ Integración en runtime: Todos los pallets integrados correctamente
+  - ✅ Tests: Tests unitarios implementados para todos los pallets
+  - _Requerimientos: 2.1-2.10, 1.1-1.5, 5.1-5.9_
 
 - [x] 2. Implementar configuración base del nodo Substrate
 
-  - Crear configuración inicial del nodo Substrate en blockchain/node/ con main.rs y service.rs
-  - Implementar configuración de red y consenso para desarrollo local
-  - Configurar CLI básico para el nodo con parámetros de desarrollo
-  - Escribir tests básicos de funcionamiento del nodo
-  - _Requerimientos: 14.1, 14.2_
+  - ✅ Configuración inicial del nodo Substrate en backend/node/ (completado)
+  - ✅ Configuración de red y consenso para desarrollo local (completado)
+  - ✅ CLI básico para el nodo con parámetros de desarrollo (completado)
+  - ✅ Tests básicos de funcionamiento del nodo (completado)
+  - _Requerimientos: 15.1, 15.2_
 
 - [x] 3. Implementar runtime base de la parachain
 
-  - Crear runtime básico de parachain en blockchain/runtime/ con lib.rs
-  - Configurar pallets básicos de Substrate (System, Timestamp, Balances, etc.)
-  - Implementar configuración inicial para parachain (cumulus)
-  - Configurar tipos y constantes del runtime
-  - Escribir tests básicos del runtime
-  - _Requerimientos: 14.3, 14.4, 14.5, 14.6, 14.7_
+  - ✅ Runtime básico de parachain en backend/runtime/ con lib.rs (completado)
+  - ✅ Pallets básicos de Substrate configurados (System, Timestamp, Balances, etc.) (completado)
+  - ✅ Configuración inicial para parachain (cumulus) (completado)
+  - ✅ Tipos y constantes del runtime configurados (completado)
+  - ✅ Tests básicos del runtime (completado)
+  - _Requerimientos: 15.3, 15.4, 15.5, 15.6, 15.7_
 
 - [x] 4. **Desarrollar** pallet Learning Interactions
 
@@ -137,6 +183,8 @@
 
 - [ ] 6.4 Implementar detección anti-fraude
 
+
+
   - Crear algoritmos para detectar patrones de calificación maliciosos
   - Implementar sistema de alertas para comportamientos sospechosos
   - Crear mecanismos de penalización para usuarios fraudulentos
@@ -218,10 +266,12 @@
   - Escribir tests de integración del runtime completo
   - _Requerimientos: Todos los requerimientos de backend dependen de esta integración_
 
-- [ ] 10. Desarrollar API Gateway GraphQL
-- [ ] 10.1 Crear estructura base del API Gateway
+- [ ] 10. Desarrollar API Gateway GraphQL (Rust)
+- [ ] 10.1 Migrar y reestructurar middleware como API Gateway
 
-  - Crear directorio src/ en api-gateway/
+  - Migrar middleware/ → api-gateway/ según nueva estructura
+  - Cambiar de NestJS/TypeScript a Rust con Axum + async-graphql
+  - Crear directorio src/ con estructura Rust en api-gateway/
   - Implementar main.rs con configuración básica de Axum + async-graphql
   - Crear módulos base (schema.rs, resolvers.rs, grpc_clients.rs)
   - Configurar Cargo.toml con dependencias para gRPC (tonic) y GraphQL (async-graphql)
@@ -264,13 +314,14 @@
   - Escribir tests para endpoints REST e integración con sistemas externos
   - _Requerimientos: 9.8, 3.1, 3.2_
 
-- [ ] 11. Desarrollar microservicios base con gRPC
+- [ ] 11. Desarrollar microservicios independientes con gRPC
 - [ ] 11.1 Crear Identity Service
 
-  - Crear directorio services/identity_service/ con estructura Rust + tonic
+  - Crear directorio services/identity-service/ con estructura Rust + tonic
   - Implementar proto/identity.proto con servicios gRPC para autenticación y usuarios
   - Crear main.rs con servidor gRPC usando tonic y tokio
   - Implementar base de datos PostgreSQL con sqlx para gestión de usuarios
+  - Configurar Docker y Kubernetes manifests para despliegue
   - Escribir tests unitarios e integración para Identity Service
   - _Requerimientos: 4.1, 9.5_
 
@@ -347,12 +398,14 @@
   - _Requerimientos: 18.1, 18.2, 18.3, 18.4, 18.5, 18.6, 18.7, 18.8, 18.9, 18.10_
 
 - [ ] 12. Desarrollar AI Tutor Service
-- [ ] 12.1 Crear estructura base del AI Tutor Service
+- [ ] 12.1 Migrar y crear estructura base del AI Tutor Service
 
-  - Crear directorio services/ai_tutor_service/ con estructura Rust + tonic
+  - Migrar middleware/ai_tutor_service/ → services/ai-tutor-service/ 
+  - Cambiar de NestJS/TypeScript a Rust + tonic según nueva arquitectura
   - Implementar proto/ai_tutor.proto con servicios gRPC para tutorías con IA
   - Crear Cargo.toml con dependencias para LLMs (async-openai, reqwest) y gRPC (tonic)
   - Implementar main.rs con servidor gRPC usando tokio runtime
+  - Configurar Docker y Kubernetes manifests para despliegue
   - Escribir tests básicos de compilación y arranque del servicio
   - _Requerimientos: 4.1, 4.2_
 
@@ -384,12 +437,14 @@
   - _Requerimientos: 12.1, 12.2, 12.5, 12.7_
 
 - [ ] 13. Desarrollar panel admin Leptos - Configuración base
-- [ ] 13.1 Implementar estructura base del panel administrativo
+- [ ] 13.1 Crear estructura base del panel administrativo
 
-  - Crear main.rs con configuración básica de Leptos SSR/CSR en api-gateway/admin_panel/
+  - Migrar middleware/web_frontend/ → api-gateway/admin-panel/ según nueva estructura
+  - Crear main.rs con configuración básica de Leptos SSR/CSR
   - Implementar estructura de módulos src/ con app, components, pages, services
   - Configurar Leptos.toml para build configuration y features administrativas
   - Crear configuración base para autenticación administrativa
+  - Integrar con API Gateway GraphQL para datos administrativos
   - Escribir tests básicos de configuración con wasm-bindgen-test
   - _Requerimientos: 8.1, 8.7_
 
@@ -402,165 +457,29 @@
   - Escribir tests unitarios para hooks y servicios administrativos
   - _Requerimientos: 8.2, 8.3, 8.4, 8.5, 8.6, 8.8_
 
-- [ ] 14. Desarrollar frontend Flutter - Configuración base
-- [ ] 14.1 Implementar estructura base de la aplicación
+- [ ] 14. Integración Frontend Móvil - Backend
+- [ ] 14.1 Definir contratos GraphQL para aplicación móvil
 
-  - Crear main.dart con configuración básica de la aplicación Flutter
-  - Implementar estructura de carpetas core/ con constants, errors, network, utils
-  - Configurar inyección de dependencias con get_it e injectable
-  - Crear configuración base para diferentes entornos (dev, staging, prod)
-  - Escribir tests básicos de configuración
-  - _Requerimientos: 7.7, 7.8, 7.9_
+  - Definir schemas GraphQL para pasaporte de aprendizaje y visualización cronológica
+  - Crear mutations para calificaciones, comentarios y evaluaciones desde aplicación móvil
+  - Definir subscriptions para actualizaciones en tiempo real de interacciones
+  - Documentar APIs GraphQL para consumo desde Flutter con ejemplos móviles
+  - Crear queries optimizadas para diferentes casos de uso móviles (timeline, jerarquías, marketplace)
+  - _Requerimientos: 7.6, 7.7, 7.8_
 
-- [ ] 14.2 Implementar gestión de estado con Bloc y GraphQL
+- [ ] 14.2 Implementar orquestación GraphQL en API Gateway
 
-  - Configurar flutter_bloc para gestión de estado reactivo
-  - Crear blocs base para autenticación, navegación y datos globales
-  - Implementar patrón repository para abstracción de datos
-  - Crear cliente GraphQL EXCLUSIVO para comunicación con API Gateway usando graphql_flutter
-  - Configurar GraphQL subscriptions para actualizaciones en tiempo real desde Redis Streams
-  - Implementar cache de GraphQL con invalidación automática basada en subscriptions
-  - Escribir tests unitarios para blocs, repositorios y cliente GraphQL
-  - _Requerimientos: 7.10, 7.11, 7.12_
+  - Configurar resolvers GraphQL que orquesten llamadas gRPC a microservicios
+  - Implementar agregación de datos de múltiples microservicios para vistas móviles
+  - Configurar caché GraphQL optimizado para consultas móviles frecuentes
+  - Implementar manejo de errores GraphQL comprensibles para aplicación móvil
+  - Configurar subscriptions GraphQL alimentadas por eventos Redis Streams
+  - Optimizar queries GraphQL para consumo de datos móvil (paginación, lazy loading)
+  - _Requerimientos: 9.1, 9.2, 9.3, 9.4, 9.7_
 
-- [ ] 15. Desarrollar frontend Flutter - Visualización de pasaporte
-- [ ] 15.1 Crear estructura del módulo passport
+**Nota:** Para implementación detallada de la aplicación móvil Flutter con Clean Architecture y Riverpod, ver Spec 02-flutter-frontend-architecture
 
-  - Crear directorio features/passport/ con estructura Clean Architecture
-  - Implementar domain/entities/ con modelos de pasaporte e interacciones
-  - Crear domain/repositories/ con contratos abstractos
-  - Implementar domain/usecases/ para casos de uso del pasaporte
-  - Escribir tests unitarios para entidades y casos de uso
-  - _Requerimientos: 1.1, 1.2, 1.3_
-
-- [ ] 15.2 Implementar línea de tiempo vertical
-
-  - Crear widget TimelineView con scroll vertical optimizado para móvil
-  - Implementar visualización cronológica de interacciones de aprendizaje
-  - Crear diferentes tipos de items para cursos, clases, tutorías e interacciones
-  - Implementar sistema de expansión/colapso para sesiones tutoriales
-  - Escribir tests de widgets para línea de tiempo
-  - _Requerimientos: 7.1, 7.2, 7.5_
-
-- [ ] 15.3 Implementar navegación jerárquica
-
-  - Crear sistema de navegación entre niveles de jerarquía educativa
-  - Implementar badges y etiquetas para mostrar relaciones jerárquicas
-  - Crear filtros para diferentes tipos de experiencias de aprendizaje
-  - Implementar búsqueda dentro del historial de aprendizaje
-  - Escribir tests para navegación jerárquica
-  - _Requerimientos: 7.3, 7.4, 18.9, 18.10_
-
-- [ ] 15.4 Implementar funcionalidades de compartir
-
-  - Crear generador de certificados visuales verificables
-  - Implementar sistema de compartir logros específicos en redes sociales
-  - Crear enlaces verificables para compartir pasaportes completos
-  - Implementar configuraciones de privacidad granulares
-  - Escribir tests para funcionalidades de compartir
-  - _Requerimientos: 7.6, 1.5, 11.3_
-
-- [ ] 16. Desarrollar frontend Flutter - Interacción con tutores IA
-- [ ] 16.1 Crear estructura del módulo tutoring
-
-  - Crear directorio features/tutoring/ con estructura Clean Architecture
-  - Implementar domain/entities/ con modelos de sesiones y tutores
-  - Crear domain/repositories/ con contratos para servicios de tutoría
-  - Implementar domain/usecases/ para casos de uso de tutoría
-  - Escribir tests unitarios para entidades y casos de uso
-  - _Requerimientos: 4.1, 4.2_
-
-- [ ] 16.2 Implementar interfaz de chat con IA
-
-  - Crear widget de chat conversacional para interacción con tutores IA
-  - Implementar diferentes tipos de mensajes (texto, imágenes, diagramas)
-  - Crear sistema de sugerencias y respuestas rápidas
-  - Implementar indicadores de typing y estado de conexión
-  - Escribir tests para interfaz de chat
-  - _Requerimientos: 4.1, 12.1_
-
-- [ ] 16.3 Implementar personalización basada en perfil
-
-  - Crear sistema de adaptación de UI basado en estilo de aprendizaje
-  - Implementar contenido visual para aprendices visuales
-  - Crear elementos interactivos para aprendices kinestésicos
-  - Implementar opciones de audio para aprendices auditivos
-  - Escribir tests para personalización de UI
-  - _Requerimientos: 4.2, 12.2, 13.4_
-
-- [ ] 16.4 Implementar evaluación pedagógica inicial
-
-  - Crear wizard de evaluación inicial para nuevos usuarios
-  - Implementar diferentes tipos de preguntas (opción múltiple, escenarios, escalas)
-  - Crear visualización de resultados de evaluación
-  - Implementar sistema de reevaluación periódica opcional
-  - Escribir tests para evaluación pedagógica
-  - _Requerimientos: 13.1, 13.2, 13.5, 13.7_
-
-- [ ] 16. Desarrollar frontend Flutter - Marketplace de espacios
-- [ ] 16.1 Crear estructura del módulo marketplace
-
-  - Crear directorio features/marketplace/ con estructura Clean Architecture
-  - Implementar domain/entities/ con modelos de espacios y reservas
-  - Crear domain/repositories/ con contratos para servicios de marketplace
-  - Implementar domain/usecases/ para casos de uso de marketplace
-  - Escribir tests unitarios para entidades y casos de uso
-  - _Requerimientos: 15.1, 15.2_
-
-- [ ] 16.2 Implementar búsqueda y filtrado de espacios
-
-  - Crear interfaz de búsqueda de espacios de aprendizaje por ubicación
-  - Implementar filtros por capacidad, amenidades y certificaciones
-  - Crear filtros especiales para seguridad infantil y accesibilidad
-  - Implementar mapa interactivo para visualizar espacios cercanos
-  - Escribir tests para búsqueda y filtrado
-  - _Requerimientos: 15.1, 15.5, 15.7_
-
-- [ ] 16.3 Implementar sistema de reservas
-
-  - Crear interfaz para seleccionar fechas y horarios disponibles
-  - Implementar calendario de disponibilidad de espacios
-  - Crear sistema de confirmación y pago de reservas
-  - Implementar notificaciones de recordatorio de reservas
-  - Escribir tests para sistema de reservas
-  - _Requerimientos: 15.4_
-
-- [ ] 16.4 Implementar calificaciones y reseñas de espacios
-
-  - Crear interfaz para calificar espacios en múltiples dimensiones
-  - Implementar sistema de reseñas con comentarios detallados
-  - Crear visualización de calificaciones promedio y distribución
-  - Implementar sistema de reportes para espacios problemáticos
-  - Escribir tests para calificaciones de espacios
-  - _Requerimientos: 15.6, 15.8_
-
-- [ ] 17. Desarrollar frontend Flutter - Sistema de reputación
-- [ ] 17.1 Crear estructura del módulo reputation
-
-  - Crear directorio features/reputation/ con estructura Clean Architecture
-  - Implementar domain/entities/ con modelos de calificaciones y reputación
-  - Crear domain/repositories/ con contratos para servicios de reputación
-  - Implementar domain/usecases/ para casos de uso de reputación
-  - Escribir tests unitarios para entidades y casos de uso
-  - _Requerimientos: 5.1, 5.2_
-
-- [ ] 17.2 Implementar visualización de reputación
-
-  - Crear widgets para mostrar puntuaciones de reputación actuales e históricas
-  - Implementar gráficos de evolución de reputación en el tiempo
-  - Crear badges y logros basados en reputación
-  - Implementar comparación de reputación reciente vs histórica
-  - Escribir tests para visualización de reputación
-  - _Requerimientos: 5.5, 5.9_
-
-- [ ] 17.3 Implementar sistema de calificaciones
-
-  - Crear interfaz para calificar tutores y estudiantes después de sesiones
-  - Implementar sistema de comentarios con respuestas
-  - Crear formularios de calificación multidimensional
-  - Implementar sistema de calificaciones entre pares para grupos
-  - Escribir tests para sistema de calificaciones
-  - _Requerimientos: 5.1, 5.3, 5.6, 5.7_
+**Nota:** Todas las tareas de implementación detallada de la aplicación móvil Flutter (incluyendo tutorías IA, marketplace de espacios, sistema de reputación, evaluación pedagógica, y planes adaptativos) se encuentran en el Spec 02-flutter-frontend-architecture
 
 - [ ] 18. Desarrollar componentes compartidos
 - [ ] 18.1 Crear tipos y esquemas compartidos

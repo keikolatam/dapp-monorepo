@@ -1,10 +1,17 @@
+# Business Source License 1.1
+# 
+# Licensed Work: keiko-dapp Version 0.0.1 or later.
+# The Licensed Work is (c) 2025 Luis Andrés Peña Castillo
+# 
+# For full license terms, see LICENSE file in the repository root.
+
 [package]
-name = "pallet-learning-interactions"
+name = "pallet-life-learning-passport"
 version = "0.1.0"
-description = "Learning interactions pallet for Keiko parachain"
+description = "Life learning passport pallet for Keiko parachain"
 authors = ["Keiko Team"]
 homepage = "http://keiko-dapp.xyz/"
-edition = "2021"
+edition = "2025"
 license-file = "../../../LICENSE"
 publish = false
 repository = "https://github.com/keikolatam/keiko-dapp"

@@ -1,18 +1,29 @@
-# Rust/Cargo (Backend)
-backend/target/
-backend/**/*.rs.bk
-backend/Cargo.lock
-backend/chain-spec-raw.json
-backend/chain-spec.json
-backend/db/
-backend/keystore/
-backend/network/
-backend/offchain-worker/
-backend/data/
-backend/chains/
-backend/*.wasm
-backend/*.compact.wasm
-backend/*.compact.compressed.wasm
+# Rust/Cargo (Blockchain)
+blockchain/target/
+blockchain/target-windows/
+blockchain/**/*.rs.bk
+blockchain/Cargo.lock
+blockchain/chain-spec-raw.json
+blockchain/chain-spec.json
+blockchain/db/
+blockchain/keystore/
+blockchain/network/
+blockchain/offchain-worker/
+blockchain/data/
+blockchain/chains/
+blockchain/*.wasm
+blockchain/*.compact.wasm
+blockchain/*.compact.compressed.wasm
+
+# Services (Rust microservices)
+services/*/target/
+services/**/*.rs.bk
+services/*/Cargo.lock
+
+# API Gateway (Rust)
+api-gateway/*/target/
+api-gateway/**/*.rs.bk
+api-gateway/*/Cargo.lock
 
 # Flutter (Frontend)
 frontend/.dart_tool/
@@ -29,15 +40,11 @@ frontend/android/app/debug
 frontend/android/app/profile
 frontend/android/app/release
 
-# Node.js (Middleware)
-middleware/*/node_modules/
-middleware/*/dist/
-middleware/*/build/
-middleware/*/.env
-middleware/*/.env.local
-middleware/*/.env.*.local
-middleware/*/logs/
-middleware/*/coverage/
+# Infrastructure
+infrastructure/terraform/.terraform/
+infrastructure/terraform/terraform.tfstate*
+infrastructure/terraform/.terraform.lock.hcl
+infrastructure/kubernetes/secrets/
 
 # IDE files
 .vscode/
@@ -64,6 +71,8 @@ logs/
 .env
 .env.local
 .env.*.local
+.env.development
+.env.production
 
 # Temporary files
 tmp/

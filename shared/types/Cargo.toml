@@ -1,0 +1,22 @@
+# Business Source License 1.1
+# 
+# Licensed Work: keiko-dapp Version 0.0.1 or later.
+# The Licensed Work is (c) 2025 Luis Andrés Peña Castillo
+# 
+# For full license terms, see LICENSE file in the repository root.
+
+[package]
+name = "shared-types"
+version = "0.1.0"
+edition = "2025"
+authors = ["Keiko Team"]
+homepage = "http://keiko-dapp.xyz/"
+repository = "https://github.com/keikolatam/keiko-dapp"
+license-file = "../../LICENSE"
+publish = false
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+parity-scale-codec = { workspace = true }
+scale-info = { workspace = true }

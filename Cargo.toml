@@ -1,0 +1,85 @@
+# Business Source License 1.1
+# 
+# Licensed Work: keiko-dapp Version 0.0.1 or later.
+# The Licensed Work is (c) 2025 Luis Andrés Peña Castillo
+# 
+# For full license terms, see LICENSE file in the repository root.
+
+[workspace]
+resolver = "2"
+
+members = [
+    "blockchain/node",
+    "blockchain/runtime", 
+    "blockchain/pallets/learning_interactions",
+    "blockchain/pallets/life_learning_passport",
+    "blockchain/pallets/reputation_system",
+    "api-gateway/graphql_server",
+    "api-gateway/admin_panel",
+    "api-gateway/ai_tutor_service",
+    "api-gateway/lrs_connector",
+    "services/identity-service",
+    "services/learning-service",
+    "services/reputation-service", 
+    "services/passport-service",
+    "services/governance-service",
+    "services/marketplace-service",
+    "shared/types",
+    "shared/utils"
+]
+
+exclude = [
+    "blockchain/target",
+    "blockchain/target-windows",
+    "target-windows"
+]
+
+[workspace.dependencies]
+# Substrate dependencies
+substrate-frame-rpc-system = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v1.0.0" }
+substrate-api-client = "0.18"
+parity-scale-codec = { version = "3.6.1", default-features = false, features = ["derive"] }
+scale-info = { version = "2.5.0", default-features = false, features = ["derive"] }
+
+# Async runtime
+tokio = { version = "1.0", features = ["full"] }
+futures = "0.3"
+
+# Web frameworks  
+axum = { version = "0.7", features = ["macros"] }
+tower = "0.4"
+tower-http = { version = "0.5", features = ["cors", "fs"] }
+
+# GraphQL
+async-graphql = "7.0"
+async-graphql-axum = "7.0"
+
+# gRPC
+tonic = "0.11"
+tonic-build = "0.11"
+prost = "0.12"
+
+# Database & Cache
+redis = { version = "0.24", features = ["tokio-comp"] }
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# HTTP Client
+reqwest = { version = "0.11", features = ["json"] }
+
+# Error handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+# Leptos (for admin panel)
+leptos = { version = "0.6", features = ["nightly"] }
+leptos_axum = "0.6"
+leptos_meta = "0.6"
+leptos_router = "0.6"
+
+# WASM
+wasm-bindgen = "0.2"
+console_error_panic_hook = "0.1"

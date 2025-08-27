@@ -21,17 +21,19 @@ La arquitectura del proyecto se organiza en cuatro capas principales con estruct
 
 ### Requerimiento 1: Pasaporte de Aprendizaje de Vida
 
-**Componente:** Backend + Frontend
+**Componente:** Backend + Frontend Móvil
 
-**Historia de Usuario:** Como usuario, quiero tener un Pasaporte de Aprendizaje de Vida en blockchain, para poder demostrar mi conocimiento y habilidades de manera verificable e infalsificable.
+**Historia de Usuario:** Como usuario, quiero tener un Pasaporte de Aprendizaje de Vida en blockchain, para poder demostrar mi conocimiento y habilidades de manera verificable e infalsificable desde mi dispositivo móvil.
 
 #### Criterios de Aceptación
 
-1. CUANDO un usuario se registra en la plataforma ENTONCES el sistema DEBERÁ crear un nuevo LifeLearningPassport asociado a su identidad blockchain.
-2. CUANDO se registra una nueva interacción de aprendizaje ENTONCES el sistema DEBERÁ actualizar el LifeLearningPassport del usuario correspondiente.
-3. CUANDO un usuario solicita ver su pasaporte ENTONCES el sistema DEBERÁ mostrar todas sus interacciones de aprendizaje registradas en orden cronológico.
-4. CUANDO un tercero solicita verificar el pasaporte de un usuario ENTONCES el sistema DEBERÁ permitir la verificación criptográfica de la autenticidad de los datos.
-5. CUANDO un usuario quiere compartir su pasaporte ENTONCES el sistema DEBERÁ generar un enlace verificable que pueda ser compartido con terceros.
+1. CUANDO un usuario se registra en la plataforma ENTONCES el sistema DEBERÁ crear un nuevo LifeLearningPassport asociado a su identidad blockchain
+2. CUANDO se registra una nueva interacción de aprendizaje ENTONCES el sistema DEBERÁ actualizar el LifeLearningPassport del usuario correspondiente en la parachain
+3. CUANDO un usuario solicita ver su pasaporte desde la aplicación móvil ENTONCES el sistema DEBERÁ mostrar todas sus interacciones de aprendizaje registradas en orden cronológico
+4. CUANDO un tercero solicita verificar el pasaporte de un usuario ENTONCES el sistema DEBERÁ permitir la verificación criptográfica de la autenticidad de los datos almacenados en blockchain
+5. CUANDO un usuario quiere compartir su pasaporte desde la aplicación móvil ENTONCES el sistema DEBERÁ generar un enlace verificable que pueda ser compartido con terceros
+
+**Nota:** Para detalles de implementación de visualización móvil del pasaporte, ver Spec 02-flutter-frontend-architecture
 
 ### Requerimiento 2: Interacciones de Aprendizaje Atómicas
 
@@ -84,21 +86,23 @@ La arquitectura del proyecto se organiza en cuatro capas principales con estruct
 
 ### Requerimiento 5: Sistema de Calificación, Comentarios y Reputación Dinámica
 
-**Componente:** Backend + Frontend
+**Componente:** Backend + Frontend Móvil
 
 **Historia de Usuario:** Como estudiante o tutor, quiero un sistema de calificaciones que expire cada 30 días y permita dejar comentarios detallados, para mantener una reputación actualizada y recibir feedback constante sobre mi desempeño.
 
 #### Criterios de Aceptación
 
-1. CUANDO un estudiante completa una interacción de aprendizaje ENTONCES el sistema DEBERÁ permitir calificar la experiencia con puntuaciones y comentarios detallados.
-2. CUANDO un estudiante califica a un educador ENTONCES el sistema DEBERÁ actualizar la reputación del educador y mostrar el comentario en su perfil.
-3. CUANDO un tutor completa una sesión educativa ENTONCES el sistema DEBERÁ permitirle también calificar al estudiante para crear un sistema de reputación bidireccional.
-4. CUANDO pasan 30 días desde una calificación ENTONCES el sistema DEBERÁ reducir gradualmente su peso en la reputación general hasta expirar completamente.
-5. CUANDO se acumulan calificaciones ENTONCES el sistema DEBERÁ calcular métricas de reputación visibles públicamente, priorizando las más recientes.
-6. CUANDO un usuario recibe un comentario ENTONCES el sistema DEBERÁ permitir responder a ese comentario para mantener un diálogo constructivo.
-7. CUANDO estudiantes participan en actividades grupales ENTONCES el sistema DEBERÁ permitir calificaciones entre pares.
-8. SI se detectan patrones de calificación maliciosos ENTONCES el sistema DEBERÁ aplicar mecanismos anti-fraude.
-9. CUANDO un usuario consulta un perfil ENTONCES el sistema DEBERÁ mostrar tanto la reputación histórica como la reputación reciente (últimos 30 días) para comparación.
+1. CUANDO un estudiante completa una interacción de aprendizaje ENTONCES el sistema DEBERÁ permitir calificar la experiencia con puntuaciones y comentarios detallados
+2. CUANDO un estudiante califica a un educador ENTONCES el sistema DEBERÁ actualizar la reputación del educador en blockchain y mostrar el comentario en su perfil
+3. CUANDO un tutor completa una sesión educativa ENTONCES el sistema DEBERÁ permitirle también calificar al estudiante para crear un sistema de reputación bidireccional
+4. CUANDO pasan 30 días desde una calificación ENTONCES el sistema DEBERÁ reducir gradualmente su peso en la reputación general hasta expirar completamente (lógica de backend)
+5. CUANDO se acumulan calificaciones ENTONCES el sistema DEBERÁ calcular métricas de reputación visibles públicamente, priorizando las más recientes
+6. CUANDO un usuario recibe un comentario ENTONCES el sistema DEBERÁ permitir responder a ese comentario para mantener un diálogo constructivo
+7. CUANDO estudiantes participan en actividades grupales ENTONCES el sistema DEBERÁ permitir calificaciones entre pares
+8. SI se detectan patrones de calificación maliciosos ENTONCES el sistema DEBERÁ aplicar mecanismos anti-fraude (lógica de backend)
+9. CUANDO un usuario consulta un perfil desde la aplicación móvil ENTONCES el sistema DEBERÁ mostrar tanto la reputación histórica como la reputación reciente (últimos 30 días) para comparación
+
+**Nota:** Para detalles de implementación de interfaces móviles de calificación, ver Spec 02-flutter-frontend-architecture
 
 ### Requerimiento 6: Gobernanza Educativa Comunitaria
 
@@ -114,30 +118,24 @@ La arquitectura del proyecto se organiza en cuatro capas principales con estruct
 4. CUANDO diferentes comunidades interactúan ENTONCES el sistema DEBERÁ facilitar la interoperabilidad respetando las reglas de cada una.
 5. CUANDO se toman decisiones de gobernanza ENTONCES el sistema DEBERÁ registrar estas decisiones en la blockchain para transparencia.
 
-### Requerimiento 7: Aplicación Frontend Multiplataforma con Visualización Cronológica
+### Requerimiento 7: Aplicación Móvil Flutter con Visualización Cronológica
 
-**Componente:** Frontend (Flutter)
+**Componente:** Frontend (Flutter) + API Gateway
 
-**Historia de Usuario:** Como usuario, quiero una aplicación Flutter que funcione tanto en web como en dispositivos móviles para visualizar mi pasaporte de aprendizaje como una línea de tiempo vertical, conectándose exclusivamente a la API GraphQL del middleware, para poder acceder y comprender fácilmente mi progreso educativo desde cualquier dispositivo.
+**Historia de Usuario:** Como usuario, quiero una aplicación móvil Flutter para visualizar mi pasaporte de aprendizaje como una línea de tiempo cronológica, para poder acceder y comprender fácilmente mi progreso educativo desde mi dispositivo móvil.
 
 #### Criterios de Aceptación
 
-1. CUANDO un usuario accede a la aplicación desde web o móvil ENTONCES el sistema DEBERÁ mostrar una visualización cronológica vertical (línea de tiempo) de su pasaporte de aprendizaje, optimizada para scroll vertical en dispositivos móviles
-2. CUANDO se visualiza el pasaporte ENTONCES el sistema DEBERÁ agrupar visualmente las interacciones de aprendizaje que pertenecen a una misma sesión tutorial
-3. CUANDO existen diferentes tipos de interacciones ENTONCES el sistema DEBERÁ diferenciar visualmente entre:
-   - Sesiones tutoriales con educadores humanos
-   - Sesiones con tutores IA
-   - Interacciones de aprendizaje individuales (preguntas puntuales a IA)
-   - Sesiones de estudio personal
-4. CUANDO se selecciona una sesión tutorial en la línea de tiempo ENTONCES el sistema DEBERÁ expandir la vista para mostrar todas las interacciones de aprendizaje contenidas en ella
-5. CUANDO se selecciona una interacción específica ENTONCES el sistema DEBERÁ mostrar todos los detalles y evidencias asociadas
-6. CUANDO un usuario quiere compartir logros específicos ENTONCES el sistema DEBERÁ generar certificados visuales verificables
-7. CUANDO se accede desde diferentes dispositivos ENTONCES el sistema DEBERÁ mantener sincronización de datos y experiencia consistente, adaptando la visualización al tamaño de pantalla
-8. CUANDO la aplicación se ejecuta en móvil ENTONCES el sistema DEBERÁ aprovechar las capacidades nativas del dispositivo como notificaciones push
-9. CUANDO la aplicación se ejecuta en web ENTONCES el sistema DEBERÁ ser completamente funcional sin necesidad de instalación adicional
-10. CUANDO la aplicación Flutter se comunica con el backend ENTONCES el sistema DEBERÁ usar EXCLUSIVAMENTE GraphQL queries, mutations y subscriptions a través del API Gateway middleware
-11. CUANDO se requieran datos en tiempo real ENTONCES el sistema DEBERÁ usar GraphQL subscriptions que se alimentan de eventos Redis Streams
-12. CUANDO el frontend necesite datos de múltiples microservicios ENTONCES el API Gateway DEBERÁ orquestar las llamadas gRPC y devolver una respuesta GraphQL unificada
+1. CUANDO un usuario accede a la aplicación móvil ENTONCES el sistema DEBERÁ mostrar su pasaporte de aprendizaje como una visualización cronológica vertical
+2. CUANDO se visualiza el pasaporte ENTONCES el sistema DEBERÁ agrupar las interacciones de aprendizaje que pertenecen a una misma sesión tutorial
+3. CUANDO existen diferentes tipos de interacciones ENTONCES el sistema DEBERÁ diferenciar visualmente entre sesiones con educadores humanos, tutores IA, e interacciones individuales
+4. CUANDO se selecciona una sesión tutorial ENTONCES el sistema DEBERÁ mostrar todas las interacciones de aprendizaje contenidas en ella
+5. CUANDO un usuario quiere compartir logros ENTONCES el sistema DEBERÁ generar certificados visuales verificables
+6. CUANDO la aplicación móvil se comunica con el backend ENTONCES el sistema DEBERÁ usar EXCLUSIVAMENTE GraphQL a través del API Gateway
+7. CUANDO se requieran actualizaciones en tiempo real ENTONCES el sistema DEBERÁ usar GraphQL subscriptions alimentadas por eventos Redis Streams
+8. CUANDO se aprovechen capacidades móviles ENTONCES el sistema DEBERÁ implementar notificaciones push y funcionalidades nativas
+
+**Nota:** Para detalles técnicos de implementación con Clean Architecture y Riverpod, ver Spec 02-flutter-frontend-architecture
 
 ### Requerimiento 8: Panel Administrativo Web con Leptos
 
@@ -220,36 +218,40 @@ La arquitectura del proyecto se organiza en cuatro capas principales con estruct
 
 ### Requerimiento 13: Evaluación Pedagógica Inicial
 
-**Componente:** Backend + Frontend
+**Componente:** Backend + Frontend Móvil
 
-**Historia de Usuario:** Como estudiante nuevo en la plataforma, quiero realizar una evaluación pedagógica inicial opcional que identifique mi estilo de aprendizaje, para recibir contenido y metodologías personalizadas desde el primer momento.
+**Historia de Usuario:** Como estudiante nuevo en la plataforma, quiero realizar una evaluación pedagógica inicial opcional desde mi dispositivo móvil que identifique mi estilo de aprendizaje, para recibir contenido y metodologías personalizadas desde el primer momento.
 
 #### Criterios de Aceptación
 
-1. CUANDO un usuario se registra en la plataforma ENTONCES el sistema DEBERÁ ofrecer la opción de realizar una evaluación pedagógica inicial.
-2. CUANDO un usuario completa la evaluación pedagógica ENTONCES el sistema DEBERÁ generar un perfil de aprendizaje personalizado.
-3. CUANDO se genera un perfil de aprendizaje ENTONCES el sistema DEBERÁ almacenarlo en el LifeLearningPassport del usuario.
-4. CUANDO un tutor (humano o IA) interactúa con un estudiante ENTONCES el sistema DEBERÁ proporcionar acceso al perfil de aprendizaje para personalizar la experiencia.
-5. CUANDO un usuario desea actualizar su perfil de aprendizaje ENTONCES el sistema DEBERÁ permitir realizar nuevas evaluaciones periódicas.
-6. CUANDO se detectan cambios significativos en el comportamiento de aprendizaje ENTONCES el sistema DEBERÁ sugerir una reevaluación del perfil.
-7. SI un usuario decide no realizar la evaluación inicial ENTONCES el sistema DEBERÁ construir gradualmente un perfil basado en sus interacciones posteriores.
+1. CUANDO un usuario se registra en la aplicación móvil ENTONCES el sistema DEBERÁ ofrecer la opción de realizar una evaluación pedagógica inicial
+2. CUANDO un usuario completa la evaluación pedagógica ENTONCES el sistema DEBERÁ generar un perfil de aprendizaje personalizado y almacenarlo en blockchain
+3. CUANDO se genera un perfil de aprendizaje ENTONCES el sistema DEBERÁ almacenarlo en el LifeLearningPassport del usuario en la parachain
+4. CUANDO un tutor (humano o IA) interactúa con un estudiante ENTONCES el sistema DEBERÁ proporcionar acceso al perfil de aprendizaje para personalizar la experiencia
+5. CUANDO un usuario desea actualizar su perfil ENTONCES el sistema DEBERÁ permitir realizar nuevas evaluaciones periódicas desde la aplicación móvil
+6. CUANDO se detectan cambios significativos en el comportamiento de aprendizaje ENTONCES el sistema DEBERÁ sugerir una reevaluación del perfil
+7. SI un usuario decide no realizar la evaluación inicial ENTONCES el sistema DEBERÁ construir gradualmente un perfil basado en sus interacciones posteriores
+
+**Nota:** Para detalles de implementación de interfaces móviles de evaluación, ver Spec 02-flutter-frontend-architecture
 
 ### Requerimiento 14: Planes de Acción Tutorial Adaptativos para Aprendizaje Asíncrono
 
-**Componente:** Backend + Frontend
+**Componente:** Backend + Frontend Móvil
 
-**Historia de Usuario:** Como estudiante con un ritmo de aprendizaje variable, quiero que el sistema genere y adapte planes de acción tutorial de forma dinámica sin necesidad de un plan de estudios predefinido, para poder aprender de manera asíncrona según mis intereses y disponibilidad.
+**Historia de Usuario:** Como estudiante con un ritmo de aprendizaje variable, quiero que el sistema genere y adapte planes de acción tutorial de forma dinámica sin necesidad de un plan de estudios predefinido, para poder aprender de manera asíncrona según mis intereses y disponibilidad desde mi dispositivo móvil.
 
 #### Criterios de Aceptación
 
-1. CUANDO un usuario interactúa con contenido educativo ENTONCES el sistema DEBERÁ registrar patrones de interés y compromiso.
-2. CUANDO se acumulan suficientes datos de interacción ENTONCES el sistema DEBERÁ generar automáticamente recomendaciones de aprendizaje personalizadas.
-3. CUANDO un usuario completa una actividad de aprendizaje ENTONCES el sistema DEBERÁ sugerir el siguiente paso lógico basado en su progreso y objetivos.
-4. CUANDO un usuario retoma su aprendizaje después de un período de inactividad ENTONCES el sistema DEBERÁ proporcionar un resumen contextual y recomendaciones actualizadas.
-5. CUANDO un usuario muestra interés en un nuevo tema ENTONCES el sistema DEBERÁ integrar este tema en su plan adaptativo sin interrumpir su progreso actual.
-6. CUANDO se detectan brechas de conocimiento ENTONCES el sistema DEBERÁ sugerir recursos complementarios para abordarlas.
-7. SI un usuario desea más estructura ENTONCES el sistema DEBERÁ permitir la creación de planes de aprendizaje más formales a partir de sus interacciones asíncronas previas.
-8. CUANDO un usuario aprende de manera asíncrona ENTONCES el sistema DEBERÁ mantener la coherencia y progresión lógica entre sesiones discontinuas.
+1. CUANDO un usuario interactúa con contenido educativo ENTONCES el sistema DEBERÁ registrar patrones de interés y compromiso en blockchain
+2. CUANDO se acumulan suficientes datos de interacción ENTONCES el sistema DEBERÁ generar automáticamente recomendaciones de aprendizaje personalizadas (algoritmos de backend)
+3. CUANDO un usuario completa una actividad de aprendizaje ENTONCES el sistema DEBERÁ sugerir el siguiente paso lógico basado en su progreso y objetivos
+4. CUANDO un usuario retoma su aprendizaje después de un período de inactividad ENTONCES la aplicación móvil DEBERÁ proporcionar un resumen contextual y recomendaciones actualizadas
+5. CUANDO un usuario muestra interés en un nuevo tema ENTONCES el sistema DEBERÁ integrar este tema en su plan adaptativo sin interrumpir su progreso actual
+6. CUANDO se detectan brechas de conocimiento ENTONCES el sistema DEBERÁ sugerir recursos complementarios para abordarlas (lógica de IA en backend)
+7. SI un usuario desea más estructura ENTONCES la aplicación móvil DEBERÁ permitir la creación de planes de aprendizaje más formales a partir de sus interacciones asíncronas previas
+8. CUANDO un usuario aprende de manera asíncrona ENTONCES el sistema DEBERÁ mantener la coherencia y progresión lógica entre sesiones discontinuas
+
+**Nota:** Para detalles de implementación de interfaces móviles de planes adaptativos, ver Spec 02-flutter-frontend-architecture
 
 ### Requerimiento 15: Integración con Polkadot como Parachain
 
@@ -269,40 +271,44 @@ La arquitectura del proyecto se organiza en cuatro capas principales con estruct
 
 ### Requerimiento 16: Marketplace de Espacios de Aprendizaje Seguros
 
-**Componente:** Backend + Frontend
+**Componente:** Backend + Frontend Móvil
 
-**Historia de Usuario:** Como estudiante o padre de familia, quiero acceder a espacios físicos seguros y autorizados para recibir tutorías presenciales, para garantizar un ambiente de aprendizaje protegido especialmente cuando trabajo con tutores nuevos o cuando requiero atención presencial por mis necesidades educativas especiales.
+**Historia de Usuario:** Como estudiante o padre de familia, quiero acceder desde mi dispositivo móvil a espacios físicos seguros y autorizados para recibir tutorías presenciales, para garantizar un ambiente de aprendizaje protegido especialmente cuando trabajo con tutores nuevos o cuando requiero atención presencial por mis necesidades educativas especiales.
 
 #### Criterios de Aceptación
 
-1. CUANDO un estudiante necesita tutorías presenciales ENTONCES el sistema DEBERÁ ofrecer opciones de espacios de coworking y centros de estudio autorizados cercanos.
-2. CUANDO un espacio de aprendizaje se registra ENTONCES el sistema DEBERÁ verificar sus credenciales, seguridad y condiciones apropiadas para la enseñanza.
-3. CUANDO un tutor nuevo (con baja reputación) ofrece servicios presenciales ENTONCES el sistema DEBERÁ recomendar prioritariamente espacios seguros en lugar de domicilios.
-4. CUANDO se reserva un espacio ENTONCES el sistema DEBERÁ gestionar la disponibilidad, costos y confirmación de la reserva.
-5. CUANDO un estudiante tiene necesidades educativas especiales ENTONCES el sistema DEBERÁ filtrar espacios que cumplan con requisitos de accesibilidad y condiciones específicas.
-6. CUANDO se completa una sesión en un espacio autorizado ENTONCES el sistema DEBERÁ permitir calificar tanto al tutor como al espacio utilizado.
-7. CUANDO padres de familia buscan opciones para menores ENTONCES el sistema DEBERÁ priorizar espacios con certificaciones de seguridad infantil.
-8. CUANDO un espacio acumula calificaciones negativas ENTONCES el sistema DEBERÁ revisar su autorización y tomar medidas correctivas.
+1. CUANDO un estudiante necesita tutorías presenciales ENTONCES la aplicación móvil DEBERÁ mostrar opciones de espacios de coworking y centros de estudio autorizados cercanos
+2. CUANDO un espacio de aprendizaje se registra ENTONCES el sistema DEBERÁ verificar sus credenciales, seguridad y condiciones apropiadas para la enseñanza (proceso de backend)
+3. CUANDO un tutor nuevo (con baja reputación) ofrece servicios presenciales ENTONCES el sistema DEBERÁ recomendar prioritariamente espacios seguros en lugar de domicilios
+4. CUANDO se reserva un espacio desde la aplicación móvil ENTONCES el sistema DEBERÁ gestionar la disponibilidad, costos y confirmación de la reserva
+5. CUANDO un estudiante tiene necesidades educativas especiales ENTONCES la aplicación móvil DEBERÁ filtrar espacios que cumplan con requisitos de accesibilidad y condiciones específicas
+6. CUANDO se completa una sesión en un espacio autorizado ENTONCES la aplicación móvil DEBERÁ permitir calificar tanto al tutor como al espacio utilizado
+7. CUANDO padres de familia buscan opciones para menores ENTONCES la aplicación móvil DEBERÁ priorizar espacios con certificaciones de seguridad infantil
+8. CUANDO un espacio acumula calificaciones negativas ENTONCES el sistema DEBERÁ revisar su autorización y tomar medidas correctivas (proceso de backend)
+
+**Nota:** Para detalles de implementación de interfaces móviles de marketplace, ver Spec 02-flutter-frontend-architecture
 
 ### Requerimiento 17: Modelado de Sesiones Tutoriales y sus Interacciones de Aprendizaje
 
-**Componente:** Backend + Frontend
+**Componente:** Backend + Frontend Móvil
 
-**Historia de Usuario:** Como tutor o estudiante, quiero que el sistema distinga claramente entre una sesión tutorial completa y las múltiples interacciones de aprendizaje atómicas que ocurren durante ella, para tener un registro estructurado y detallado de cada proceso educativo.
+**Historia de Usuario:** Como tutor o estudiante, quiero que el sistema distinga claramente entre una sesión tutorial completa y las múltiples interacciones de aprendizaje atómicas que ocurren durante ella, para tener un registro estructurado y detallado de cada proceso educativo visualizable desde mi dispositivo móvil.
 
 #### Criterios de Aceptación
 
-1. CUANDO se inicia una sesión tutorial ENTONCES el sistema DEBERÁ crear un contenedor lógico que agrupe todas las interacciones de aprendizaje relacionadas.
-2. CUANDO ocurre una interacción de aprendizaje durante una tutoría ENTONCES el sistema DEBERÁ registrarla como una entidad atómica independiente pero vinculada a la sesión tutorial correspondiente.
-3. CUANDO un estudiante hace una pregunta durante una tutoría ENTONCES el sistema DEBERÁ registrarla como una interacción atómica individual.
-4. CUANDO un tutor proporciona una explicación ENTONCES el sistema DEBERÁ registrarla como una interacción atómica individual.
-5. CUANDO se realiza un quiz de verificación durante una tutoría ENTONCES el sistema DEBERÁ registrar cada pregunta del quiz como una interacción atómica individual.
-6. CUANDO finaliza una sesión tutorial ENTONCES el sistema DEBERÁ permitir una evaluación general de la sesión completa, además de las evaluaciones de interacciones individuales.
-7. CUANDO se visualiza el historial de aprendizaje ENTONCES el sistema DEBERÁ permitir navegar tanto por sesiones tutoriales completas como por interacciones individuales.
-8. CUANDO se califica una sesión tutorial ENTONCES el sistema DEBERÁ distinguir entre la calificación de la sesión completa y las calificaciones de interacciones específicas.
-9. CUANDO un tutor registra una interacción de aprendizaje ENTONCES el sistema DEBERÁ ofrecer opciones para categorizarla dentro del contexto de la sesión tutorial.
-10. CUANDO se analiza el progreso de aprendizaje ENTONCES el sistema DEBERÁ proporcionar métricas tanto a nivel de sesiones tutoriales como de interacciones individuales.
-11. CUANDO se exportan datos de aprendizaje ENTONCES el sistema DEBERÁ mantener la jerarquía entre sesiones tutoriales e interacciones atómicas.
+1. CUANDO se inicia una sesión tutorial ENTONCES el sistema DEBERÁ crear un contenedor lógico en blockchain que agrupe todas las interacciones de aprendizaje relacionadas
+2. CUANDO ocurre una interacción de aprendizaje durante una tutoría ENTONCES el sistema DEBERÁ registrarla como una entidad atómica independiente pero vinculada a la sesión tutorial correspondiente
+3. CUANDO un estudiante hace una pregunta durante una tutoría ENTONCES el sistema DEBERÁ registrarla como una interacción atómica individual en blockchain
+4. CUANDO un tutor proporciona una explicación ENTONCES el sistema DEBERÁ registrarla como una interacción atómica individual en blockchain
+5. CUANDO se realiza un quiz de verificación durante una tutoría ENTONCES el sistema DEBERÁ registrar cada pregunta del quiz como una interacción atómica individual
+6. CUANDO finaliza una sesión tutorial ENTONCES la aplicación móvil DEBERÁ permitir una evaluación general de la sesión completa, además de las evaluaciones de interacciones individuales
+7. CUANDO se visualiza el historial de aprendizaje desde la aplicación móvil ENTONCES el sistema DEBERÁ permitir navegar tanto por sesiones tutoriales completas como por interacciones individuales
+8. CUANDO se califica una sesión tutorial ENTONCES la aplicación móvil DEBERÁ distinguir entre la calificación de la sesión completa y las calificaciones de interacciones específicas
+9. CUANDO un tutor registra una interacción de aprendizaje ENTONCES la aplicación móvil DEBERÁ ofrecer opciones para categorizarla dentro del contexto de la sesión tutorial
+10. CUANDO se analiza el progreso de aprendizaje ENTONCES la aplicación móvil DEBERÁ proporcionar métricas tanto a nivel de sesiones tutoriales como de interacciones individuales
+11. CUANDO se exportan datos de aprendizaje ENTONCES el sistema DEBERÁ mantener la jerarquía entre sesiones tutoriales e interacciones atómicas
+
+**Nota:** Para detalles de implementación de navegación jerárquica móvil, ver Spec 02-flutter-frontend-architecture
 
 ### Requerimiento 18: Arquitectura Híbrida Parachain-Microservicios
 
