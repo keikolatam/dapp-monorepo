@@ -397,13 +397,10 @@ struct ErrorOccurred {
 - [Cairo Book - Macros](https://book.cairo-lang.org/ch03-05-control-flow.html)
 - [Starknet Book - Smart Contracts](https://book.starknet.io/chapter_1/introduction.html)
 - [Cairo Reference](https://cairo-lang.org/docs/)
-- [Keiko Cairo Contracts](keiko-cairo-contracts.md) - Contratos específicos para Keiko
 
 ---
 
 **💡 Tip:** Usa `#[cfg(test)]` para código que solo debe compilar en tests y `#[inline(always)]` para funciones críticas de rendimiento.
-
-**📝 Nota:** Para casos de uso específicos de Keiko (Proof-of-Humanity, Learning Interactions), consulta el documento [keiko-cairo-contracts.md](keiko-cairo-contracts.md).
 
 ---
 
