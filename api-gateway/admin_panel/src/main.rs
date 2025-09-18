@@ -11,6 +11,8 @@ use axum::{
 use leptos::*;
 use leptos_axum::{generate_route_list, handle_server_fns, LeptosRoutes};
 use tower_http::{cors::CorsLayer, services::ServeDir};
+use tower::util::ServiceExt; // for .oneshot
+use keiko_graphql_server::schema::create_schema;
 
 #[cfg(feature = "ssr")]
 #[tokio::main]
@@ -21,7 +23,7 @@ async fn main() {
     let routes = generate_route_list(App);
 
     // GraphQL Schema Integration
-    let graphql_schema = keiko_graphql_server::create_schema();
+    let _graphql_schema = create_schema();
 
     let app = Router::new()
         // GraphQL endpoint
@@ -46,16 +48,16 @@ async fn main() {
 
 #[cfg(feature = "ssr")]
 async fn server_fn_handler(
-    State(leptos_options): State<LeptosOptions>,
-    request: Request<Body>,
+    State(_leptos_options): State<LeptosOptions>,
+    _request: Request<Body>,
 ) -> impl IntoResponse {
-    handle_server_fns(request).await
+    handle_server_fns(_request).await
 }
 
 #[cfg(feature = "ssr")]
 async fn graphql_handler(
     State(_leptos_options): State<LeptosOptions>,
-    request: Request<Body>,
+    _request: Request<Body>,
 ) -> impl IntoResponse {
     // GraphQL request handling
     // This would integrate with Juniper's request handling

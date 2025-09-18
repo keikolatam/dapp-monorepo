@@ -2,21 +2,22 @@
 
 ## Introducción
 
-Keiko es una red social educativa descentralizada (DApp) construida como un monorepo que integra un backend desarrollado en Rust con contratos inteligentes en Cairo sobre Starknet y un frontend multiplataforma desarrollado en Flutter. Su propósito es convertir el aprendizaje en capital humano verificable e interoperable en tiempo real. La plataforma permite a cualquier individuo construir y demostrar su Pasaporte de Aprendizaje de Vida (LifeLearningPassport) en blockchain, mediante interacciones de aprendizaje atómicas (LearningInteractions) compatibles con el estándar xAPI (Tin Can). El objetivo principal es reemplazar las certificaciones tradicionales con evidencia infalsificable de aprendizaje, evaluada por múltiples actores y almacenada de forma descentralizada.
+Keiko es una red social educativa descentralizada (DApp) construida como un monorepo que integra un backend desarrollado en Rust con contratos inteligentes en Cairo sobre Starknet y un frontend multiplataforma desarrollado en Flutter. Su propósito es convertir el aprendizaje en capital humano verificable e interoperable en tiempo real. La plataforma permite a cualquier individuo construir y demostrar su Pasaporte de Aprendizaje de Vida (LifeLearningPassport) en blockchain, mediante interacciones de aprendizaje atómicas (LearningInteractions) compatibles con el estándar xAPI (Tin Can). El objetivo principal es reemplazar las certificaciones tradicionales con evidencia encadenada e infalsificable de aprendizaje, evaluada por múltiples actores y almacenada de forma descentralizada.
 
 La arquitectura del proyecto se organiza en cinco capas principales con estructura de carpetas correspondiente:
 
 - **Keikochain Layer** (`appchain/`): Contratos Cairo en Keikochain (Starknet Appchain) para almacenamiento inmutable y consenso
 - **gRPC Gateway Layer** (`grpc-gateway/`): Traductor Rust ↔ Cairo que comunica microservicios con Keikochain (Starknet Appchain)
 - **Service Layer** (`services/`): Microservicios Rust con comunicación gRPC, cache PostgreSQL local, y eventos Redis Streams
-- **API Layer** (`api-gateway/`): API Gateway GraphQL que traduce queries del frontend a llamadas gRPC y orquesta respuestas
+- **API Layer** (`api-gateway/`): API Gateway GraphQL que traduce queries del frontend a llamadas gRPC y orquesta respuestas, con comunicación WSS para GraphQL subscriptions
 - **Frontend Layer** (`frontend/`): Aplicación Flutter multiplataforma que se comunica exclusivamente via GraphQL
 
 **Flujo de Datos Híbrido:**
 
-- **Escritura**: Flutter → GraphQL → Microservicio → gRPC Gateway → Keikochain Contract → Evento Redis → GraphQL Subscription
-- **Lectura**: Flutter → GraphQL → Microservicio → Cache/DB local → (fallback) gRPC Gateway → Keikochain Contract
-- **Tiempo Real**: Keikochain Contract → gRPC Gateway → Microservicio → Redis Streams → API Gateway → GraphQL Subscription → Flutter
+- **Escritura**: Flutter → GraphQL (HTTPS) → Microservicio → gRPC Gateway → Keikochain Contract → Evento Redis → GraphQL Subscription (WSS)
+- **Lectura**: Flutter → GraphQL (HTTPS) → Microservicio → Cache/DB local → (fallback) gRPC Gateway → Keikochain Contract
+- **Tiempo Real**: Keikochain Contract → gRPC Gateway → Microservicio → Redis Streams → API Gateway → GraphQL Subscription (WSS) → Flutter
+- **Autenticación**: Flutter → FIDO2 → JWT → WSS Headers → API Gateway → gRPC Metadata → Microservicios
 
 ## Requerimientos
 
@@ -136,7 +137,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 4. CUANDO se selecciona una sesión tutorial ENTONCES el sistema DEBERÁ mostrar todas las interacciones de aprendizaje contenidas en ella
 5. CUANDO un usuario quiere compartir logros ENTONCES el sistema DEBERÁ generar certificados visuales verificables
 6. CUANDO la aplicación móvil se comunica con el backend ENTONCES el sistema DEBERÁ usar EXCLUSIVAMENTE GraphQL a través del API Gateway
-7. CUANDO se requieran actualizaciones en tiempo real ENTONCES el sistema DEBERÁ usar GraphQL subscriptions alimentadas por eventos Redis Streams
+7. CUANDO se requieran actualizaciones en tiempo real ENTONCES el sistema DEBERÁ usar GraphQL subscriptions sobre WSS alimentadas por eventos Redis Streams
 8. CUANDO se aprovechen capacidades móviles ENTONCES el sistema DEBERÁ implementar notificaciones push y funcionalidades nativas
 
 **Nota:** Para detalles técnicos de implementación con Clean Architecture y Riverpod, ver Spec 02-flutter-frontend-architecture
@@ -172,7 +173,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 4. CUANDO ocurran errores en microservicios ENTONCES el API Gateway DEBERÁ mapear errores gRPC a errores GraphQL comprensibles
 5. CUANDO se requiera autenticación ENTONCES el API Gateway DEBERÁ validar tokens JWT y propagar contexto de usuario via gRPC metadata
 6. CUANDO se necesite cache ENTONCES el API Gateway DEBERÁ implementar cache de queries GraphQL con invalidación basada en eventos Redis
-7. CUANDO se reciban eventos de dominio ENTONCES el API Gateway DEBERÁ actualizar subscriptions GraphQL en tiempo real
+7. CUANDO se reciban eventos de dominio ENTONCES el API Gateway DEBERÁ actualizar subscriptions GraphQL en tiempo real sobre WSS
 8. CUANDO sistemas externos requieran integración ENTONCES el API Gateway DEBERÁ exponer endpoints REST para webhooks y APIs de terceros
 9. CUANDO se requiera observabilidad ENTONCES el API Gateway DEBERÁ instrumentar todas las llamadas GraphQL → gRPC con OpenTelemetry
 
@@ -331,7 +332,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 4. CUANDO se requiera comunicación entre microservicios ENTONCES DEBERÁ usar exclusivamente gRPC con service discovery
 5. CUANDO se publiquen eventos de dominio ENTONCES los microservicios DEBERÁ usar Redis Streams (NUNCA Keikochain)
 6. CUANDO el API Gateway reciba queries GraphQL ENTONCES DEBERÁ traducir a llamadas gRPC y orquestar respuestas de múltiples microservicios
-7. CUANDO se requieran subscriptions en tiempo real ENTONCES el API Gateway DEBERÁ usar Redis Streams para alimentar GraphQL subscriptions
+7. CUANDO se requieran subscriptions en tiempo real ENTONCES el API Gateway DEBERÁ usar Redis Streams para alimentar GraphQL subscriptions sobre WSS
 8. CUANDO sistemas externos requieran integración ENTONCES DEBERÁ usar endpoints REST solo en el API Gateway (no en microservicios)
 9. CUANDO se desplieguen microservicios ENTONCES cada uno DEBERÁ tener su propia base de datos PostgreSQL independiente
 10. CUANDO se requiera observabilidad ENTONCES DEBERÁ instrumentar toda la cadena: GraphQL → gRPC → gRPC Gateway → Keikochain Contract
@@ -556,7 +557,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 2. CUANDO FIDO2 es exitoso ENTONCES el API Gateway DEBERÁ generar un JWT para la sesión del usuario
 3. CUANDO se requiere verificación de humanidad ENTONCES el sistema DEBERÁ solicitar la prueba STARK de la humanity_proof_key
 4. CUANDO se envían interacciones críticas ENTONCES el sistema DEBERÁ verificar tanto el JWT como la prueba STARK
-5. CUANDO se usa FIDO2 ENTONCES DEBERÁ configurarse con `userVerification: 'required'` y `rpId: 'keiko.com'`
+5. CUANDO se usa FIDO2 ENTONCES DEBERÁ configurarse con `userVerification: 'required'` y `rpId: 'keikolatam.app'`
 6. CUANDO se genera el JWT ENTONCES DEBERÁ incluir información de la sesión FIDO2 y referencia a la humanity_proof_key
 7. CUANDO se requiere re-autenticación ENTONCES el sistema DEBERÁ permitir usar FIDO2 sin repetir el proceso biométrico completo
 8. CUANDO se detecta actividad sospechosa ENTONCES el sistema DEBERÁ requerir verificación adicional con zkProofs
@@ -611,3 +612,22 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 6. CUANDO se configura la conexión ENTONCES DEBERÁ usar el RPC endpoint de Keikochain (`wss://keikochain.karnot.xyz`)
 7. CUANDO se implementa el gateway ENTONCES DEBERÁ seguir patrones de resiliencia con circuit breakers y retry policies
 8. CUANDO se despliega ENTONCES DEBERÁ exponer un servidor gRPC en `localhost:50051` para comunicación con microservicios
+
+### Requerimiento 36: API Gateway con WebSocket Secure (WSS) para GraphQL Subscriptions
+
+**Componente:** API Gateway (Rust + GraphQL + WSS)
+
+**Historia de Usuario:** Como desarrollador de frontend, quiero que el API Gateway implemente WSS para GraphQL subscriptions, para mantener comunicación segura en tiempo real con autenticación JWT y protección de datos sensibles de Proof-of-Humanity.
+
+#### Criterios de Aceptación
+
+1. CUANDO se establezcan GraphQL subscriptions ENTONCES el API Gateway DEBERÁ usar WebSocket Secure (WSS) como transporte
+2. CUANDO se autentique una conexión WSS ENTONCES el API Gateway DEBERÁ validar JWT tokens en headers de WebSocket
+3. CUANDO se reciban eventos de Redis Streams ENTONCES el API Gateway DEBERÁ propagar actualizaciones via WSS a clientes suscritos
+4. CUANDO se manejen LearningInteractions ENTONCES el API Gateway DEBERÁ usar canales WSS separados para datos críticos
+5. CUANDO se implemente WSS ENTONCES DEBERÁ usar certificados SSL válidos y verificación de identidad del servidor
+6. CUANDO se detecten conexiones perdidas ENTONCES el API Gateway DEBERÁ implementar reconexión automática con reautenticación
+7. CUANDO se optimice rendimiento ENTONCES DEBERÁ implementar compresión de mensajes y heartbeat para mantener conexiones vivas
+8. CUANDO se maneje Proof-of-Humanity ENTONCES DEBERÁ usar encriptación adicional para datos biométricos en tránsito
+9. CUANDO se implemente el servidor WSS ENTONCES DEBERÁ usar `tokio-tungstenite` con soporte para GraphQL subscriptions
+10. CUANDO se configure WSS ENTONCES DEBERÁ exponer el endpoint en `wss://api.keikolatam.app/graphql-ws` con protocolo GraphQL WebSocket

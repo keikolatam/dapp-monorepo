@@ -19,12 +19,11 @@ tower-http = { version = "0.5", features = ["cors", "fs"] }
 juniper = { version = "0.16", features = ["schema-language"] }
 juniper_axum = "0.1"
 # Leptos
-leptos = { version = "0.6", features = ["nightly"] }
+leptos = { version = "0.6" }
 leptos_axum = "0.6"
 leptos_meta = "0.6"
 leptos_router = "0.6"
-# Blockchain
-substrate-api-client = "0.18"
+## Blockchain (Substrate) - removed for now
 # Database & Cache
 redis = { version = "0.24", features = ["tokio-comp"] }
 sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres"] }

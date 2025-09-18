@@ -1,0 +1,40 @@
+# Configuración de Keikochain (Madara Appchain)
+# Basado en la documentación: https://docs.madara.build/quickstart/run_appchain
+
+[appchain]
+name = "keikochain"
+description = "Keiko DApp - Starknet Appchain para Proof-of-Humanity y Life Learning Passport"
+version = "0.1.0"
+
+[sequencer]
+host = "127.0.0.1"
+port = 9944
+rpc_port = 9945
+ws_port = 9946
+
+[orchestrator]
+host = "127.0.0.1"
+port = 8080
+
+[prover]
+type = "mock"
+host = "127.0.0.1"
+port = 8081
+
+[settlement]
+chain = "ethereum"
+rpc_url = "http://127.0.0.1:8545"
+private_key = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+
+[consensus]
+algorithm = "proof_of_stake"
+block_time = 2
+finality_threshold = 1
+
+[storage]
+type = "rocksdb"
+path = "./data"
+
+[logging]
+level = "info"
+format = "json"

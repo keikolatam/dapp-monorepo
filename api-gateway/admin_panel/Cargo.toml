@@ -10,14 +10,14 @@ publish = false
 
 [dependencies]
 # Leptos Framework
-leptos = { version = "0.6", features = ["nightly"] }
+leptos = { version = "0.6" }
 leptos_axum = { version = "0.6", optional = true }
 leptos_meta = { version = "0.6", optional = true }
 leptos_router = { version = "0.6", optional = true }
 # Web Framework (SSR)
 axum = { version = "0.7", optional = true }
 tokio = { version = "1", features = ["rt-multi-thread"], optional = true }
-tower = { version = "0.4", optional = true }
+tower = { version = "0.4", features = ["util"], optional = true }
 tower-http = { version = "0.5", features = ["fs"], optional = true }
 # WASM (CSR)
 wasm-bindgen = { version = "0.2", optional = true }
@@ -27,9 +27,12 @@ reqwest = { version = "0.11", features = ["json"] }
 # Serialization
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+# GraphQL UI helpers
+juniper = { version = "0.16", optional = true }
+keiko-graphql-server = { path = "../graphql_server", package = "keiko-graphql-server", optional = true }
 
 [features]
-default = []
+default = ["ssr"]
 csr = ["leptos/csr", "leptos_router/csr"]
 hydrate = [
     "leptos/hydrate", 
@@ -46,5 +49,7 @@ ssr = [
     "dep:axum",
     "dep:tokio",
     "dep:tower",
-    "dep:tower-http"
+    "dep:tower-http",
+    "dep:juniper",
+    "dep:keiko-graphql-server"
 ]

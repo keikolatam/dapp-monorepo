@@ -8,7 +8,7 @@
 [package]
 name = "shared-utils"
 version = "0.1.0"
-edition = "2025"
+edition = "2024"
 authors = ["Keiko Team"]
 homepage = "http://keiko-dapp.xyz/"
 repository = "https://github.com/keikolatam/keiko-dapp"

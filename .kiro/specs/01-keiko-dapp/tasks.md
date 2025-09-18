@@ -3,533 +3,342 @@
 ## Estado Actual del Proyecto
 
 **✅ COMPLETADO:**
-- Backend Substrate: 3 pallets personalizados completamente implementados y funcionales
-  - `pallet_learning_interactions`: xAPI completo con jerarquías educativas
-  - `pallet_life_learning_passport`: Perfiles de usuario y privacidad
-  - `pallet_reputation_system`: Reputación dinámica con expiración
-- Runtime: Pallets integrados correctamente en parachain Substrate
-- Tests: Tests unitarios para todos los pallets
+- Migración de Polkadot parachain a Starknet appchain (Keikochain)
+- Estructura del proyecto reorganizada según arquitectura de cinco capas
+- Documentación actualizada con nueva arquitectura híbrida
 
-**⚠️ PENDIENTE (Solo archivos de configuración):**
-- Middleware: Solo package.json, sin implementación real
-- Frontend: Solo archivos de tema, sin main.dart ni aplicación Flutter
-- API Gateway: Requiere migración completa a Rust
-- Microservicios: No implementados
+**🔄 EN PROGRESO:**
+- Implementación de arquitectura híbrida de cinco capas
+- Migración de pallets Substrate a contratos Cairo en Keikochain
+- Desarrollo de gRPC Gateway Layer
 
-**🔄 MIGRACIÓN REQUERIDA:**
-- Reestructurar proyecto: backend/ → blockchain/, middleware/ → api-gateway/
-- Migrar de NestJS/TypeScript a Rust para servicios
-- Implementar arquitectura de microservicios cloud-native
+**⚠️ PENDIENTE:**
+- Contratos Cairo en Keikochain (Starknet Appchain)
+- gRPC Gateway Layer (Rust ↔ Cairo translator)
+- Microservicios independientes (Service Layer)
+- API Gateway con GraphQL + WSS (API Layer)
+- Panel administrativo Leptos
+
+**🎯 OBJETIVO:**
+- Microservicios cloud-native completamente independientes
+- Arquitectura híbrida con Keikochain como fuente de verdad
+- Comunicación gRPC entre microservicios
+- GraphQL API Gateway con WebSocket Secure (WSS)
 
 ## Tareas de Implementación
 
 ### Fase 0: Migración y Reestructuración del Proyecto
 
-- [x] 0.1 Reestructurar directorios según nueva arquitectura
+- [ ] 0.1 Reestructurar directorios según nueva arquitectura
 
-  - Crear nueva estructura de directorios: blockchain/, services/, api-gateway/, frontend/, shared/, infrastructure/
-  - Migrar backend/ → blockchain/ (mantener parachain Substrate existente)
+  - Crear nueva estructura de directorios: appchain/, grpc-gateway/, services/, api-gateway/, frontend/, shared/, docs/
+  - Migrar backend/ → appchain/ (conversión a contratos Cairo)
   - Migrar middleware/ → api-gateway/ (preparar para conversión a Rust)
+  - Crear grpc-gateway/ para traductor Rust ↔ Cairo
   - Crear services/ para microservicios independientes
   - Crear shared/ para código compartido entre servicios
-  - Crear infrastructure/ para IaC (Terraform, Kubernetes manifests)
   - Actualizar todos los Cargo.toml y referencias de paths
-  - _Requerimientos: Preparación para arquitectura de microservicios_
+  - _Requerimientos: Preparación para arquitectura de cinco capas_
 
-- [x] 0.2 Actualizar documentación y configuración
+- [ ] 0.2 Actualizar documentación y configuración
 
   - Actualizar README.md con nueva estructura de proyecto
   - Actualizar .gitignore para nueva estructura
-  - Configurar workspace Cargo.toml para blockchain/ y services/
+  - Configurar workspace Cargo.toml para appchain/, grpc-gateway/, services/, api-gateway/
   - Actualizar scripts de build y desarrollo
-  - Documentar proceso de migración
+  - Documentar proceso de migración a Keikochain
   - _Requerimientos: Documentación actualizada_
 
-### Fase 1: Backend Blockchain
+### Fase 1: Keikochain Layer (Starknet Appchain)
 
-- [x] 1. Pallets Substrate implementados y funcionales
+- [ ] 1. Configurar Keikochain (Starknet Appchain)
 
-  - ✅ Pallet Learning Interactions: Implementación completa con xAPI, jerarquías educativas
-  - ✅ Pallet Life Learning Passport: Perfiles de usuario y configuraciones de privacidad  
-  - ✅ Pallet Reputation System: Sistema de reputación dinámica con expiración
-  - ✅ Integración en runtime: Todos los pallets integrados correctamente
-  - ✅ Tests: Tests unitarios implementados para todos los pallets
+  - Configurar entorno de desarrollo con Starknet devnet
+  - Configurar conexión a Keikochain (wss://keikochain.karnot.xyz)
+  - Configurar herramientas de desarrollo Cairo (Scarb, starknet-devnet)
+  - Configurar variables de entorno para diferentes entornos (dev, staging, production)
+  - Crear scripts de despliegue y testing para contratos Cairo
+  - _Requerimientos: Configuración base de Keikochain_
+
+- [ ] 2. Migrar pallets Substrate a contratos Cairo
+
+  - Migrar pallet_learning_interactions → contrato learning_interactions.cairo
+  - Migrar pallet_life_learning_passport → contrato life_learning_passport.cairo
+  - Migrar pallet_reputation_system → contrato reputation_system.cairo
+  - Adaptar lógica de negocio de Rust/Substrate a Cairo/Starknet
+  - Mantener compatibilidad con estándar xAPI
   - _Requerimientos: 2.1-2.10, 1.1-1.5, 5.1-5.9_
 
-- [x] 2. Implementar configuración base del nodo Substrate
+- [ ] 3. Implementar contrato Proof-of-Humanity
 
-  - ✅ Configuración inicial del nodo Substrate en backend/node/ (completado)
-  - ✅ Configuración de red y consenso para desarrollo local (completado)
-  - ✅ CLI básico para el nodo con parámetros de desarrollo (completado)
-  - ✅ Tests básicos de funcionamiento del nodo (completado)
-  - _Requerimientos: 15.1, 15.2_
+  - Crear contrato proof_of_humanity.cairo con verificación STARK
+  - Implementar registro de humanity_proof_key con verificación de unicidad
+  - Implementar verificación de firmas Ed25519 para interacciones de aprendizaje
+  - Crear funciones para verificar humanidad y obtener learning passport
+  - Implementar tests unitarios para verificación STARK y Ed25519
+  - _Requerimientos: Proof-of-Humanity con zkProofs_
 
-- [x] 3. Implementar runtime base de la parachain
+- [ ] 4. Implementar contrato Learning Interactions
 
-  - ✅ Runtime básico de parachain en backend/runtime/ con lib.rs (completado)
-  - ✅ Pallets básicos de Substrate configurados (System, Timestamp, Balances, etc.) (completado)
-  - ✅ Configuración inicial para parachain (cumulus) (completado)
-  - ✅ Tipos y constantes del runtime configurados (completado)
-  - ✅ Tests básicos del runtime (completado)
-  - _Requerimientos: 15.3, 15.4, 15.5, 15.6, 15.7_
+  - Crear contrato learning_interactions.cairo con soporte xAPI completo
+  - Implementar jerarquías educativas (Course, Class, TutorialSession)
+  - Implementar registro de interacciones atómicas con firma Ed25519
+  - Crear funciones para consultar interacciones por usuario y rango de tiempo
+  - Implementar tests unitarios para validación xAPI y jerarquías
+  - _Requerimientos: 2.1-2.10, jerarquías educativas_
 
-- [x] 4. **Desarrollar** pallet Learning Interactions
+- [ ] 5. Implementar contrato Life Learning Passport
 
-- [x] 4.1 Crear estructura base del pallet
-
-  - Crear archivo lib.rs en blockchain/pallets/learning_interactions/
-  - Implementar estructura básica del pallet con Config trait
-  - Crear Cargo.toml con dependencias necesarias
-  - Configurar macros básicos del pallet (#[pallet::pallet], #[pallet::config])
-  - Escribir tests básicos de compilación
-  - _Requerimientos: 2.1, 2.2_
-
-- [x] 4.2 Implementar estructuras de datos xAPI
-
-  - Crear tipos Rust para LearningInteraction, Actor, Verb, Object según estándar xAPI
-  - Implementar validación de estructura xAPI en el pallet
-  - Crear funciones de serialización/deserialización para compatibilidad JSON
-
-  - Escribir tests unitarios para validación de datos xAPI
-  - _Requerimientos: 2.1, 2.2, 9.1, 9.2_
-
-- [x] 4.3 Implementar jerarquía de experiencias de aprendizaje
-
-  - Crear estructuras Course, Class, TutorialSession en el pallet
-  - Implementar relaciones jerárquicas entre contenedores educativos
-
-  - Crear extrinsics para crear y gestionar cursos, clases y sesiones
-  - Implementar queries para recuperar jerarquías completas
-  - Escribir tests de integración para jerarquías de datos
-  - _Requerimientos: 16.1, 16.2, 16.3, 16.4, 16.5, 16.6, 16.7, 16.8, 16.9, 16.10, 16.11, 17.1, 17.2, 17.3, 17.4, 17.5, 17.6, 17.7, 17.8, 17.9, 17.10, 17.11, 17.12_
-
-- [x] 4.4 Implementar registro de interacciones atómicas
-
-  - Crear extrinsic create_interaction para registrar interacciones individuales
-  - Implementar validación de contenido y estructura de interacciones
-  - Crear sistema de eventos para notificar interacciones registradas
-  - Implementar manejo de archivos adjuntos y evidencias
-  - Escribir tests para diferentes tipos de interacciones (pregunta, respuesta, ejercicio, etc.)
-  - _Requerimientos: 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10_
-
-- [x] 5. Desarrollar pallet Life Learning Passport
-
-- [x] 5.1 Crear estructura base del pallet
-
-  - Crear archivo lib.rs en blockchain/pallets/life_learning_passport/
-  - Implementar estructura básica del pallet con Config trait
-  - Crear Cargo.toml con dependencias necesarias
-  - Configurar macros básicos del pallet
-  - Escribir tests básicos de compilación
-  - _Requerimientos: 1.1, 1.2_
-
-- [x] 5.2 Implementar estructura del pasaporte
-
-  - Crear estructura LifeLearningPassport con referencias a interacciones
+  - Crear contrato life_learning_passport.cairo con gestión de pasaportes
   - Implementar configuraciones de privacidad granulares
-  - Crear extrinsic para inicializar pasaporte al registrar usuario
-  - Implementar queries para recuperar datos del pasaporte
-  - Escribir tests para creación y gestión de pasaportes
+  - Implementar sistema de compartir pasaportes con enlaces verificables
+  - Crear funciones para generar y verificar enlaces de pasaportes
+  - Implementar tests unitarios para gestión de pasaportes y privacidad
+  - _Requerimientos: 1.1-1.5, perfiles de aprendizaje_
 
-  - _Requerimientos: 1.1, 1.2, 10.3_
+- [ ] 6. Implementar contrato Reputation System
 
-- [x] 5.3 Implementar sistema de compartir pasaportes
+  - Crear contrato reputation_system.cairo con sistema de calificaciones
+  - Implementar calificaciones con expiración de 30 días
+  - Implementar sistema bidireccional de calificaciones (estudiante-tutor)
+  - Crear funciones para calcular reputación dinámica priorizando recientes
+  - Implementar tests unitarios para expiración y cálculo de reputación
+  - _Requerimientos: 5.1-5.9, sistema de reputación dinámica_
 
-  - Crear funcionalidad para generar enlaces verificables de pasaportes
-  - Implementar verificación criptográfica de autenticidad de datos
-  - Crear sistema de permisos para compartir datos específicos
-  - Implementar expiración de enlaces compartidos
+- [ ] 7. Implementar contrato Governance
 
-  - Escribir tests para verificación y compartir de pasaportes
-  - _Requerimientos: 1.4, 1.5, 10.4_
-
-- [x] 5.4 Implementar perfiles de aprendizaje
-
-  - Crear estructura LearningProfile con estilos y preferencias de aprendizaje
-  - Implementar almacenamiento de resultados de evaluaciones pedagógicas
-  - Crear sistema de actualización automática de perfiles basado en interacciones
-  - Implementar queries para acceder a perfiles de aprendizaje
-  - Escribir tests para gestión de perfiles de aprendizaje
-  - _Requerimientos: 12.3, 12.4, 12.6_
-
-- [-] 6. Desarrollar pallet Reputation System
-
-- [x] 6.1 Crear estructura base del pallet
-
-  - Crear archivo lib.rs en blockchain/pallets/reputation_system/
-  - Implementar estructura básica del pallet con Config trait
-  - Crear Cargo.toml con dependencias necesarias
-  - Configurar macros básicos del pallet
-  - Escribir tests básicos de compilación
-  - _Requerimientos: 5.1, 5.2_
-
-- [x] 6.2 Implementar sistema de calificaciones con expiración
-
-  - Crear estructura Rating con timestamp de expiración (30 días)
-  - Implementar extrinsic create_rating para calificar usuarios
-  - Crear sistema automático de expiración de calificaciones
-  - Implementar cálculo de reputación dinámica priorizando calificaciones recientes
-  - Escribir tests para expiración y cálculo de reputación
-  - _Requerimientos: 5.1, 5.2, 5.4, 5.5, 5.9_
-
-- [x] 6.3 Implementar sistema bidireccional de calificaciones
-
-  - Crear funcionalidad para que tutores califiquen estudiantes
-  - Implementar sistema de comentarios detallados en calificaciones
-  - Crear funcionalidad de respuesta a comentarios
-  - Implementar calificaciones entre pares para actividades grupales
-  - Escribir tests para sistema bidireccional de calificaciones
-  - _Requerimientos: 5.3, 5.6, 5.7_
-
-- [ ] 6.4 Implementar detección anti-fraude
-
-
-
-  - Crear algoritmos para detectar patrones de calificación maliciosos
-  - Implementar sistema de alertas para comportamientos sospechosos
-  - Crear mecanismos de penalización para usuarios fraudulentos
-  - Implementar sistema de apelaciones para calificaciones disputadas
-  - Escribir tests para detección de fraude
-  - _Requerimientos: 5.8_
-
-- [ ] 7. Desarrollar pallet Marketplace
-- [ ] 7.1 Crear estructura base del pallet
-
-  - Crear directorio blockchain/pallets/marketplace/
-  - Crear archivo lib.rs con estructura básica del pallet
-  - Implementar Config trait y macros básicos
-  - Crear Cargo.toml con dependencias necesarias
-  - Escribir tests básicos de compilación
-  - _Requerimientos: 15.1, 15.2_
-
-- [ ] 7.2 Implementar gestión de espacios de aprendizaje
-
-  - Crear estructura LearningSpace con información de espacios físicos
-  - Implementar sistema de verificación de credenciales de espacios
-  - Crear extrinsics para registrar y gestionar espacios
-  - Implementar certificaciones de seguridad y accesibilidad
-  - Escribir tests para gestión de espacios
-  - _Requerimientos: 15.2, 15.7_
-
-- [ ] 7.3 Implementar sistema de reservas
-
-  - Crear estructura SpaceReservation para gestionar reservas
-  - Implementar sistema de disponibilidad y calendario de espacios
-  - Crear extrinsics para crear, modificar y cancelar reservas
-  - Implementar cálculo automático de costos de reserva
-  - Escribir tests para sistema de reservas
-  - _Requerimientos: 15.4_
-
-- [ ] 7.4 Implementar calificaciones de espacios
-
-  - Crear estructura SpaceRating para calificar espacios
-  - Implementar calificaciones multidimensionales (seguridad, limpieza, accesibilidad)
-  - Crear sistema de recomendación de espacios basado en calificaciones
-  - Implementar filtros especiales para menores y necesidades especiales
-  - Escribir tests para calificaciones de espacios
-  - _Requerimientos: 15.1, 15.3, 15.5, 15.6, 15.8_
-
-- [ ] 8. Desarrollar pallet Governance
-- [ ] 8.1 Crear estructura base del pallet
-
-  - Crear directorio blockchain/pallets/governance/
-  - Crear archivo lib.rs con estructura básica del pallet
-  - Implementar Config trait y macros básicos
-  - Crear Cargo.toml con dependencias necesarias
-  - Escribir tests básicos de compilación
-  - _Requerimientos: 6.1, 6.2_
-
-- [ ] 8.2 Implementar herramientas de gobernanza comunitaria
-
-  - Crear estructuras para propuestas y votaciones comunitarias
-  - Implementar sistema de votación democrática con diferentes mecanismos
-  - Crear funcionalidad para establecer reglas de validación personalizadas
+  - Crear contrato governance.cairo con herramientas de gobernanza comunitaria
+  - Implementar sistema de propuestas y votaciones democráticas
   - Implementar registro inmutable de decisiones de gobernanza
-  - Escribir tests para sistema de gobernanza
-  - _Requerimientos: 6.1, 6.2, 6.3, 6.5_
+  - Crear funciones para establecer reglas de validación personalizadas
+  - Implementar tests unitarios para sistema de gobernanza
+  - _Requerimientos: 6.1-6.5, gobernanza comunitaria_
 
-- [ ] 8.3 Implementar interoperabilidad entre comunidades
+- [ ] 8. Implementar contrato Marketplace
 
-  - Crear sistema de reconocimiento mutuo entre comunidades
-  - Implementar mecanismos de resolución de conflictos entre reglas
-  - Crear funcionalidad para transferencia de credenciales entre comunidades
-  - Implementar sistema de federación de comunidades educativas
-  - Escribir tests para interoperabilidad
-  - _Requerimientos: 6.4_
+  - Crear contrato marketplace.cairo con gestión de espacios de aprendizaje
+  - Implementar sistema de reservas y disponibilidad de espacios
+  - Implementar calificaciones multidimensionales de espacios
+  - Crear funciones para verificación de credenciales de espacios
+  - Implementar tests unitarios para gestión de espacios y reservas
+  - _Requerimientos: 15.1-15.8, marketplace de espacios seguros_
 
-- [ ] 9. Integrar pallets en el runtime
+- [ ] 9. Desplegar y probar contratos en Keikochain
 
-  - Actualizar blockchain/runtime/lib.rs para incluir todos los pallets personalizados
-  - Configurar parámetros y constantes para cada pallet en el runtime
-  - Implementar configuración de pesos para extrinsics
-  - Configurar genesis config para inicialización de pallets
-  - Escribir tests de integración del runtime completo
-  - _Requerimientos: Todos los requerimientos de backend dependen de esta integración_
+  - Desplegar todos los contratos Cairo en Keikochain (Starknet Appchain)
+  - Configurar direcciones de contratos y actualizar configuración
+  - Implementar tests de integración end-to-end con Keikochain
+  - Configurar monitoreo y observabilidad de contratos
+  - Documentar direcciones de contratos y ABI para integración
+  - _Requerimientos: Despliegue completo de Keikochain_
 
-- [ ] 10. Desarrollar API Gateway GraphQL (Rust)
-- [ ] 10.1 Migrar y reestructurar middleware como API Gateway
+### Fase 2: gRPC Gateway Layer
 
-  - Migrar middleware/ → api-gateway/ según nueva estructura
-  - Cambiar de NestJS/TypeScript a Rust con Axum + async-graphql
-  - Crear directorio src/ con estructura Rust en api-gateway/
-  - Implementar main.rs con configuración básica de Axum + async-graphql
-  - Crear módulos base (schema.rs, resolvers.rs, grpc_clients.rs)
-  - Configurar Cargo.toml con dependencias para gRPC (tonic) y GraphQL (async-graphql)
-  - Escribir tests básicos de compilación y arranque
-  - _Requerimientos: 9.1, 9.2_
+- [ ] 10. Configurar gRPC Gateway base
 
-- [ ] 10.2 Implementar esquema GraphQL unificado
+  - Crear estructura base del gRPC Gateway en grpc-gateway/
+  - Configurar cliente Starknet RPC con WebSocketConnector
+  - Implementar conexión a Keikochain (wss://keikochain.karnot.xyz)
+  - Configurar circuit breaker y retry policies
+  - Crear configuración para diferentes entornos (dev, staging, production)
+  - _Requerimientos: Configuración base del gRPC Gateway_
 
-  - Crear tipos GraphQL para usuarios, interacciones, pasaportes y reputación
-  - Implementar Query root que orquesta llamadas gRPC a múltiples microservicios
-  - Implementar Mutation root que traduce mutations GraphQL a llamadas gRPC
-  - Implementar Subscription root conectado a Redis Streams para eventos en tiempo real
-  - Escribir tests de integración para esquema GraphQL completo
-  - _Requerimientos: 9.3, 9.7, 7.11, 7.12_
+- [ ] 11. Implementar traductor Rust ↔ Cairo
 
-- [ ] 10.3 Implementar clientes gRPC para microservicios
+  - Crear módulo translator/ para conversión de tipos
+  - Implementar conversión de tipos Rust a FieldElement (Cairo)
+  - Implementar conversión de respuestas Cairo a tipos Rust
+  - Crear mapeo de funciones gRPC a funciones de contratos Cairo
+  - Implementar validación de tipos y manejo de errores
+  - _Requerimientos: Traductor Rust ↔ Cairo_
+
+- [ ] 12. Implementar servicios gRPC para contratos Cairo
+
+  - Crear proto/learning.proto con servicios para Learning Interactions
+  - Crear proto/passport.proto con servicios para Life Learning Passport
+  - Crear proto/reputation.proto con servicios para Reputation System
+  - Crear proto/governance.proto con servicios para Governance
+  - Crear proto/marketplace.proto con servicios para Marketplace
+  - Implementar servidor gRPC con tonic para todos los servicios
+  - _Requerimientos: Servicios gRPC para contratos Cairo_
+
+- [ ] 13. Implementar clientes gRPC para microservicios
 
   - Crear clientes gRPC para Identity, Learning, Reputation, Passport, Governance y Marketplace Services
   - Implementar pool de conexiones gRPC con load balancing y circuit breakers
   - Crear sistema de cache para respuestas gRPC con invalidación basada en eventos Redis
   - Implementar propagación de contexto de autenticación via gRPC metadata
   - Escribir tests para comunicación gRPC con mocks de microservicios
-  - _Requerimientos: 9.1, 9.2, 9.4, 9.5_
+  - _Requerimientos: Comunicación gRPC con microservicios_
 
-- [ ] 10.4 Implementar integración con Redis Streams para eventos
+- [ ] 14. Implementar manejo de transacciones y eventos
 
-  - Configurar cliente Redis para suscribirse a eventos de dominio de microservicios
-  - Implementar sistema de invalidación de cache basado en eventos
-  - Crear sistema de notificaciones en tiempo real via GraphQL subscriptions
-  - Implementar manejo de eventos para actualizar estado de frontend automáticamente
+  - Implementar invocación de contratos Cairo via Starknet RPC
+  - Implementar consultas de contratos Cairo via Starknet RPC
+  - Crear sistema de detección de eventos de Keikochain
+  - Implementar propagación de eventos a microservicios via Redis Streams
+  - Escribir tests para flujo completo de transacciones y eventos
+  - _Requerimientos: Manejo de transacciones y eventos_
+
+### Fase 4: Service Layer + API Gateway Layer
+
+- [ ] 15. Crear Identity Service
+
+  - Crear directorio services/identity-service/ con estructura Rust + tonic
+  - Implementar proto/identity.proto con servicios gRPC para autenticación y usuarios
+  - Implementar autenticación FIDO2/WebAuthn con webauthn-rs
+  - Implementar procesamiento biométrico off-chain (iris + genoma)
+  - Implementar generación de humanity_proof_key y STARK proofs
+  - Implementar base de datos PostgreSQL con sqlx para gestión de usuarios
+  - Configurar Docker y Kubernetes manifests para despliegue
+  - Escribir tests unitarios e integración para Identity Service
+  - _Requerimientos: Autenticación híbrida FIDO2 + zkProofs_
+
+- [ ] 16. Crear Learning Service (Arquitectura Híbrida)
+
+  - Crear directorio services/learning-service/ con estructura Rust + tonic
+  - Implementar proto/learning.proto con servicios gRPC para interacciones xAPI
+  - Implementar cliente gRPC para comunicación con gRPC Gateway
+  - Implementar base de datos PostgreSQL local para cache y queries optimizadas
+  - Configurar sincronización híbrida: escritura → Keikochain, lectura → cache local
+  - Configurar publicación de eventos de dominio en Redis Streams
+  - Implementar detección de eventos de Keikochain para actualizar cache local
+  - Escribir tests unitarios e integración para Learning Service híbrido
+  - _Requerimientos: Procesamiento xAPI con arquitectura híbrida_
+
+- [ ] 17. Crear Reputation Service (Arquitectura Híbrida)
+
+  - Crear directorio services/reputation-service/ con estructura Rust + tonic
+  - Implementar proto/reputation.proto con servicios gRPC para calificaciones
+  - Implementar cliente gRPC para comunicación con gRPC Gateway
+  - Implementar base de datos PostgreSQL local para cache y cálculos de reputación
+  - Configurar sincronización: escritura → Keikochain, lectura → cache con fallback
+  - Configurar suscripción a eventos de Learning Service via Redis Streams
+  - Implementar detección de eventos de Keikochain para actualizar reputación local
+  - Escribir tests unitarios e integración para Reputation Service híbrido
+  - _Requerimientos: Sistema de reputación dinámica con expiración_
+
+- [ ] 18. Crear Passport Service (Arquitectura Híbrida)
+
+  - Crear directorio services/passport-service/ con estructura Rust + tonic
+  - Implementar proto/passport.proto con servicios gRPC para pasaportes de aprendizaje
+  - Implementar cliente gRPC para comunicación con gRPC Gateway
+  - Implementar agregación de datos de Learning y Reputation Services via gRPC
+  - Configurar base de datos PostgreSQL local para vistas agregadas y cache
+  - Configurar sincronización: escritura → Keikochain, lectura → cache agregado
+  - Implementar detección de eventos de Keikochain para actualizar pasaportes
+  - Escribir tests unitarios e integración para Passport Service híbrido
+  - _Requerimientos: Agregación de pasaportes de aprendizaje_
+
+- [ ] 19. Crear Governance Service (Arquitectura Híbrida)
+
+  - Crear directorio services/governance-service/ con estructura Rust + tonic
+  - Implementar proto/governance.proto con servicios gRPC para gobernanza comunitaria
+  - Implementar cliente gRPC para comunicación con gRPC Gateway
+  - Implementar sistema de propuestas y votaciones con base de datos PostgreSQL local
+  - Configurar sincronización: decisiones críticas → Keikochain, cache → PostgreSQL
+  - Configurar eventos de dominio para decisiones de gobernanza en Redis Streams
+  - Implementar detección de eventos de Keikochain para actualizar estado local
+  - Escribir tests unitarios e integración para Governance Service híbrido
+  - _Requerimientos: Herramientas de gobernanza comunitaria_
+
+- [ ] 20. Crear Marketplace Service (Arquitectura Híbrida)
+
+  - Crear directorio services/marketplace-service/ con estructura Rust + tonic
+  - Implementar proto/marketplace.proto con servicios gRPC para espacios de aprendizaje
+  - Implementar cliente gRPC para comunicación con gRPC Gateway
+  - Implementar gestión de espacios, reservas y calificaciones con PostgreSQL local
+  - Configurar sincronización: reservas críticas → Keikochain, cache → PostgreSQL
+  - Configurar integración con Reputation Service via gRPC para recomendaciones
+  - Implementar eventos Redis Streams para notificaciones de reservas
+  - Escribir tests unitarios e integración para Marketplace Service híbrido
+  - _Requerimientos: Gestión de espacios de aprendizaje seguros_
+
+- [ ] 21. Crear AI Tutor Service
+
+  - Crear directorio services/ai-tutor-service/ con estructura Rust + tonic
+  - Implementar proto/ai_tutor.proto con servicios gRPC para tutorías con IA
+  - Implementar integración con modelos de IA (GPT, Claude, etc.) usando async HTTP clients
+  - Implementar sistema de recomendaciones usando machine learning crates
+  - Implementar evaluación pedagógica inicial y reevaluación automática
+  - Configurar integración con Passport Service via gRPC para perfiles de aprendizaje
+  - Escribir tests unitarios e integración para AI Tutor Service
+  - _Requerimientos: Tutores IA especializados_
+
+- [ ] 22. Crear API Gateway GraphQL
+
+  - Crear directorio api-gateway/graphql-server/ con estructura Rust + async-graphql
+  - Implementar esquema GraphQL unificado para todos los microservicios
+  - Implementar Query root que orquesta llamadas gRPC a múltiples microservicios
+  - Implementar Mutation root que traduce mutations GraphQL a llamadas gRPC
+  - Implementar Subscription root conectado a Redis Streams para eventos en tiempo real
+  - Configurar caché GraphQL optimizado para consultas frecuentes
+  - Escribir tests de integración para esquema GraphQL completo
+  - _Requerimientos: API Gateway GraphQL unificado_
+
+- [ ] 23. Implementar WebSocket Secure (WSS) para GraphQL Subscriptions
+
+  - Implementar servidor WSS con tokio-tungstenite
+  - Implementar autenticación JWT para conexiones WSS
+  - Implementar manejo de conexiones WebSocket con gestión de estado
+  - Implementar propagación de eventos Redis Streams a GraphQL subscriptions
+  - Implementar manejo de errores y reconexión automática
   - Escribir tests para flujo completo de eventos Redis → GraphQL subscriptions
-  - _Requerimientos: 9.6, 9.7_
+  - _Requerimientos: GraphQL Subscriptions sobre WSS_
 
-- [ ] 10.5 Implementar endpoints REST para integraciones externas
+- [ ] 24. Implementar endpoints REST para integraciones externas
 
   - Crear endpoints REST para webhooks de LRS (Learning Locker, Moodle, Canvas)
   - Implementar validación de webhooks y transformación de datos xAPI
   - Crear endpoints REST para APIs de terceros que no soportan GraphQL
   - Implementar rate limiting y autenticación para endpoints REST
   - Escribir tests para endpoints REST e integración con sistemas externos
-  - _Requerimientos: 9.8, 3.1, 3.2_
+  - _Requerimientos: Integración con LRS externos_
 
-- [ ] 11. Desarrollar microservicios independientes con gRPC
-- [ ] 11.1 Crear Identity Service
+- [ ] 25. Crear Panel Admin Leptos
 
-  - Crear directorio services/identity-service/ con estructura Rust + tonic
-  - Implementar proto/identity.proto con servicios gRPC para autenticación y usuarios
-  - Crear main.rs con servidor gRPC usando tonic y tokio
-  - Implementar base de datos PostgreSQL con sqlx para gestión de usuarios
-  - Configurar Docker y Kubernetes manifests para despliegue
-  - Escribir tests unitarios e integración para Identity Service
-  - _Requerimientos: 4.1, 9.5_
-
-- [ ] 11.2 Crear Learning Service (Arquitectura Híbrida)
-
-  - Crear directorio services/learning_service/ con estructura Rust + tonic
-  - Implementar proto/learning.proto con servicios gRPC para interacciones xAPI
-  - Crear cliente Substrate para enviar transacciones a pallet_learning_interactions
-  - Implementar base de datos PostgreSQL local para cache y queries optimizadas
-  - Configurar sincronización bidireccional: escritura → parachain, lectura → cache local
-  - Configurar publicación de eventos de dominio en Redis Streams (NO en parachain)
-  - Implementar detección de eventos de parachain para actualizar cache local
-  - Escribir tests unitarios e integración para Learning Service híbrido
-  - _Requerimientos: 2.1, 2.2, 2.3, 2.4, 18.1, 18.2_
-
-- [ ] 11.3 Crear Reputation Service (Arquitectura Híbrida)
-
-  - Crear directorio services/reputation_service/ con estructura Rust + tonic
-  - Implementar proto/reputation.proto con servicios gRPC para calificaciones
-  - Crear cliente Substrate para enviar transacciones a pallet_reputation_system
-  - Implementar base de datos PostgreSQL local para cache y cálculos de reputación
-  - Configurar sincronización: escritura → parachain, lectura → cache con fallback a RPC
-  - Configurar suscripción a eventos de Learning Service via Redis Streams
-  - Implementar detección de eventos de parachain para actualizar reputación local
-  - Escribir tests unitarios e integración para Reputation Service híbrido
-  - _Requerimientos: 5.1, 5.2, 5.3, 5.4, 18.1, 18.2_
-
-- [ ] 11.4 Crear Passport Service (Arquitectura Híbrida)
-
-  - Crear directorio services/passport_service/ con estructura Rust + tonic
-  - Implementar proto/passport.proto con servicios gRPC para pasaportes de aprendizaje
-  - Crear cliente Substrate para enviar transacciones a pallet_life_learning_passport
-  - Implementar agregación de datos de Learning y Reputation Services via gRPC
-  - Configurar base de datos PostgreSQL local para vistas agregadas y cache
-  - Configurar sincronización: escritura → parachain, lectura → cache agregado
-  - Implementar detección de eventos de parachain para actualizar pasaportes
-  - Escribir tests unitarios e integración para Passport Service híbrido
-  - _Requerimientos: 1.1, 1.2, 1.3, 1.4, 18.1, 18.2_
-
-- [ ] 11.5 Crear Governance Service (Arquitectura Híbrida)
-
-  - Crear directorio services/governance_service/ con estructura Rust + tonic
-  - Implementar proto/governance.proto con servicios gRPC para gobernanza comunitaria
-  - Crear cliente Substrate para enviar transacciones a pallet_governance (futuro)
-  - Implementar sistema de propuestas y votaciones con base de datos PostgreSQL local
-  - Configurar sincronización: decisiones críticas → parachain, cache → PostgreSQL
-  - Configurar eventos de dominio para decisiones de gobernanza en Redis Streams
-  - Implementar detección de eventos de parachain para actualizar estado local
-  - Escribir tests unitarios e integración para Governance Service híbrido
-  - _Requerimientos: 6.1, 6.2, 6.3, 18.1, 18.2_
-
-- [ ] 11.6 Crear Marketplace Service (Arquitectura Híbrida)
-
-  - Crear directorio services/marketplace_service/ con estructura Rust + tonic
-  - Implementar proto/marketplace.proto con servicios gRPC para espacios de aprendizaje
-  - Crear cliente Substrate para enviar transacciones a pallet_marketplace (futuro)
-  - Implementar gestión de espacios, reservas y calificaciones con PostgreSQL local
-  - Configurar sincronización: reservas críticas → parachain, cache → PostgreSQL
-  - Configurar integración con Reputation Service via gRPC para recomendaciones
-  - Implementar eventos Redis Streams para notificaciones de reservas
-  - Escribir tests unitarios e integración para Marketplace Service híbrido
-  - _Requerimientos: 15.1, 15.2, 15.4, 15.6, 18.1, 18.2_
-
-- [ ] 11.7 Implementar sincronización Parachain-Microservicios
-
-  - Crear shared/parachain_sync crate para sincronización común
-  - Implementar cliente Substrate genérico con pool de conexiones RPC
-  - Crear sistema de detección de eventos de parachain usando substrate-api-client
-  - Implementar patrón Event Sourcing para sincronizar cambios parachain → cache local
-  - Configurar sistema de fallback: cache local → RPC parachain si cache falla
-  - Implementar métricas de sincronización y health checks para cada microservicio
-  - Crear sistema de reconciliación para detectar y corregir inconsistencias
-  - Escribir tests de integración para flujo completo de sincronización
-  - _Requerimientos: 18.1, 18.2, 18.3, 18.4, 18.5, 18.6, 18.7, 18.8, 18.9, 18.10_
-
-- [ ] 12. Desarrollar AI Tutor Service
-- [ ] 12.1 Migrar y crear estructura base del AI Tutor Service
-
-  - Migrar middleware/ai_tutor_service/ → services/ai-tutor-service/ 
-  - Cambiar de NestJS/TypeScript a Rust + tonic según nueva arquitectura
-  - Implementar proto/ai_tutor.proto con servicios gRPC para tutorías con IA
-  - Crear Cargo.toml con dependencias para LLMs (async-openai, reqwest) y gRPC (tonic)
-  - Implementar main.rs con servidor gRPC usando tokio runtime
-  - Configurar Docker y Kubernetes manifests para despliegue
-  - Escribir tests básicos de compilación y arranque del servicio
-  - _Requerimientos: 4.1, 4.2_
-
-- [ ] 12.2 Implementar motor de IA personalizable con gRPC
-
-  - Integrar modelos de IA (GPT, Claude, etc.) usando async HTTP clients
-  - Crear servicios gRPC para generación de contenido educativo personalizado
-  - Implementar sistema de adaptación basado en datos del Passport Service via gRPC
-  - Crear sistema de verificación de precisión antes de responder via gRPC
-  - Escribir tests para generación de contenido IA con mock servers y gRPC
-  - _Requerimientos: 4.2, 11.1, 11.2, 11.3, 11.7_
-
-- [ ] 12.3 Implementar sistema de recomendaciones con eventos
-
-  - Crear algoritmos de recomendación usando machine learning crates (candle, tch)
-  - Implementar detección de dificultades y escalación via gRPC al Marketplace Service
-  - Configurar suscripción a eventos de Learning Service para mejora continua
-  - Implementar publicación de eventos de recomendaciones en Redis Streams
-  - Escribir tests para sistema de recomendaciones con property-based testing
-  - _Requerimientos: 11.4, 11.5, 11.6, 13.1, 13.2, 13.3, 13.4, 13.5, 13.6, 13.7, 13.8_
-
-- [ ] 12.4 Implementar evaluación pedagógica inicial
-
-  - Crear servicios gRPC para cuestionarios adaptativos y análisis de respuestas
-  - Implementar integración con Passport Service via gRPC para actualizar perfiles
-  - Crear sistema de reevaluación usando cron-like scheduling con tokio-cron-scheduler
-  - Configurar eventos de dominio para cambios en perfiles de aprendizaje
-  - Escribir tests para evaluación pedagógica con quickcheck y mocks gRPC
-  - _Requerimientos: 12.1, 12.2, 12.5, 12.7_
-
-- [ ] 13. Desarrollar panel admin Leptos - Configuración base
-- [ ] 13.1 Crear estructura base del panel administrativo
-
-  - Migrar middleware/web_frontend/ → api-gateway/admin-panel/ según nueva estructura
-  - Crear main.rs con configuración básica de Leptos SSR/CSR
-  - Implementar estructura de módulos src/ con app, components, pages, services
-  - Configurar Leptos.toml para build configuration y features administrativas
-  - Crear configuración base para autenticación administrativa
-  - Integrar con API Gateway GraphQL para datos administrativos
-  - Escribir tests básicos de configuración con wasm-bindgen-test
-  - _Requerimientos: 8.1, 8.7_
-
-- [ ] 13.2 Implementar gestión de estado administrativo con Leptos Signals
-
-  - Configurar signals y resources para gestión de estado del panel admin
+  - Crear directorio api-gateway/admin-panel/ con estructura Leptos SSR/CSR
+  - Implementar gestión de estado administrativo con Leptos Signals
   - Crear hooks personalizados para autenticación admin y navegación
   - Implementar servicios para abstracción de datos administrativos
   - Crear cliente GraphQL para comunicación con APIs usando reqwest
   - Escribir tests unitarios para hooks y servicios administrativos
-  - _Requerimientos: 8.2, 8.3, 8.4, 8.5, 8.6, 8.8_
+  - _Requerimientos: Panel administrativo web_
 
-- [ ] 14. Integración Frontend Móvil - Backend
-- [ ] 14.1 Definir contratos GraphQL para aplicación móvil
+- [ ] 26. Desarrollar componentes compartidos
 
-  - Definir schemas GraphQL para pasaporte de aprendizaje y visualización cronológica
-  - Crear mutations para calificaciones, comentarios y evaluaciones desde aplicación móvil
-  - Definir subscriptions para actualizaciones en tiempo real de interacciones
-  - Documentar APIs GraphQL para consumo desde Flutter con ejemplos móviles
-  - Crear queries optimizadas para diferentes casos de uso móviles (timeline, jerarquías, marketplace)
-  - _Requerimientos: 7.6, 7.7, 7.8_
-
-- [ ] 14.2 Implementar orquestación GraphQL en API Gateway
-
-  - Configurar resolvers GraphQL que orquesten llamadas gRPC a microservicios
-  - Implementar agregación de datos de múltiples microservicios para vistas móviles
-  - Configurar caché GraphQL optimizado para consultas móviles frecuentes
-  - Implementar manejo de errores GraphQL comprensibles para aplicación móvil
-  - Configurar subscriptions GraphQL alimentadas por eventos Redis Streams
-  - Optimizar queries GraphQL para consumo de datos móvil (paginación, lazy loading)
-  - _Requerimientos: 9.1, 9.2, 9.3, 9.4, 9.7_
-
-**Nota:** Para implementación detallada de la aplicación móvil Flutter con Clean Architecture y Riverpod, ver Spec 02-flutter-frontend-architecture
-
-**Nota:** Todas las tareas de implementación detallada de la aplicación móvil Flutter (incluyendo tutorías IA, marketplace de espacios, sistema de reputación, evaluación pedagógica, y planes adaptativos) se encuentran en el Spec 02-flutter-frontend-architecture
-
-- [ ] 18. Desarrollar componentes compartidos
-- [ ] 18.1 Crear tipos y esquemas compartidos
-
-  - Crear directorio shared/types/ con definiciones TypeScript/Dart
+  - Crear directorio shared/types/ con definiciones Rust compartidas
   - Implementar esquemas xAPI compartidos entre servicios
-  - Crear tipos de blockchain compartidos
+  - Crear tipos de Keikochain compartidos
   - Implementar validadores de datos compartidos
-  - Escribir tests para tipos y validadores
-  - _Requerimientos: 9.1, 9.2_
-
-- [ ] 18.2 Crear utilidades compartidas
-
-  - Implementar utilidades criptográficas en shared/utils/crypto/
+  - Crear utilidades criptográficas en shared/utils/crypto/
   - Crear utilidades de validación de datos
   - Implementar utilidades de testing compartidas
   - Crear helpers para manejo de errores
-  - Escribir tests para utilidades compartidas
-  - _Requerimientos: 10.1, 10.2_
+  - Escribir tests para tipos, validadores y utilidades compartidas
+  - _Requerimientos: Componentes compartidos entre servicios_
 
-- [ ] 19. Implementar seguridad y privacidad
-- [ ] 19.1 Implementar cifrado y protección de datos
+- [ ] 27. Implementar observabilidad y monitoreo
 
-  - Crear sistema de cifrado end-to-end para datos sensibles
-  - Implementar técnicas de minimización de datos según GDPR
-  - Crear sistema de anonimización para análisis de datos
-  - Implementar auditoría de acceso a datos personales
-  - Escribir tests de seguridad y penetración
-  - _Requerimientos: 10.1, 10.2_
+  - Implementar OpenTelemetry para tracing distribuido
+  - Configurar Prometheus para métricas de servicios
+  - Implementar logging estructurado con correlación de trazas
+  - Configurar ELK Stack para logging centralizado
+  - Implementar health checks para todos los servicios
+  - Crear dashboards Grafana para monitoreo
+  - Escribir tests para observabilidad y monitoreo
+  - _Requerimientos: Observabilidad completa del sistema_
 
-- [ ] 19.2 Implementar sistema de consentimiento
-
-  - Crear interfaces para gestión granular de consentimientos
-  - Implementar sistema de revocación de consentimientos
-  - Crear notificaciones de cambios en políticas de privacidad
-  - Implementar exportación de datos personales bajo demanda
-  - Escribir tests para gestión de consentimientos
-  - _Requerimientos: 10.4, 10.5_
-
-- [ ] 20. Implementar testing integral y documentación
-- [ ] 20.1 Crear suite de tests end-to-end
+- [ ] 28. Implementar testing integral
 
   - Implementar tests de flujos completos de usuario
   - Crear tests de integración entre todos los componentes
   - Implementar tests de rendimiento y carga
   - Crear tests de compatibilidad entre plataformas
-  - Configurar CI/CD para ejecución automática de tests
-  - _Requerimientos: Todos los requerimientos necesitan validación mediante tests_
+  - Escribir tests para flujos híbridos (Keikochain + microservicios)
+  - _Requerimientos: Validación completa mediante tests_
 
-- [ ] 20.2 Crear documentación completa
+- [ ] 29. Crear documentación completa
 
   - Crear directorio docs/ con documentación de arquitectura
   - Escribir documentación de APIs con especificaciones OpenAPI
@@ -537,25 +346,6 @@
   - Escribir documentación de arquitectura y diagramas técnicos
   - Crear guías de usuario para todas las funcionalidades
   - Implementar documentación interactiva y ejemplos de código
-  - _Requerimientos: 9.3_
-
-- [ ] 21. Configurar despliegue básico
-- [ ] 21.1 Configurar Docker y contenedores
-
-  - Crear Dockerfiles para cada servicio y el API Gateway
-  - Crear docker-compose.yml para desarrollo local
-  - Configurar variables de entorno para diferentes entornos
-  - Crear scripts de build y despliegue básicos
-  - Escribir documentación de despliegue local
-  - _Requerimientos: 14.4, 14.5_
-
-- [ ] 21.2 Configurar CI/CD básico
-
-  - Crear workflows de GitHub Actions para build y test automático
-  - Configurar build automático de aplicación Flutter para web
-  - Implementar tests automáticos en pipelines
-  - Crear scripts de despliegue para entornos de desarrollo
-  - Configurar notificaciones de estado de builds
-  - _Requerimientos: Todos los requerimientos necesitan despliegue automatizado_
+  - _Requerimientos: Documentación completa del sistema_
 
 

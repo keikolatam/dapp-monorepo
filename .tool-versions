@@ -1,0 +1,6 @@
+# Keiko DApp - Versiones de herramientas
+# Generado automáticamente por quick-start.sh
+
+scarb 2.12.2
+starknet-foundry 0.49.0
+# starknet se instala manualmente en ~/.local/bin

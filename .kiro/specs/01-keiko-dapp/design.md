@@ -2,14 +2,24 @@
 
 ## Visión General
 
-Keiko es una red social educativa descentralizada que transforma el aprendizaje en capital humano verificable mediante blockchain. La arquitectura evoluciona desde un monorepo inicial hacia una arquitectura de microservicios cloud-native desplegada en OVHCloud Managed Kubernetes, manteniendo las ventajas de blockchain mientras gana flexibilidad, escalabilidad y capacidad de desarrollo paralelo por equipos.
+Keiko es una red social educativa descentralizada (DApp) construida como un monorepo que integra un backend desarrollado en Rust con contratos inteligentes en Cairo sobre Starknet y un frontend multiplataforma desarrollado en Flutter. Su propósito es convertir el aprendizaje en capital humano verificable e interoperable en tiempo real mediante Proof-of-Humanity con zkProofs. La plataforma permite a cualquier individuo construir y demostrar su Pasaporte de Aprendizaje de Vida (LifeLearningPassport) en blockchain, mediante interacciones de aprendizaje atómicas (LearningInteractions) compatibles con el estándar xAPI (Tin Can).
 
-### Componentes Principales
+### Arquitectura de Cinco Capas
 
-- **Backend**: Evolución desde parachain monolítica hacia microservicios independientes
-- **Frontend**: Aplicación Flutter multiplataforma (web y móvil)
-- **Middleware**: Servicios de integración y APIs distribuidos
-- **Infraestructura**: Kubernetes en OVHCloud con GitOps y CI/CD automatizado
+La arquitectura del proyecto se organiza en cinco capas principales con estructura de carpetas correspondiente:
+
+- **Keikochain Layer** (`appchain/`): Contratos Cairo en Keikochain (Starknet Appchain) para almacenamiento inmutable y consenso
+- **gRPC Gateway Layer** (`grpc-gateway/`): Traductor Rust ↔ Cairo que comunica microservicios con Keikochain (Starknet Appchain)
+- **Service Layer** (`services/`): Microservicios Rust con comunicación gRPC, cache PostgreSQL local, y eventos Redis Streams
+- **API Layer** (`api-gateway/`): API Gateway GraphQL que traduce queries del frontend a llamadas gRPC y orquesta respuestas, con comunicación WSS para GraphQL subscriptions
+- **Frontend Layer** (`frontend/`): Aplicación Flutter multiplataforma que se comunica exclusivamente via GraphQL
+
+### Flujo de Datos Híbrido
+
+- **Escritura**: Flutter → GraphQL (HTTPS) → Microservicio → gRPC Gateway → Keikochain Contract → Evento Redis → GraphQL Subscription (WSS)
+- **Lectura**: Flutter → GraphQL (HTTPS) → Microservicio → Cache/DB local → (fallback) gRPC Gateway → Keikochain Contract
+- **Tiempo Real**: Keikochain Contract → gRPC Gateway → Microservicio → Redis Streams → API Gateway → GraphQL Subscription (WSS) → Flutter
+- **Autenticación**: Flutter → FIDO2 → JWT → WSS Headers → API Gateway → gRPC Metadata → Microservicios
 
 ### Principios de Diseño
 
@@ -26,186 +36,239 @@ Keiko es una red social educativa descentralizada que transforma el aprendizaje 
 
 ### Evolución Arquitectónica: Monolito → Microservicios
 
-La arquitectura de Keiko evoluciona en fases:
+La arquitectura de Keiko evoluciona desde una parachain monolítica hacia microservicios cloud-native:
 
-**Fase 1 (Actual)**: Monorepo con parachain monolítica
-**Fase 2 (Migración)**: Descomposición gradual usando Strangler Fig Pattern
-**Fase 3 (Objetivo)**: Microservicios cloud-native en Kubernetes
+**Fase 1 (Completada)**: Migración de Polkadot parachain a Starknet appchain (Keikochain)
+**Fase 2 (Actual)**: Implementación de arquitectura híbrida de cinco capas
+**Fase 3 (En Progreso)**: Descomposición gradual usando Strangler Fig Pattern
+**Fase 4 (Objetivo)**: Microservicios cloud-native completamente independientes
 
 ### Estructura del Proyecto
 
+Siguiendo los principios de microservicios y la arquitectura de cinco capas, la estructura del proyecto se organiza de manera que cada capa tenga responsabilidades claras y esté desacoplada:
+
 ```
-keiko-dapp/
-├── infrastructure/             # Infraestructura como Código
-│   ├── terraform/             # Configuración Terraform por entorno
-│   │   ├── environments/      # dev, staging, production
-│   │   ├── modules/           # Módulos reutilizables
-│   │   └── shared/            # Recursos compartidos
-│   └── k8s/                   # Manifiestos Kubernetes
-│       ├── base/              # Configuración base
-│       └── overlays/          # Overlays por entorno
-├── services/                   # Microservicios independientes
-│   ├── identity-service/      # Autenticación y perfiles
-│   ├── learning-service/      # Interacciones xAPI
-│   ├── reputation-service/    # Sistema de reputación
-│   ├── passport-service/      # Pasaportes de aprendizaje
-│   ├── governance-service/    # Gobernanza comunitaria
-│   ├── marketplace-service/   # Espacios de aprendizaje
-│   └── api-gateway/           # Gateway principal
-├── middleware/                 # Servicios de integración (Rust)
-│   ├── graphql_server/        # Servidor GraphQL con Juniper
-│   ├── admin_panel/           # Panel admin web con Leptos (CRUD)
-│   ├── ai_tutor_service/      # Servicios de IA en Rust
-│   ├── lrs_connector/         # Integración con LRS en Rust
-│   └── parachain_bridge/      # Puente nativo con parachain
-├── frontend/                   # Aplicación Flutter multiplataforma
-│   ├── lib/
-│   │   ├── core/              # Configuración base
-│   │   ├── features/          # Módulos por funcionalidad
-│   │   └── shared/            # Componentes compartidos
-│   ├── web/                   # Configuración web
-│   ├── android/               # Configuración Android
-│   ├── ios/                   # Configuración iOS
-│   └── test/                  # Tests Flutter
-├── legacy/                     # Sistema legacy (parachain monolítica)
-│   ├── backend/               # Parachain Substrate original
-│   └── middleware/            # Servicios middleware originales
-├── shared/                     # Código compartido entre servicios
-│   ├── types/                 # Definiciones de tipos
-│   ├── schemas/               # Esquemas xAPI y eventos
-│   ├── utils/                 # Utilidades comunes
-│   └── events/                # Definiciones de eventos
-├── monitoring/                 # Stack de observabilidad
-│   ├── prometheus/            # Configuración Prometheus
-│   ├── grafana/               # Dashboards Grafana
-│   ├── jaeger/                # Distributed tracing
-│   └── elk/                   # Logging centralizado
-└── docs/                      # Documentación
-    ├── api/                   # Documentación de APIs
-    ├── deployment/            # Guías de despliegue
-    ├── architecture/          # Diagramas y especificaciones
-    └── migration/             # Guías de migración
+keiko/
+├── appchain/                         # 🔗 Keikochain Layer (Starknet Appchain)
+│   ├── contracts/                    # Contratos Cairo autocontenidos
+│   │   ├── learning_interactions/    # xAPI statements con firma Ed25519
+│   │   ├── life_learning_passport/   # Pasaportes de aprendizaje
+│   │   ├── reputation_system/        # Sistema de reputación con expiración
+│   │   ├── governance/               # Gobernanza comunitaria
+│   │   ├── marketplace/              # Espacios de aprendizaje seguros
+│   │   └── proof_of_humanity/        # Verificación de humanidad con STARKs
+│   ├── tests/                        # Tests de integración de contratos
+│   └── config/                       # Configuración de Keikochain
+├── grpc-gateway/                     # 🌉 gRPC Gateway Layer
+│   ├── client/                       # Cliente Starknet RPC
+│   ├── proto/                        # Definiciones gRPC (Protocol Buffers)
+│   ├── server/                       # Servidor gRPC Gateway
+│   ├── translator/                   # Traductor Rust ↔ Cairo
+│   └── config/                       # Configuración del gateway
+├── services/                         # 🔧 Service Layer (Microservicios independientes)
+│   ├── identity_service/             # Autenticación y usuarios (Database per Service)
+│   ├── learning_service/             # Procesamiento xAPI (Database per Service)
+│   ├── reputation_service/           # Cálculo de reputación (Database per Service)
+│   ├── passport_service/             # Agregación de pasaportes (Database per Service)
+│   ├── governance_service/           # Herramientas de gobernanza (Database per Service)
+│   ├── marketplace_service/          # Gestión de espacios (Database per Service)
+│   └── ai_tutor_service/             # Tutores IA especializados (Database per Service)
+├── api-gateway/                      # 🌐 API Layer (API Gateway + Panel Admin)
+│   ├── graphql_server/               # Servidor GraphQL principal
+│   ├── rest_endpoints/               # Endpoints REST para LRS externos
+│   └── admin_panel/                  # Panel admin Leptos (SSR/CSR)
+├── frontend/                         # 📱 Frontend Layer (Flutter multiplataforma)
+│   └── lib/                          # Aplicación Flutter
+├── shared/                           # 🔄 Componentes compartidos (Cross-cutting concerns)
+│   ├── types/                        # Tipos compartidos entre servicios
+│   ├── proto/                        # Definiciones gRPC compartidas
+│   ├── utils/                        # Utilidades comunes
+│   ├── events/                       # Definiciones de eventos de dominio
+│   └── observability/                # Observabilidad compartida (Logs, Metrics, Traces)
+└── docs/                             # 📚 Documentación
+    ├── api/                          # Documentación de APIs
+    ├── deployment/                   # Guías de despliegue
+    ├── architecture/                 # Diagramas y especificaciones
+    └── migration/                    # Guías de migración
 ```
 
-### Arquitectura de Microservicios Cloud-Native
+### Principios de Arquitectura Aplicados
+
+Esta estructura sigue los principios fundamentales de microservicios:
+
+#### **1. Twelve-Factor App**
+- **Base de Código Única**: Cada servicio tiene su propio directorio y repositorio
+- **Dependencias Explícitas**: Cada servicio declara sus dependencias en `Cargo.toml`
+- **Configuración Externa**: Configuración gestionada via `config/` y variables de entorno
+- **Servicios de Respaldo**: Bases de datos y Redis como recursos adjuntos
+- **Procesos sin Estado**: Cada servicio es stateless, estado en PostgreSQL/Redis
+- **Vinculación de Puertos**: Cada servicio expone su propio puerto
+- **Escalado por Concurrencia**: Escalado horizontal agregando instancias
+- **Disponibilidad Rápida**: Servicios diseñados para startup/shutdown rápido
+- **Paridad Dev/Prod**: Misma configuración en todos los entornos
+- **Logs como Flujos**: Logs a stdout/stderr para agregación
+- **Procesos Admin**: Tareas administrativas como Jobs de Kubernetes
+
+#### **2. Microservicios (Autocontenidos)**
+- **Responsabilidad Única**: Cada servicio maneja un dominio específico
+- **Acoplamiento Flexible**: Servicios independientes con APIs bien definidas
+- **Tolerancia a Fallos**: Circuit breakers y retry policies implementados
+- **Gestión de Datos Descentralizada**: Database per Service con schemas separados
+- **Separación de Preocupaciones**: Cada capa tiene responsabilidades claras
+
+#### **3. Patrones de Diseño**
+- **API Gateway**: Punto único de entrada para clientes
+- **Database per Service**: Cada servicio tiene su propia base de datos
+- **Event-Driven**: Comunicación asíncrona via Redis Streams
+- **Circuit Breaker**: Resiliencia ante fallos de servicios
+- **CQRS**: Separación de comandos y queries
+- **Saga**: Transacciones distribuidas coordinadas
+
+### Arquitectura Híbrida de Cinco Capas
 
 ```mermaid
 graph TB
-    subgraph "OVHCloud Kubernetes Clusters"
-        subgraph "Production Cluster (keikolatam-production)"
-            subgraph "Frontend Layer"
-                FlutterWeb[Flutter Web App]
-                AdminPanel[Admin Panel]
-            end
+    subgraph "Frontend Layer"
+        FlutterApp[Flutter App<br/>Multiplataforma]
+        AdminPanel[Admin Panel<br/>Leptos Web]
+    end
 
-            subgraph "API Gateway Layer"
-                APIGateway[API Gateway]
-                LoadBalancer[Load Balancer]
-            end
+    subgraph "API Gateway Layer"
+        APIGateway[API Gateway<br/>GraphQL + WSS]
+        LoadBalancer[Load Balancer]
+    end
 
-            subgraph "Microservices Layer"
-                IdentityService[Identity Service]
-                LearningService[Learning Service]
-                ReputationService[Reputation Service]
-                PassportService[Passport Service]
-                GovernanceService[Governance Service]
-                MarketplaceService[Marketplace Service]
-            end
+    subgraph "Service Layer"
+        IdentityService[Identity Service<br/>gRPC]
+        LearningService[Learning Service<br/>gRPC]
+        ReputationService[Reputation Service<br/>gRPC]
+        PassportService[Passport Service<br/>gRPC]
+        GovernanceService[Governance Service<br/>gRPC]
+        MarketplaceService[Marketplace Service<br/>gRPC]
+        AITutorService[AI Tutor Service<br/>gRPC]
+    end
 
-            subgraph "Middleware Layer"
-                GraphQLServer[GraphQL Server - Juniper]
-                AdminPanel[Admin Panel - Leptos]
-                AITutorService[AI Tutor Service]
-                LRSConnector[LRS Connector]
-                ParachainBridge[Parachain Bridge]
-            end
+    subgraph "gRPC Gateway Layer"
+        GRPCGateway[gRPC Gateway<br/>Rust ↔ Cairo Translator]
+        StarknetRPC[Starknet RPC<br/>wss://keikochain.karnot.xyz]
+    end
 
-            subgraph "Data Layer"
-                IdentityDB[(Identity DB)]
-                LearningDB[(Learning DB)]
-                ReputationDB[(Reputation DB)]
-                PassportDB[(Passport DB)]
-                GovernanceDB[(Governance DB)]
-                MarketplaceDB[(Marketplace DB)]
-                EventStore[(Event Store)]
-                Cache[(Redis Cache)]
-            end
+    subgraph "Keikochain Layer"
+        Keikochain[Keikochain<br/>Starknet Appchain]
+        CairoContracts[Cairo Smart Contracts<br/>Proof-of-Humanity<br/>Learning Interactions<br/>Life Learning Passport]
+    end
 
-            subgraph "Observability Stack"
-                Prometheus[Prometheus]
-                Grafana[Grafana]
-                Jaeger[Jaeger]
-                ELK[ELK Stack]
-                AlertManager[Alert Manager]
-            end
-        end
-
-        subgraph "Staging Cluster (keikolatam-staging)"
-            StagingServices[Staging Services]
-        end
-
-        subgraph "Dev Cluster (keikolatam-dev)"
-            DevServices[Dev Services]
-        end
+    subgraph "Data & Events Layer"
+        IdentityDB[(Identity DB<br/>PostgreSQL)]
+        LearningDB[(Learning DB<br/>PostgreSQL)]
+        ReputationDB[(Reputation DB<br/>PostgreSQL)]
+        PassportDB[(Passport DB<br/>PostgreSQL)]
+        RedisStreams[(Redis Streams<br/>Event Bus)]
+        RedisCache[(Redis Cache<br/>Session Store)]
     end
 
     subgraph "External Systems"
-        LearningLocker[Learning Locker]
+        LearningLocker[Learning Locker<br/>LRS]
         SCORMCloud[SCORM Cloud]
         MoodleLMS[Moodle LMS]
         CanvasLMS[Canvas LMS]
-        PolkadotRelay[Polkadot Relay Chain]
-        OtherParachains[Other Parachains]
-        OVHRegistry[OVH Container Registry]
+        StarknetMainnet[Starknet Mainnet]
+        EthereumMainnet[Ethereum Mainnet]
     end
 
-    subgraph "GitOps & CI/CD"
-        GitHub[GitHub Repository]
-        GitHubActions[GitHub Actions]
-        ArgoCD[ArgoCD]
-        Terraform[Terraform]
+    subgraph "Observability Stack"
+        Prometheus[Prometheus<br/>Metrics]
+        Grafana[Grafana<br/>Dashboards]
+        Jaeger[Jaeger<br/>Tracing]
+        ELK[ELK Stack<br/>Logging]
     end
 
-    FlutterWeb --> LoadBalancer
-    AdminPanel --> LoadBalancer
+    %% Frontend to API Gateway
+    FlutterApp -->|GraphQL HTTPS| LoadBalancer
+    AdminPanel -->|GraphQL HTTPS| LoadBalancer
     LoadBalancer --> APIGateway
 
-    APIGateway --> GraphQLServer
-    GraphQLServer --> IdentityService
-    GraphQLServer --> LearningService
-    GraphQLServer --> ReputationService
-    GraphQLServer --> PassportService
-    GraphQLServer --> GovernanceService
-    GraphQLServer --> MarketplaceService
+    %% API Gateway to Services
+    APIGateway -->|GraphQL → gRPC| IdentityService
+    APIGateway -->|GraphQL → gRPC| LearningService
+    APIGateway -->|GraphQL → gRPC| ReputationService
+    APIGateway -->|GraphQL → gRPC| PassportService
+    APIGateway -->|GraphQL → gRPC| GovernanceService
+    APIGateway -->|GraphQL → gRPC| MarketplaceService
+    APIGateway -->|GraphQL → gRPC| AITutorService
 
-    AdminPanel --> GraphQLServer
-    GraphQLServer --> ParachainBridge
+    %% Services to gRPC Gateway
+    IdentityService -->|gRPC| GRPCGateway
+    LearningService -->|gRPC| GRPCGateway
+    ReputationService -->|gRPC| GRPCGateway
+    PassportService -->|gRPC| GRPCGateway
+    GovernanceService -->|gRPC| GRPCGateway
+    MarketplaceService -->|gRPC| GRPCGateway
+    AITutorService -->|gRPC| GRPCGateway
 
+    %% gRPC Gateway to Keikochain
+    GRPCGateway -->|Starknet RPC| StarknetRPC
+    StarknetRPC --> Keikochain
+    Keikochain --> CairoContracts
+
+    %% Services to Data Layer
     IdentityService --> IdentityDB
     LearningService --> LearningDB
     ReputationService --> ReputationDB
     PassportService --> PassportDB
-    GovernanceService --> GovernanceDB
-    MarketplaceService --> MarketplaceDB
 
-    LearningService --> EventStore
-    ReputationService --> EventStore
-    PassportService --> EventStore
+    %% Event Communication
+    LearningService -->|Events| RedisStreams
+    ReputationService -->|Events| RedisStreams
+    PassportService -->|Events| RedisStreams
+    RedisStreams -->|Real-time Updates| APIGateway
+    APIGateway -->|WSS Subscriptions| FlutterApp
 
-    AITutorService --> Cache
-    LRSConnector --> LearningLocker
-    LRSConnector --> SCORMCloud
-    LRSConnector --> MoodleLMS
-    LRSConnector --> CanvasLMS
+    %% Cache Layer
+    AITutorService --> RedisCache
+    APIGateway --> RedisCache
 
-    GitHub --> GitHubActions
-    GitHubActions --> OVHRegistry
-    GitHubActions --> ArgoCD
-    ArgoCD --> Production
-    ArgoCD --> StagingServices
-    ArgoCD --> DevServices
+    %% External Integrations
+    LearningService --> LearningLocker
+    LearningService --> SCORMCloud
+    LearningService --> MoodleLMS
+    LearningService --> CanvasLMS
 
-    Terraform --> OVHCloud
+    %% Blockchain Bridges
+    Keikochain -->|Bridge| StarknetMainnet
+    StarknetMainnet -->|Bridge| EthereumMainnet
+
+    %% Observability
+    APIGateway --> Prometheus
+    IdentityService --> Prometheus
+    LearningService --> Prometheus
+    ReputationService --> Prometheus
+    PassportService --> Prometheus
+    GovernanceService --> Prometheus
+    MarketplaceService --> Prometheus
+    AITutorService --> Prometheus
+    GRPCGateway --> Prometheus
+
+    Prometheus --> Grafana
+    APIGateway --> Jaeger
+    IdentityService --> Jaeger
+    LearningService --> Jaeger
+    ReputationService --> Jaeger
+    PassportService --> Jaeger
+    GovernanceService --> Jaeger
+    MarketplaceService --> Jaeger
+    AITutorService --> Jaeger
+    GRPCGateway --> Jaeger
+
+    APIGateway --> ELK
+    IdentityService --> ELK
+    LearningService --> ELK
+    ReputationService --> ELK
+    PassportService --> ELK
+    GovernanceService --> ELK
+    MarketplaceService --> ELK
+    AITutorService --> ELK
+    GRPCGateway --> ELK
 ```
 
 ### Patrones de Migración Gradual
@@ -339,7 +402,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/keikolatam/keiko-dapp
+    repoURL: https://github.com/keikolatam/dapp-monorepo
     targetRevision: HEAD
     path: k8s/overlays/production
   destination:
@@ -406,55 +469,82 @@ graph TD
     style Feedback fill:#fff3e0
 ```
 
-### Flujo de Datos en la Jerarquía
+### Flujo de Datos Híbrido con Arquitectura de Cinco Capas
 
 ```mermaid
 sequenceDiagram
     participant Student as 👨‍🎓 Estudiante
-    participant Frontend as 📱 Flutter App
-    participant API as 🌐 API Gateway
-    participant Blockchain as ⛓️ Parachain
-    participant Passport as 📜 Life Learning Passport
+    participant Flutter as 📱 Flutter App
+    participant APIGateway as 🌐 API Gateway
+    participant LearningService as 🔧 Learning Service
+    participant GRPCGateway as 🔄 gRPC Gateway
+    participant Keikochain as ⛓️ Keikochain
+    participant RedisStreams as 📡 Redis Streams
+    participant WSS as 🔌 WSS Subscriptions
 
-    Note over Student, Passport: Ejemplo: Estudiante toma curso de Matemáticas
+    Note over Student, WSS: Escritura: Crear interacción de aprendizaje
 
-    Student->>Frontend: Inicia curso "Matemáticas Avanzadas"
-    Frontend->>API: POST /courses/create
-    API->>Blockchain: Extrinsic: create_course()
-    Blockchain->>Passport: Actualizar con nuevo curso
+    Student->>Flutter: Crear interacción de aprendizaje
+    Flutter->>APIGateway: GraphQL Mutation (HTTPS)
+    APIGateway->>LearningService: gRPC call
+    LearningService->>GRPCGateway: gRPC call
+    GRPCGateway->>Keikochain: Cairo transaction
+    Keikochain-->>GRPCGateway: Transaction hash
+    GRPCGateway-->>LearningService: Success response
+    LearningService->>RedisStreams: Publish event
+    RedisStreams->>APIGateway: Event notification
+    APIGateway->>WSS: GraphQL subscription update
+    WSS-->>Flutter: Real-time update
 
-    Note over Student, Passport: Estudiante asiste a clase dentro del curso
+    Note over Student, WSS: Lectura: Consultar pasaporte
 
-    Student->>Frontend: Asiste a "Clase 1: Álgebra"
-    Frontend->>API: POST /classes/create
-    API->>Blockchain: Extrinsic: create_class(course_id)
-    Blockchain->>Passport: Vincular clase al curso
+    Student->>Flutter: Ver mi pasaporte
+    Flutter->>APIGateway: GraphQL Query (HTTPS)
+    APIGateway->>LearningService: gRPC call
+    LearningService->>LearningService: Check local cache
+    alt Cache hit
+        LearningService-->>APIGateway: Cached data
+    else Cache miss
+        LearningService->>GRPCGateway: gRPC call
+        GRPCGateway->>Keikochain: Cairo query
+        Keikochain-->>GRPCGateway: Blockchain data
+        GRPCGateway-->>LearningService: Converted data
+        LearningService->>LearningService: Update cache
+        LearningService-->>APIGateway: Fresh data
+    end
+    APIGateway-->>Flutter: GraphQL response
+    Flutter-->>Student: Timeline visualizado
 
-    Note over Student, Passport: Durante la clase, múltiples interacciones
+    Note over Student, WSS: Tiempo Real: Actualizaciones automáticas
 
-    Student->>Frontend: Hace pregunta sobre matrices
-    Frontend->>API: POST /interactions/create
-    API->>Blockchain: Extrinsic: create_interaction(class_id, type: "question")
-    Blockchain->>Passport: Registrar interacción atómica
+    Keikochain->>GRPCGateway: Contract event
+    GRPCGateway->>LearningService: Event notification
+    LearningService->>RedisStreams: Publish domain event
+    RedisStreams->>APIGateway: Stream event
+    APIGateway->>WSS: GraphQL subscription
+    WSS-->>Flutter: Real-time update
+    Flutter-->>Student: UI actualizada automáticamente
 
-    Student->>Frontend: Recibe respuesta del profesor
-    Frontend->>API: POST /interactions/create
-    API->>Blockchain: Extrinsic: create_interaction(class_id, type: "answer")
-    Blockchain->>Passport: Registrar interacción atómica
+    Note over Student, WSS: Autenticación: FIDO2 + zkProofs
 
-    Student->>Frontend: Completa ejercicio práctico
-    Frontend->>API: POST /interactions/create
-    API->>Blockchain: Extrinsic: create_interaction(class_id, type: "exercise")
-    Blockchain->>Passport: Registrar interacción atómica
-
-    Note over Student, Passport: Visualización en timeline
-
-    Student->>Frontend: Ver mi pasaporte
-    Frontend->>API: GET /passport/timeline
-    API->>Blockchain: Query: get_user_timeline()
-    Blockchain-->>API: Jerarquía completa de datos
-    API-->>Frontend: Timeline estructurado
-    Frontend-->>Student: Vista cronológica con jerarquía
+    Student->>Flutter: Iniciar sesión
+    Flutter->>APIGateway: FIDO2 authentication
+    APIGateway->>APIGateway: Verify FIDO2 + generate JWT
+    APIGateway-->>Flutter: JWT token
+    Flutter->>Flutter: Store JWT for WSS headers
+    
+    Note over Student, WSS: Operación crítica requiere zkProofs
+    
+    Student->>Flutter: Firmar interacción crítica
+    Flutter->>APIGateway: Request with JWT + zkProof
+    APIGateway->>APIGateway: Verify JWT + zkProof
+    APIGateway->>LearningService: gRPC with metadata
+    LearningService->>GRPCGateway: gRPC with humanity proof
+    GRPCGateway->>Keikochain: Cairo transaction with Ed25519 signature
+    Keikochain-->>GRPCGateway: Verified transaction
+    GRPCGateway-->>LearningService: Success
+    LearningService-->>APIGateway: Success
+    APIGateway-->>Flutter: Success response
 ```
 
 ### Microservicios Independientes por Dominio
@@ -780,11 +870,753 @@ where
 
 ## Componentes y Interfaces
 
-### 1. Microservicios Cloud-Native
+### 1. Proof-of-Humanity con zkProofs
 
-#### Pallets Personalizados
+#### Sistema de Verificación de Humanidad
 
-**Pallet Learning Interactions**
+Keiko implementa un sistema de Proof-of-Humanity que utiliza datos biométricos (iris y genoma) con pruebas de conocimiento cero (zkProofs) para garantizar que cada interacción de aprendizaje proviene de una persona humana real y única.
+
+```mermaid
+sequenceDiagram
+    participant User as 👤 Usuario
+    participant Flutter as 📱 Flutter App
+    participant IdentityService as 🔐 Identity Service
+    participant BiometricProcessor as 🧬 Biometric Processor
+    participant Keikochain as ⛓️ Keikochain
+    participant CairoContract as 📜 Cairo Contract
+
+    Note over User, CairoContract: Registro inicial con Proof-of-Humanity
+
+    User->>Flutter: Registro con datos biométricos
+    Flutter->>IdentityService: Enviar datos biométricos
+    IdentityService->>BiometricProcessor: Procesar iris + genoma
+    
+    Note over BiometricProcessor: Procesamiento off-chain seguro
+    BiometricProcessor->>BiometricProcessor: Gabor filters (iris)
+    BiometricProcessor->>BiometricProcessor: Análisis SNPs (genoma)
+    BiometricProcessor->>BiometricProcessor: Generar humanity_proof_key
+    
+    BiometricProcessor->>IdentityService: humanity_proof_key + STARK proof
+    IdentityService->>Keikochain: Registrar humanity_proof_key
+    Keikochain->>CairoContract: Verificar STARK proof
+    CairoContract-->>IdentityService: Confirmación de humanidad
+    
+    Note over User, CairoContract: Firma de interacciones de aprendizaje
+    
+    User->>Flutter: Crear interacción de aprendizaje
+    Flutter->>IdentityService: Solicitar firma
+    IdentityService->>IdentityService: Derivar Ed25519 de humanity_proof_key
+    IdentityService->>Keikochain: Firmar interacción
+    Keikochain->>CairoContract: Verificar firma Ed25519
+    CairoContract-->>IdentityService: Confirmación de autenticidad
+    IdentityService-->>Flutter: Interacción firmada
+```
+
+#### Procesamiento Off-Chain de Datos Biométricos
+
+```rust
+// services/identity-service/src/biometric_processor.rs
+use opencv::prelude::*;
+use bio::io::fasta;
+use sha2::{Sha256, Digest};
+use cairo_lang::starknet::cairo_runner::CairoRunner;
+
+pub struct BiometricProcessor {
+    iris_processor: IrisProcessor,
+    genome_processor: GenomeProcessor,
+    cairo_runner: CairoRunner,
+}
+
+impl BiometricProcessor {
+    pub async fn process_biometric_data(
+        &self,
+        iris_data: Vec<u8>,
+        genome_data: Vec<u8>,
+        user_salt: [u8; 32],
+    ) -> Result<HumanityProof, BiometricError> {
+        // Procesar iris con Gabor filters
+        let iris_hash = self.iris_processor.process_iris(iris_data).await?;
+        
+        // Procesar genoma con análisis de SNPs
+        let genome_hash = self.genome_processor.process_genome(genome_data).await?;
+        
+        // Generar humanity_proof_key
+        let humanity_proof_key = self.generate_humanity_proof_key(
+            iris_hash,
+            genome_hash,
+            user_salt,
+        )?;
+        
+        // Crear prueba STARK
+        let stark_proof = self.cairo_runner.generate_proof(
+            &humanity_proof_key,
+            &iris_hash,
+            &genome_hash,
+            &user_salt,
+        )?;
+        
+        // Eliminar datos biométricos originales
+        self.secure_wipe(&iris_data);
+        self.secure_wipe(&genome_data);
+        
+        Ok(HumanityProof {
+            humanity_proof_key,
+            stark_proof,
+            created_at: Utc::now(),
+        })
+    }
+    
+    fn generate_humanity_proof_key(
+        &self,
+        iris_hash: [u8; 32],
+        genome_hash: [u8; 32],
+        salt: [u8; 32],
+    ) -> Result<[u8; 32], BiometricError> {
+        let mut hasher = Sha256::new();
+        hasher.update(&iris_hash);
+        hasher.update(&genome_hash);
+        hasher.update(&salt);
+        
+        let result = hasher.finalize();
+        Ok(result.into())
+    }
+}
+
+pub struct IrisProcessor {
+    gabor_filters: Vec<GaborFilter>,
+}
+
+impl IrisProcessor {
+    pub async fn process_iris(&self, iris_data: Vec<u8>) -> Result<[u8; 32], BiometricError> {
+        // Convertir datos a imagen OpenCV
+        let img = opencv::imgcodecs::imdecode(
+            &opencv::core::Vector::from_slice(&iris_data),
+            opencv::imgcodecs::IMREAD_COLOR,
+        )?;
+        
+        // Aplicar Gabor filters
+        let mut features = Vec::new();
+        for filter in &self.gabor_filters {
+            let filtered = filter.apply(&img)?;
+            features.extend(filtered.into_iter());
+        }
+        
+        // Generar hash de características
+        let mut hasher = Sha256::new();
+        for feature in features {
+            hasher.update(&feature.to_le_bytes());
+        }
+        
+        let result = hasher.finalize();
+        Ok(result.into())
+    }
+}
+
+pub struct GenomeProcessor {
+    snp_analyzer: SNPAnalyzer,
+}
+
+impl GenomeProcessor {
+    pub async fn process_genome(&self, genome_data: Vec<u8>) -> Result<[u8; 32], BiometricError> {
+        // Parsear archivo VCF/FASTA
+        let reader = fasta::Reader::new(&genome_data[..]);
+        let mut snps = Vec::new();
+        
+        for result in reader.records() {
+            let record = result?;
+            let snps_in_record = self.snp_analyzer.extract_snps(&record)?;
+            snps.extend(snps_in_record);
+        }
+        
+        // Generar hash de SNPs
+        let mut hasher = Sha256::new();
+        for snp in snps {
+            hasher.update(&snp.to_bytes());
+        }
+        
+        let result = hasher.finalize();
+        Ok(result.into())
+    }
+}
+```
+
+#### Autenticación Híbrida FIDO2 + zkProofs
+
+```rust
+// services/identity-service/src/auth/hybrid_auth.rs
+use webauthn_rs::prelude::*;
+use jsonwebtoken::{encode, decode, Header, Algorithm, Validation};
+
+pub struct HybridAuthService {
+    webauthn: Webauthn,
+    jwt_secret: String,
+    humanity_verifier: HumanityVerifier,
+}
+
+impl HybridAuthService {
+    pub async fn authenticate_user(
+        &self,
+        fido2_response: Fido2Response,
+        humanity_proof: Option<HumanityProof>,
+    ) -> Result<AuthResult, AuthError> {
+        // Verificar FIDO2
+        let fido2_result = self.webauthn.verify_authentication_response(
+            &fido2_response,
+            &self.get_challenge(&fido2_response.user_id).await?,
+        ).await?;
+        
+        if !fido2_result.verified {
+            return Err(AuthError::Fido2VerificationFailed);
+        }
+        
+        // Generar JWT para sesión
+        let jwt_token = self.generate_jwt(&fido2_result.user_id).await?;
+        
+        // Verificar humanidad si es requerida
+        let humanity_verified = if let Some(proof) = humanity_proof {
+            self.humanity_verifier.verify_proof(&proof).await?
+        } else {
+            false
+        };
+        
+        Ok(AuthResult {
+            jwt_token,
+            user_id: fido2_result.user_id,
+            humanity_verified,
+            session_expires_at: Utc::now() + Duration::hours(24),
+        })
+    }
+    
+    pub async fn sign_learning_interaction(
+        &self,
+        interaction: LearningInteraction,
+        user_id: UserId,
+        humanity_proof: HumanityProof,
+    ) -> Result<SignedInteraction, AuthError> {
+        // Verificar JWT
+        let jwt_claims = self.verify_jwt(&interaction.auth_token)?;
+        
+        // Verificar humanidad
+        if !self.humanity_verifier.verify_proof(&humanity_proof).await? {
+            return Err(AuthError::HumanityVerificationFailed);
+        }
+        
+        // Derivar clave Ed25519 de humanity_proof_key
+        let ed25519_key = self.derive_ed25519_key(&humanity_proof.humanity_proof_key)?;
+        
+        // Firmar interacción
+        let signature = ed25519_key.sign(&interaction.to_bytes());
+        
+        Ok(SignedInteraction {
+            interaction,
+            signature,
+            humanity_proof_key: humanity_proof.humanity_proof_key,
+            signed_at: Utc::now(),
+        })
+    }
+}
+```
+
+#### Contrato Cairo para Verificación de Pruebas STARK
+
+```cairo
+// appchain/contracts/proof_of_humanity.cairo
+use starknet::ContractAddress;
+use starknet::get_caller_address;
+use starknet::get_block_timestamp;
+
+#[storage]
+struct Storage {
+    humanity_proofs: Map<ContractAddress, felt252>,
+    learning_passports: Map<ContractAddress, Vec<(felt252, u64, felt252)>>,
+    interaction_count: Map<ContractAddress, u32>,
+}
+
+#[constructor]
+fn constructor() {}
+
+#[external(v0)]
+fn register_humanity_proof(
+    ref self: ContractState,
+    humanity_proof_key: felt252,
+    stark_proof: Array<felt252>
+) -> bool {
+    let caller = get_caller_address();
+    
+    // Verificar prueba STARK
+    let is_valid_proof = verify_stark_proof(stark_proof, humanity_proof_key);
+    assert(is_valid_proof, 'Invalid STARK proof');
+    
+    // Verificar unicidad
+    let existing_proof = self.humanity_proofs.read(caller);
+    assert(existing_proof == 0, 'Humanity proof already registered');
+    
+    // Registrar humanity_proof_key
+    self.humanity_proofs.write(caller, humanity_proof_key);
+    
+    true
+}
+
+#[external(v0)]
+fn sign_learning_interaction(
+    ref self: ContractState,
+    interaction_data: felt252,
+    ed25519_signature: Array<felt252>
+) -> bool {
+    let caller = get_caller_address();
+    
+    // Verificar que el usuario tiene humanity_proof_key registrada
+    let humanity_proof_key = self.humanity_proofs.read(caller);
+    assert(humanity_proof_key != 0, 'No humanity proof registered');
+    
+    // Verificar firma Ed25519
+    let is_valid_signature = verify_ed25519_signature(
+        ed25519_signature,
+        interaction_data,
+        humanity_proof_key
+    );
+    assert(is_valid_signature, 'Invalid Ed25519 signature');
+    
+    // Almacenar interacción en pasaporte
+    let timestamp = get_block_timestamp();
+    let mut passport = self.learning_passports.read(caller);
+    passport.append((interaction_data, timestamp, humanity_proof_key));
+    self.learning_passports.write(caller, passport);
+    
+    // Incrementar contador
+    let count = self.interaction_count.read(caller);
+    self.interaction_count.write(caller, count + 1);
+    
+    true
+}
+
+#[external(v0)]
+fn verify_humanity(
+    ref self: ContractState,
+    user_address: ContractAddress
+) -> (bool, felt252) {
+    let humanity_proof_key = self.humanity_proofs.read(user_address);
+    let is_human = humanity_proof_key != 0;
+    (is_human, humanity_proof_key)
+}
+
+#[external(v0)]
+fn get_learning_passport(
+    ref self: ContractState,
+    user_address: ContractAddress
+) -> Array<(felt252, u64, felt252)> {
+    self.learning_passports.read(user_address)
+}
+
+fn verify_stark_proof(proof: Array<felt252>, public_input: felt252) -> bool {
+    // Implementación de verificación STARK usando starknet-crypto
+    // Esta función verificaría que la prueba demuestra conocimiento
+    // de iris_hash, genoma_hash y salt sin exponerlos
+    true // Placeholder - implementación real requeriría integración con starknet-crypto
+}
+
+fn verify_ed25519_signature(
+    signature: Array<felt252>,
+    message: felt252,
+    public_key: felt252
+) -> bool {
+    // Implementación de verificación Ed25519
+    // Esta función verificaría que la firma es válida para el mensaje
+    // usando la clave pública derivada de humanity_proof_key
+    true // Placeholder - implementación real requeriría integración con starknet-crypto
+}
+```
+
+### 2. gRPC Gateway Layer
+
+#### Traductor Rust ↔ Cairo
+
+El gRPC Gateway Layer actúa como intermediario entre los microservicios Rust y Keikochain, traduciendo llamadas gRPC a transacciones Cairo y manejando la comunicación con Starknet.
+
+```rust
+// grpc-gateway/src/lib.rs
+use tonic::{transport::Server, Request, Response, Status};
+use starknet_rs::{
+    core::types::{FieldElement, FunctionCall},
+    providers::{Provider, JsonRpcClient},
+    rpc::types::request::Call,
+};
+use tokio_tungstenite::{connect_async, tungstenite::Message};
+
+pub struct GrpcGateway {
+    starknet_client: JsonRpcClient<WebSocketConnector>,
+    contract_addresses: HashMap<String, FieldElement>,
+    circuit_breaker: CircuitBreaker,
+}
+
+impl GrpcGateway {
+    pub async fn new() -> Result<Self, GatewayError> {
+        let ws_url = "wss://keikochain.karnot.xyz";
+        let (ws_stream, _) = connect_async(ws_url).await?;
+        let client = JsonRpcClient::new(WebSocketConnector::new(ws_stream));
+        
+        Ok(Self {
+            starknet_client: client,
+            contract_addresses: Self::load_contract_addresses().await?,
+            circuit_breaker: CircuitBreaker::new(5, Duration::from_secs(30)),
+        })
+    }
+    
+    pub async fn call_contract(
+        &self,
+        contract_name: &str,
+        function_name: &str,
+        calldata: Vec<FieldElement>,
+    ) -> Result<Vec<FieldElement>, GatewayError> {
+        self.circuit_breaker.call(|| async {
+            let contract_address = self.contract_addresses
+                .get(contract_name)
+                .ok_or_else(|| GatewayError::ContractNotFound(contract_name.to_string()))?;
+            
+            let call = Call {
+                contract_address: *contract_address,
+                entry_point_selector: self.get_selector(function_name)?,
+                calldata,
+            };
+            
+            let result = self.starknet_client.call(call, None).await?;
+            Ok(result.result)
+        }).await
+    }
+    
+    pub async fn invoke_contract(
+        &self,
+        contract_name: &str,
+        function_name: &str,
+        calldata: Vec<FieldElement>,
+        max_fee: Option<FieldElement>,
+    ) -> Result<FieldElement, GatewayError> {
+        let contract_address = self.contract_addresses
+            .get(contract_name)
+            .ok_or_else(|| GatewayError::ContractNotFound(contract_name.to_string()))?;
+        
+        let invoke = InvokeTransactionV1 {
+            sender_address: self.get_sender_address(),
+            calldata: vec![
+                *contract_address,
+                self.get_selector(function_name)?,
+                FieldElement::from(calldata.len()),
+                ..calldata,
+            ],
+            max_fee: max_fee.unwrap_or(FieldElement::from(1000000u64)),
+            signature: self.sign_transaction(&calldata)?,
+            nonce: self.get_nonce().await?,
+        };
+        
+        let result = self.starknet_client.add_invoke_transaction(invoke).await?;
+        Ok(result.transaction_hash)
+    }
+}
+
+// Implementación de servicios gRPC
+#[tonic::async_trait]
+impl LearningInteractionsService for GrpcGateway {
+    async fn create_interaction(
+        &self,
+        request: Request<CreateInteractionRequest>,
+    ) -> Result<Response<CreateInteractionResponse>, Status> {
+        let req = request.into_inner();
+        
+        // Convertir tipos Rust a Cairo
+        let calldata = self.convert_interaction_to_cairo(&req.interaction)?;
+        
+        // Invocar contrato Cairo
+        let tx_hash = self.invoke_contract(
+            "learning_interactions",
+            "create_interaction",
+            calldata,
+            None,
+        ).await?;
+        
+        Ok(Response::new(CreateInteractionResponse {
+            interaction_id: req.interaction.id,
+            transaction_hash: tx_hash.to_string(),
+            status: "pending".to_string(),
+        }))
+    }
+    
+    async fn get_interactions(
+        &self,
+        request: Request<GetInteractionsRequest>,
+    ) -> Result<Response<GetInteractionsResponse>, Status> {
+        let req = request.into_inner();
+        
+        // Convertir parámetros a Cairo
+        let calldata = vec![
+            FieldElement::from_hex_be(&req.user_id)?,
+            FieldElement::from(req.limit as u64),
+            FieldElement::from(req.offset as u64),
+        ];
+        
+        // Llamar contrato Cairo
+        let result = self.call_contract(
+            "learning_interactions",
+            "get_interactions",
+            calldata,
+        ).await?;
+        
+        // Convertir respuesta de Cairo a Rust
+        let interactions = self.convert_cairo_to_interactions(&result)?;
+        
+        Ok(Response::new(GetInteractionsResponse {
+            interactions,
+            total_count: interactions.len() as u32,
+        }))
+    }
+}
+
+// Conversión de tipos Rust ↔ Cairo
+impl GrpcGateway {
+    fn convert_interaction_to_cairo(
+        &self,
+        interaction: &LearningInteraction,
+    ) -> Result<Vec<FieldElement>, GatewayError> {
+        let mut calldata = Vec::new();
+        
+        // Convertir actor
+        calldata.push(FieldElement::from_hex_be(&interaction.actor)?);
+        
+        // Convertir verb
+        calldata.push(self.get_verb_selector(&interaction.verb)?);
+        
+        // Convertir object
+        calldata.push(FieldElement::from_hex_be(&interaction.object.id)?);
+        
+        // Convertir result si existe
+        if let Some(result) = &interaction.result {
+            calldata.push(FieldElement::ONE); // flag de existencia
+            calldata.push(FieldElement::from(result.score as u64));
+            calldata.push(FieldElement::from(result.success as u64));
+        } else {
+            calldata.push(FieldElement::ZERO); // flag de no existencia
+        }
+        
+        // Convertir context si existe
+        if let Some(context) = &interaction.context {
+            calldata.push(FieldElement::ONE); // flag de existencia
+            calldata.extend(self.convert_context_to_cairo(context)?);
+        } else {
+            calldata.push(FieldElement::ZERO); // flag de no existencia
+        }
+        
+        // Convertir timestamp
+        calldata.push(FieldElement::from(interaction.timestamp.timestamp() as u64));
+        
+        Ok(calldata)
+    }
+    
+    fn convert_cairo_to_interactions(
+        &self,
+        cairo_data: &[FieldElement],
+    ) -> Result<Vec<LearningInteraction>, GatewayError> {
+        let mut interactions = Vec::new();
+        let mut offset = 0;
+        
+        while offset < cairo_data.len() {
+            let interaction = LearningInteraction {
+                id: cairo_data[offset].to_string(),
+                actor: cairo_data[offset + 1].to_string(),
+                verb: self.get_verb_from_selector(cairo_data[offset + 2])?,
+                object: Object {
+                    id: cairo_data[offset + 3].to_string(),
+                    object_type: "Activity".to_string(),
+                },
+                result: if cairo_data[offset + 4] == FieldElement::ONE {
+                    Some(Result {
+                        score: cairo_data[offset + 5].to_string().parse()?,
+                        success: cairo_data[offset + 6] == FieldElement::ONE,
+                    })
+                } else {
+                    None
+                },
+                context: if cairo_data[offset + 7] == FieldElement::ONE {
+                    Some(self.convert_cairo_to_context(&cairo_data[offset + 8..])?)
+                } else {
+                    None
+                },
+                timestamp: DateTime::from_timestamp(
+                    cairo_data[offset + 8].to_string().parse()?,
+                    0,
+                )?,
+                version: "1.0.3".to_string(),
+            };
+            
+            interactions.push(interaction);
+            offset += 9; // Ajustar según la estructura real
+        }
+        
+        Ok(interactions)
+    }
+}
+
+// Manejo de errores y resiliencia
+impl GrpcGateway {
+    async fn handle_starknet_error(
+        &self,
+        error: starknet_rs::core::errors::StarknetError,
+    ) -> GatewayError {
+        match error {
+            starknet_rs::core::errors::StarknetError::NetworkError(_) => {
+                GatewayError::NetworkError("Starknet network unavailable".to_string())
+            }
+            starknet_rs::core::errors::StarknetError::ProviderError(_) => {
+                GatewayError::ProviderError("Starknet provider error".to_string())
+            }
+            starknet_rs::core::errors::StarknetError::ContractNotFound => {
+                GatewayError::ContractNotFound("Contract not found".to_string())
+            }
+            _ => GatewayError::UnknownError(error.to_string()),
+        }
+    }
+    
+    async fn retry_with_backoff<F, T>(
+        &self,
+        operation: F,
+        max_retries: u32,
+    ) -> Result<T, GatewayError>
+    where
+        F: Fn() -> BoxFuture<'static, Result<T, GatewayError>>,
+    {
+        let mut retries = 0;
+        let mut delay = Duration::from_millis(100);
+        
+        loop {
+            match operation().await {
+                Ok(result) => return Ok(result),
+                Err(e) if retries >= max_retries => return Err(e),
+                Err(e) => {
+                    retries += 1;
+                    tokio::time::sleep(delay).await;
+                    delay = delay * 2; // Exponential backoff
+                }
+            }
+        }
+    }
+}
+```
+
+#### Configuración y Despliegue
+
+```rust
+// grpc-gateway/src/main.rs
+use tonic::transport::Server;
+use grpc_gateway::GrpcGateway;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Inicializar logging
+    tracing_subscriber::fmt::init();
+    
+    // Crear instancia del gateway
+    let gateway = GrpcGateway::new().await?;
+    
+    // Configurar servidor gRPC
+    let addr = "0.0.0.0:50051".parse()?;
+    
+    Server::builder()
+        .add_service(LearningInteractionsServiceServer::new(gateway.clone()))
+        .add_service(PassportServiceServer::new(gateway.clone()))
+        .add_service(ReputationServiceServer::new(gateway.clone()))
+        .add_service(IdentityServiceServer::new(gateway.clone()))
+        .serve(addr)
+        .await?;
+    
+    Ok(())
+}
+```
+
+### 3. API Gateway con WebSocket Secure (WSS)
+
+#### GraphQL Subscriptions sobre WSS
+
+El API Gateway implementa WebSocket Secure (WSS) para GraphQL subscriptions, proporcionando comunicación segura en tiempo real con autenticación JWT y protección de datos sensibles de Proof-of-Humanity.
+
+```rust
+// api-gateway/src/websocket/wss_server.rs
+use tokio_tungstenite::{accept_async, WebSocketStream};
+use tokio_tungstenite::tungstenite::Message;
+use futures_util::{SinkExt, StreamExt};
+use jsonwebtoken::{decode, DecodingKey, Validation, Algorithm};
+use redis::AsyncCommands;
+use serde_json::{json, Value};
+
+pub struct WSSGraphQLServer {
+    jwt_secret: String,
+    redis_client: redis::Client,
+    subscription_manager: SubscriptionManager,
+}
+
+impl WSSGraphQLServer {
+    pub async fn new() -> Result<Self, WSSError> {
+        let redis_client = redis::Client::open("redis://localhost:6379")?;
+        let subscription_manager = SubscriptionManager::new().await?;
+        
+        Ok(Self {
+            jwt_secret: std::env::var("JWT_SECRET")?,
+            redis_client,
+            subscription_manager,
+        })
+    }
+    
+    pub async fn handle_connection(
+        &self,
+        stream: WebSocketStream<TcpStream>,
+        peer_addr: SocketAddr,
+    ) -> Result<(), WSSError> {
+        let mut ws_stream = stream;
+        let mut authenticated = false;
+        let mut user_id: Option<String> = None;
+        
+        // Enviar mensaje de bienvenida
+        ws_stream.send(Message::Text(json!({
+            "type": "connection_init",
+            "payload": {
+                "message": "WebSocket connection established. Please authenticate."
+            }
+        }).to_string())).await?;
+        
+        while let Some(msg) = ws_stream.next().await {
+            match msg? {
+                Message::Text(text) => {
+                    let result = self.handle_text_message(
+                        &text,
+                        &mut ws_stream,
+                        &mut authenticated,
+                        &mut user_id,
+                    ).await;
+                    
+                    if let Err(e) = result {
+                        self.send_error(&mut ws_stream, &e.to_string()).await?;
+                    }
+                }
+                Message::Close(_) => {
+                    if let Some(uid) = user_id {
+                        self.subscription_manager.unsubscribe_all(&uid).await?;
+                    }
+                    break;
+                }
+                Message::Ping(data) => {
+                    ws_stream.send(Message::Pong(data)).await?;
+                }
+                _ => {}
+            }
+        }
+        
+        Ok(())
+    }
+}
+```
+
+### 4. Microservicios Cloud-Native
+
+#### Arquitectura de Microservicios con Keikochain
+
+**Contratos Cairo en Keikochain**
 
 - Almacena interacciones de aprendizaje atómicas en formato xAPI
 - Valida estructura y contenido de las interacciones

@@ -9,18 +9,11 @@
 resolver = "2"
 
 members = [
-    "blockchain/node",
-    "blockchain/runtime", 
-    "blockchain/pallets/learning_interactions",
-    "blockchain/pallets/life_learning_passport",
-    "blockchain/pallets/reputation_system",
     "api-gateway/graphql_server",
     "api-gateway/admin_panel",
-    "api-gateway/ai_tutor_service",
-    "api-gateway/lrs_connector",
     "services/identity-service",
     "services/learning-service",
-    "services/reputation-service", 
+    "services/reputation-service",
     "services/passport-service",
     "services/governance-service",
     "services/marketplace-service",
@@ -35,9 +28,7 @@ exclude = [
 ]
 
 [workspace.dependencies]
-# Substrate dependencies
-substrate-frame-rpc-system = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v1.0.0" }
-substrate-api-client = "0.18"
+# Substrate dependencies (removed for now)
 parity-scale-codec = { version = "3.6.1", default-features = false, features = ["derive"] }
 scale-info = { version = "2.5.0", default-features = false, features = ["derive"] }
 
@@ -75,7 +66,7 @@ anyhow = "1.0"
 thiserror = "1.0"
 
 # Leptos (for admin panel)
-leptos = { version = "0.6", features = ["nightly"] }
+leptos = { version = "0.6" }
 leptos_axum = "0.6"
 leptos_meta = "0.6"
 leptos_router = "0.6"

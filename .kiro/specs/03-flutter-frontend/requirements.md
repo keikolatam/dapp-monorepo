@@ -51,10 +51,12 @@ La arquitectura seguirá los principios de Clean Architecture con separación cl
 #### Criterios de Aceptación
 
 1. CUANDO se acceda a datos remotos ENTONCES el sistema DEBERÁ usar repositorios como Riverpod providers
-2. CUANDO se comunique con el backend ENTONCES el sistema DEBERÁ usar exclusivamente GraphQL client
+2. CUANDO se comunique con el backend ENTONCES el sistema DEBERÁ usar exclusivamente GraphQL client con autenticación JWT
 3. CUANDO se cacheen datos ENTONCES el sistema DEBERÁ implementar caché local con Hive
 4. CUANDO se manejen errores de red ENTONCES el sistema DEBERÁ implementar retry logic y manejo de errores
-5. CUANDO se sincronicen datos ENTONCES el sistema DEBERÁ usar GraphQL subscriptions para tiempo real
+5. CUANDO se sincronicen datos ENTONCES el sistema DEBERÁ usar GraphQL subscriptions sobre WSS para tiempo real
+6. CUANDO se autentique ENTONCES el sistema DEBERÁ integrar JWT tokens en todas las operaciones de repositorio
+7. CUANDO se maneje Proof-of-Humanity ENTONCES el sistema DEBERÁ usar repositorios especializados con validación de identidad
 
 ### Requerimiento 5: Capa de Fuentes de Datos (Data Sources Layer)
 
@@ -62,11 +64,14 @@ La arquitectura seguirá los principios de Clean Architecture con separación cl
 
 #### Criterios de Aceptación
 
-1. CUANDO se implemente GraphQL client ENTONCES el sistema DEBERÁ usar graphql_flutter como provider
+1. CUANDO se implemente GraphQL client ENTONCES el sistema DEBERÁ usar graphql_flutter como provider con autenticación JWT
 2. CUANDO se almacenen datos localmente ENTONCES el sistema DEBERÁ usar Hive como provider para caché
-3. CUANDO se manejen tokens de autenticación ENTONCES el sistema DEBERÁ usar secure storage como provider
-4. CUANDO se configuren interceptors ENTONCES el sistema DEBERÁ implementar interceptors para autenticación y logging
-5. CUANDO se manejen subscriptions ENTONCES el sistema DEBERÁ mantener conexiones WebSocket para tiempo real
+3. CUANDO se manejen tokens de autenticación ENTONCES el sistema DEBERÁ usar flutter_secure_storage como provider para JWT
+4. CUANDO se configuren interceptors ENTONCES el sistema DEBERÁ implementar interceptors para autenticación JWT y logging
+5. CUANDO se manejen subscriptions ENTONCES el sistema DEBERÁ mantener conexiones WSS para tiempo real
+6. CUANDO se implemente WebSocket ENTONCES el sistema DEBERÁ usar web_socket_channel con WSS y autenticación JWT
+7. CUANDO se maneje Proof-of-Humanity ENTONCES el sistema DEBERÁ usar fuentes de datos especializadas con validación de identidad
+8. CUANDO se implemente JWT ENTONCES el sistema DEBERÁ usar jwt_decoder para validación y decodificación de tokens
 
 ### Requerimiento 6: Gestión de Estado Global
 
@@ -203,3 +208,155 @@ La arquitectura seguirá los principios de Clean Architecture con separación cl
 4. CUANDO se visualiza el historial ENTONCES la aplicación DEBERÁ permitir navegar entre diferentes niveles de granularidad con breadcrumbs claros
 5. CUANDO se analiza progreso ENTONCES la aplicación DEBERÁ mostrar métricas tanto a nivel de cursos completos como de interacciones individuales
 6. CUANDO se exportan datos ENTONCES la aplicación DEBERÁ mantener la jerarquía visual entre cursos, clases, tutorías e interacciones
+
+### Requerimiento 16: Autenticación Segura con JWT y WebSocket Secure (WSS)
+
+**Historia de Usuario:** Como usuario de Keiko, quiero que mi autenticación y comunicación sean completamente seguras, para proteger mis datos de Proof-of-Humanity y LearningInteractions de accesos no autorizados.
+
+#### Criterios de Aceptación
+
+1. CUANDO un usuario se autentica ENTONCES el sistema DEBERÁ usar JWT tokens con refresh token automático para mantener sesiones seguras
+2. CUANDO se comunica con el backend ENTONCES el sistema DEBERÁ usar WebSocket Secure (WSS) para todas las comunicaciones en tiempo real
+3. CUANDO se almacenan tokens ENTONCES el sistema DEBERÁ usar secure storage para proteger tokens de autenticación localmente
+4. CUANDO se valida Proof-of-Humanity ENTONCES el sistema DEBERÁ incluir claims específicos en JWT para verificación de identidad
+5. CUANDO se pierde la conexión WSS ENTONCES el sistema DEBERÁ implementar reconexión automática con reautenticación
+6. CUANDO se detecta token expirado ENTONCES el sistema DEBERÁ refrescar automáticamente el token sin interrumpir la experiencia del usuario
+7. CUANDO se manejan LearningInteractions ENTONCES el sistema DEBERÁ incluir claims de permisos específicos en JWT
+8. CUANDO se implementa interceptor HTTP ENTONCES el sistema DEBERÁ agregar automáticamente JWT en headers de todas las requests
+9. CUANDO se establece conexión WSS ENTONCES el sistema DEBERÁ incluir JWT en headers de WebSocket para autenticación
+10. CUANDO se detectan errores de autenticación ENTONCES el sistema DEBERÁ manejar logout automático y redirección a login
+
+### Requerimiento 17: Gestión de Estado de Autenticación con Riverpod
+
+**Historia de Usuario:** Como desarrollador Flutter, quiero una gestión de estado de autenticación centralizada y reactiva, para mantener consistencia en toda la aplicación y facilitar el testing.
+
+#### Criterios de Aceptación
+
+1. CUANDO se implementa autenticación ENTONCES el sistema DEBERÁ usar StateNotifier para manejar estado de autenticación global
+2. CUANDO se valida JWT ENTONCES el sistema DEBERÁ usar AsyncNotifier para operaciones asíncronas de validación
+3. CUANDO se refresca token ENTONCES el sistema DEBERÁ implementar retry logic con exponential backoff
+4. CUANDO se maneja logout ENTONCES el sistema DEBERÁ limpiar todos los estados relacionados con autenticación
+5. CUANDO se testea autenticación ENTONCES el sistema DEBERÁ permitir override de providers para mocking
+6. CUANDO se persiste sesión ENTONCES el sistema DEBERÁ usar SharedPreferences con encriptación para datos sensibles
+7. CUANDO se detecta cambio de estado ENTONCES el sistema DEBERÁ notificar a todos los widgets suscritos automáticamente
+8. CUANDO se maneja Proof-of-Humanity ENTONCES el sistema DEBERÁ incluir validación específica en el estado de autenticación
+
+### Requerimiento 18: Comunicación Segura en Tiempo Real
+
+**Historia de Usuario:** Como usuario de Keiko, quiero recibir actualizaciones en tiempo real de mis LearningInteractions de forma segura, para mantenerme sincronizado con mi progreso educativo sin comprometer la seguridad.
+
+#### Criterios de Aceptación
+
+1. CUANDO se establece conexión WSS ENTONCES el sistema DEBERÁ verificar certificados SSL y validar identidad del servidor
+2. CUANDO se envían mensajes ENTONCES el sistema DEBERÁ encriptar datos sensibles antes de transmisión
+3. CUANDO se reciben LearningInteractions ENTONCES el sistema DEBERÁ validar integridad y autenticidad de los datos
+4. CUANDO se pierde conexión ENTONCES el sistema DEBERÁ implementar queue de mensajes para no perder datos
+5. CUANDO se reconecta ENTONCES el sistema DEBERÁ sincronizar estado perdido durante desconexión
+6. CUANDO se detectan errores de red ENTONCES el sistema DEBERÁ mostrar indicadores visuales de estado de conexión
+7. CUANDO se manejan subscriptions GraphQL ENTONCES el sistema DEBERÁ usar WSS como transporte seguro
+8. CUANDO se implementa heartbeat ENTONCES el sistema DEBERÁ mantener conexión viva con ping/pong seguro
+9. CUANDO se optimiza rendimiento ENTONCES el sistema DEBERÁ implementar compresión de mensajes para WSS
+10. CUANDO se maneja Proof-of-Humanity ENTONCES el sistema DEBERÁ usar canales WSS separados para datos críticos
+
+## Dependencias Requeridas
+
+### Dependencias Core
+```yaml
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # Gestión de Estado
+  flutter_riverpod: ^2.4.9
+  riverpod_annotation: ^2.3.3
+  
+  # Navegación
+  go_router: ^12.1.3
+  
+  # HTTP y GraphQL
+  graphql_flutter: ^5.1.2
+  http: ^1.1.0
+  
+  # WebSocket
+  web_socket_channel: ^2.4.0
+  
+  # Autenticación y Seguridad
+  jwt_decoder: ^2.0.1
+  flutter_secure_storage: ^9.0.0
+  crypto: ^3.0.3
+  
+  # Almacenamiento Local
+  shared_preferences: ^2.2.2
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  
+  # UI y Utilidades
+  flutter_svg: ^2.0.9
+  cached_network_image: ^3.3.0
+  intl: ^0.19.0
+  
+  # Testing
+  mockito: ^5.4.4
+  build_runner: ^2.4.7
+```
+
+### Dependencias de Desarrollo
+```yaml
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  
+  # Code Generation
+  riverpod_generator: ^2.3.9
+  hive_generator: ^2.0.1
+  json_annotation: ^4.8.1
+  json_serializable: ^6.7.1
+  
+  # Testing
+  mockito: ^5.4.4
+  build_runner: ^2.4.7
+  
+  # Linting
+  flutter_lints: ^3.0.1
+  very_good_analysis: ^5.1.0
+```
+
+## Arquitectura de Seguridad
+
+### Flujo de Autenticación
+1. **Login con Proof-of-Humanity** → Validación de identidad
+2. **Emisión de JWT** → Token con claims específicos de Keiko
+3. **Almacenamiento Seguro** → flutter_secure_storage
+4. **Interceptor HTTP** → Agregar JWT automáticamente
+5. **WebSocket WSS** → Conexión segura con autenticación
+6. **Refresh Automático** → Mantener sesión activa
+7. **Logout Seguro** → Limpiar todos los datos sensibles
+
+### Claims JWT Específicos para Keiko
+```json
+{
+  "sub": "user_id",
+  "proof_of_humanity": {
+    "verified": true,
+    "method": "biometric",
+    "timestamp": "2024-01-01T00:00:00Z"
+  },
+  "learning_permissions": {
+    "can_create_interactions": true,
+    "can_rate_tutors": true,
+    "can_access_marketplace": true
+  },
+  "life_learning_passport": {
+    "level": "intermediate",
+    "verified_skills": ["programming", "mathematics"]
+  }
+}
+```
+
+### Configuración WSS
+- **Certificados SSL** → Validación de identidad del servidor
+- **Headers de Autenticación** → JWT en cada conexión
+- **Reconexión Automática** → Con reautenticación
+- **Queue de Mensajes** → Para no perder datos durante desconexiones
+- **Heartbeat** → Mantener conexión viva
+- **Compresión** → Optimizar rendimiento
