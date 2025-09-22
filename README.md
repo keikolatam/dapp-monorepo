@@ -79,27 +79,27 @@ Keiko utiliza una arquitectura híbrida de 5 capas que combina las ventajas de b
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    Frontend Layer                           │
-│                   Flutter App (Web/Mobile)                 │
+│                   Flutter App (Web/Mobile)                  │
 └─────────────────────┬───────────────────────────────────────┘
                       │ GraphQL (Queries/Mutations/Subscriptions)
 ┌─────────────────────▼───────────────────────────────────────┐
 │                     API Layer                               │
-│           API Gateway (GraphQL + Redis Streams)            │
+│           API Gateway (GraphQL + Redis Streams)             │
 └─────────────────────┬───────────────────────────────────────┘
                       │ gRPC + Event-driven (Redis Streams)
 ┌─────────────────────▼───────────────────────────────────────┐
 │                   Service Layer                             │
-│    Microservicios (gRPC + PostgreSQL Cache + Events)       │
+│    Microservicios (gRPC + PostgreSQL Cache + Events)        │
 └─────────────────────┬───────────────────────────────────────┘
                       │ gRPC (Rust ↔ Rust)
 ┌─────────────────────▼───────────────────────────────────────┐
 │                  gRPC Gateway Layer                         │
-│         Traductor Rust ↔ Cairo (Starknet Appchain)        │
+│         Traductor Rust ↔ Cairo (Starknet Appchain)          │
 └─────────────────────┬───────────────────────────────────────┘
                       │ Starknet RPC + Transacciones
 ┌─────────────────────▼───────────────────────────────────────┐
 │                  Appchain Layer                             │
-│         Cairo Smart Contracts (Keikochain - Starknet Appchain) │
+│      Cairo Smart Contracts (Keikochain - Starknet Appchain) │
 └─────────────────────────────────────────────────────────────┘
 ```
 
