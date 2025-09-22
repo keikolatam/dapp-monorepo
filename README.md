@@ -15,7 +15,7 @@ Las interacciones de aprendizaje atómicas estarán diseñadas para ser registra
 
 ---
 
-## Proósito, Objetivo, Principios pedagógicos y políticos
+## Propósito, Objetivo, Principios pedagógicos y políticos
 
 **El propósito de Keiko** es estandarizar el mecanismo de verificación de adquisición de los conocimientos a escala Latinoamérica,
 sin importar el país de origen ni la condición socioeconómica de cada estudiante,
