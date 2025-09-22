@@ -43,35 +43,6 @@ Además, la organización que aloja este repositorio en GitHub se llama **Keiko 
 
 En suma, el nombre Keiko simboliza la importancia de practicar y reflexionar sobre el aprendizaje a lo largo del tiempo, lo cual se materializa en la plataforma como un pasaporte digital de vida y aprendizaje, descentralizado e infalsificable.
 
-## 🔐 Proof-of-Humanity con zkProofs
-
-Keiko implementa un sistema único de **Proof-of-Humanity** que garantiza que cada interacción de aprendizaje proviene de una persona humana real, sin comprometer la privacidad de los datos biométricos:
-
-### **Autenticación Biométrica Off-Chain**
-- **Datos Biométricos**: Procesamiento de iris (Gabor filters) y genoma (SNPs en VCF/FASTA)
-- **Composite Key**: `sha256(iris_hash || genoma_hash || salt)` generada off-chain
-- **Privacidad**: Los datos biométricos originales nunca se almacenan en blockchain
-
-### **Verificación con Pruebas STARK**
-- **Pruebas de Conocimiento Cero**: STARKs para verificar humanidad sin exponer datos
-- **Firma Única**: Cada interacción se firma con Ed25519 derivada de la humanity_proof_key
-- **Recuperación de Identidad**: Los usuarios pueden recuperar su identidad de aprendizaje con la misma humanity_proof_key
-
-### **Flujo de Proof-of-Humanity**
-```
-1. Usuario registra datos biométricos → humanity_proof_key única
-2. Sistema genera prueba STARK que verifica conocimiento sin exponer datos
-3. Usuario firma interacciones con Ed25519 derivada de humanity_proof_key
-4. Keikochain verifica que cada interacción proviene de una persona humana real
-5. Si usuario pierde cuenta, puede recuperar identidad con misma humanity_proof_key
-```
-
-### **Beneficios**
-- **🛡️ Anti-Sybil**: Previene múltiples identidades de la misma persona
-- **🔒 Privacidad**: Datos biométricos nunca se exponen en blockchain
-- **🔄 Recuperación**: Permite recuperar identidad de aprendizaje sin perder historial
-- **✅ Verificabilidad**: Cualquier tercero puede verificar la humanidad de las interacciones
-
 ## 🏗️ Arquitectura Híbrida
 
 Keiko utiliza una arquitectura híbrida de 5 capas que combina las ventajas de blockchain con la flexibilidad de microservicios:
@@ -190,6 +161,36 @@ keiko/
 - **Flutter** - Aplicación multiplataforma
 - **BLoC** - Gestión de estado reactivo
 - **GraphQL (graphql_flutter)** - Cliente GraphQL
+
+
+## 🔐 Proof-of-Humanity con zkProofs
+
+Keiko implementa un sistema único de **Proof-of-Humanity** que garantiza que cada interacción de aprendizaje proviene de una persona humana real, sin comprometer la privacidad de los datos biométricos:
+
+### **Autenticación Biométrica Off-Chain**
+- **Datos Biométricos**: Procesamiento de iris (Gabor filters) y genoma (SNPs en VCF/FASTA)
+- **Composite Key**: `sha256(iris_hash || genoma_hash || salt)` generada off-chain
+- **Privacidad**: Los datos biométricos originales nunca se almacenan en blockchain
+
+### **Verificación con Pruebas STARK**
+- **Pruebas de Conocimiento Cero**: STARKs para verificar humanidad sin exponer datos
+- **Firma Única**: Cada interacción se firma con Ed25519 derivada de la humanity_proof_key
+- **Recuperación de Identidad**: Los usuarios pueden recuperar su identidad de aprendizaje con la misma humanity_proof_key
+
+### **Flujo de Proof-of-Humanity**
+```
+1. Usuario registra datos biométricos → humanity_proof_key única
+2. Sistema genera prueba STARK que verifica conocimiento sin exponer datos
+3. Usuario firma interacciones con Ed25519 derivada de humanity_proof_key
+4. Keikochain verifica que cada interacción proviene de una persona humana real
+5. Si usuario pierde cuenta, puede recuperar identidad con misma humanity_proof_key
+```
+
+### **Beneficios**
+- **🛡️ Anti-Sybil**: Previene múltiples identidades de la misma persona
+- **🔒 Privacidad**: Datos biométricos nunca se exponen en blockchain
+- **🔄 Recuperación**: Permite recuperar identidad de aprendizaje sin perder historial
+- **✅ Verificabilidad**: Cualquier tercero puede verificar la humanidad de las interacciones
 
 ## � ─Patrones de Comunicación
 
