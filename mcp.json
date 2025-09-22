@@ -1,0 +1,13 @@
+{
+    "mcpServers": {
+        "starknet-reader": {
+            "command": "node",
+            "args": [
+                "/home/kvttvrsis/github/keikolatam/dapp-monorepo/appchain/mcp-server/dist/index.js"
+            ],
+            "env": {
+                "STARKNET_RPC_URL": "http://127.0.0.1:9945"
+            }
+        }
+    }
+}

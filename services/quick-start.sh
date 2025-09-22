@@ -75,21 +75,23 @@ check_system_dependencies() {
     # Verificar dependencias específicas según el OS
     case $OS in
         "ubuntu")
-            for dep in build-essential; do
+            # Paquetes necesarios para OpenCV y compilación
+            UBUNTU_PKGS=(build-essential cmake clang libopencv-dev python3 python3-venv python3-pip)
+            for dep in "${UBUNTU_PKGS[@]}"; do
                 if ! dpkg -l | grep -q "^ii.*$dep"; then
                     missing_deps+=($dep)
                 fi
             done
             ;;
         "centos")
-            for dep in gcc-c++ openssl-devel; do
+            for dep in gcc-c++ openssl-devel cmake clang opencv-devel python3 python3-venv python3-pip; do
                 if ! rpm -q $dep &> /dev/null; then
                     missing_deps+=($dep)
                 fi
             done
             ;;
         "arch")
-            for dep in base-devel openssl; do
+            for dep in base-devel openssl cmake clang opencv python python-virtualenv python-pip; do
                 if ! pacman -Q $dep &> /dev/null; then
                     missing_deps+=($dep)
                 fi
@@ -121,7 +123,7 @@ check_system_dependencies() {
                 ;;
             "macos")
                 echo "  xcode-select --install"
-                echo "  brew install ${missing_deps[*]}"
+                echo "  brew install cmake clang opencv python"
                 ;;
             *)
                 echo "  Instala manualmente: ${missing_deps[*]}"
@@ -234,6 +236,61 @@ install_microservices_tools() {
     fi
     
     print_success "Herramientas para microservicios instaladas"
+}
+
+# Función para configurar Python + entorno ZK (biometría + Cairo)
+setup_python_and_zk_stack() {
+    print_status "Configurando Python y entorno para pruebas ZK..."
+    
+    # Asegurar python3 y pip
+    if ! command -v python3 &> /dev/null; then
+        print_error "python3 no está instalado. Instálalo e inténtalo de nuevo."
+        return 1
+    fi
+    if ! command -v pip3 &> /dev/null; then
+        print_error "pip3 no está instalado. Instálalo e inténtalo de nuevo."
+        return 1
+    fi
+    
+    # Crear y activar entorno virtual local
+    if [ ! -d ".venv" ]; then
+        python3 -m venv .venv
+    fi
+    # shellcheck disable=SC1091
+    source .venv/bin/activate
+    
+    # Actualizar pip y wheel
+    pip install --upgrade pip wheel
+    
+    # Instalar BioPython (análisis genómico), OpenCV (Python) y cairo-lang (toolchain Cairo Python)
+    pip install biopython opencv-python-headless cairo-lang
+    
+    # Verificaciones rápidas
+    python - << 'EOF'
+import sys
+ok = True
+try:
+    import Bio  # noqa: F401
+except Exception as e:
+    ok = False
+    print(f"[PY-EVAL] Error importando BioPython: {e}", file=sys.stderr)
+    try:
+        import cairo_lang  # noqa: F401
+except Exception as e:
+    ok = False
+    print(f"[PY-EVAL] Error importando cairo-lang: {e}", file=sys.stderr)
+    try:
+        import cv2  # noqa: F401
+    except Exception as e:
+        ok = False
+        print(f"[PY-EVAL] Error importando OpenCV (cv2): {e}", file=sys.stderr)
+sys.exit(0 if ok else 1)
+EOF
+    if [ $? -eq 0 ]; then
+        print_success "Entorno Python listo: biopython y cairo-lang disponibles"
+    else
+        print_warning "Entorno Python configurado con advertencias. Revisa los mensajes anteriores."
+    fi
 }
 
 # Función para configurar el entorno de desarrollo
@@ -405,6 +462,38 @@ verify_installations() {
     else
         print_warning "protoc: no disponible"
     fi
+
+    # Verificar OpenCV (sistema) para el crate de Rust
+    if pkg-config --modversion opencv4 &> /dev/null; then
+        print_success "OpenCV (sistema): $(pkg-config --modversion opencv4)"
+    elif pkg-config --modversion opencv &> /dev/null; then
+        print_success "OpenCV (sistema): $(pkg-config --modversion opencv)"
+    else
+        print_warning "OpenCV (sistema) no detectado via pkg-config. Requiere libopencv-dev/opencv-devel instalado."
+    fi
+
+    # Verificar Python env
+    if [ -d ".venv" ]; then
+        # shellcheck disable=SC1091
+        source .venv/bin/activate
+        PY_OK=0
+        python - << 'EOF'
+import sys
+try:
+    import Bio, cairo_lang, cv2  # noqa: F401
+    sys.exit(0)
+except Exception:
+    sys.exit(1)
+EOF
+        PY_OK=$?
+        if [ $PY_OK -eq 0 ]; then
+            print_success "Python (.venv) listo con biopython, cairo-lang y opencv-python"
+        else
+            print_warning "Python (.venv) presente pero faltan paquetes (biopython/cairo-lang/opencv)"
+        fi
+    else
+        print_warning ".venv no encontrado. Ejecuta setup_python_and_zk_stack para configurarlo"
+    fi
 }
 
 # Función para mostrar información post-instalación
@@ -458,6 +547,9 @@ main() {
     
     # Instalar herramientas para microservicios
     install_microservices_tools
+    
+    # Configurar Python + stack para pruebas ZK (biometría + Cairo)
+    setup_python_and_zk_stack
     
     # Configurar entorno de desarrollo
     setup_development_environment

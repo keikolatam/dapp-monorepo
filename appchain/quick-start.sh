@@ -19,6 +19,10 @@ MADARA_CLI_DIR="madara-cli"
 APPCHAIN_NAME="keikochain"
 BLOCKS_TO_WAIT=55
 WAIT_TIME_MINUTES=10
+# Seeding PoH
+SEED_POH=false
+FIXTURES_PATH_DEFAULT="appchain/fixtures/poh/humanity_proof_samples.json"
+CUSTOM_FIXTURES_PATH=""
 
 # Variables de control
 FORCE_RECREATE=false
@@ -43,6 +47,8 @@ show_help() {
     echo "      --wait-blocks <n>        Esperar n bloques (default: $BLOCKS_TO_WAIT)"
     echo "      --wait-minutes <m>       Esperar m minutos aprox (default: $WAIT_TIME_MINUTES)"
     echo "      --no-deps-check          Omitir verificación de dependencias"
+    echo "      --seed-poh               Sembrar datos PoH (humanity_proof_key) tras levantar devnet"
+    echo "      --custom-fixtures-path <ruta>  Ruta alternativa para fixtures PoH (default: $FIXTURES_PATH_DEFAULT)"
     echo "  -h, --help                   Mostrar esta ayuda"
     echo
     echo "Ejemplos:"
@@ -85,6 +91,14 @@ process_arguments() {
             --no-deps-check)
                 NO_DEPS_CHECK=true
                 shift
+                ;;
+            --seed-poh)
+                SEED_POH=true
+                shift
+                ;;
+            --custom-fixtures-path)
+                CUSTOM_FIXTURES_PATH="$2"
+                shift 2
                 ;;
             -h|--help)
                 show_help
@@ -771,6 +785,11 @@ show_post_installation_info() {
     echo "  • stop-appchain.sh - Script para detener la Appchain"
     echo "  • check-status.sh - Script para verificar estado"
     echo "  • view-logs.sh - Script para ver logs"
+    if [ "$SEED_POH" = true ]; then
+        local fp
+        fp="${CUSTOM_FIXTURES_PATH:-$FIXTURES_PATH_DEFAULT}"
+        echo "  • (seed) PoH desde: $fp"
+    fi
     echo
     print_status "Comandos útiles:"
     echo "  • ./stop-appchain.sh     - Detener Keikochain"
@@ -846,6 +865,61 @@ main() {
     # Verificar estado
     verify_appchain
     
+    # Sembrar PoH si se solicita
+    if [ "$SEED_POH" = true ]; then
+        print_status "Sembrando datos PoH (humanity_proof_key)..."
+        FIXTURES_PATH="${CUSTOM_FIXTURES_PATH:-$FIXTURES_PATH_DEFAULT}"
+        if [ ! -f "$FIXTURES_PATH" ]; then
+            print_warning "Fixtures no encontrados en $FIXTURES_PATH. Creando ejemplo mínimo..."
+            mkdir -p "$(dirname "$FIXTURES_PATH")"
+            cat > "$FIXTURES_PATH" << 'EOF'
+[
+  {
+    "user_id": "devnet_demo_user_001",
+    "iris_hash_hex": "3f1a9c2e5b7d4f1a3c6e9b2d5f7a1c3e6b9d2f4a7c1e3b5d7f9a2c4e6b8d0f2",
+    "genome_hash_hex": "7e2b5d8f1a3c6e9b2d5f7a1c3e6b9d2f4a7c1e3b5d7f9a2c4e6b8d0f23f1a9c2",
+    "salt_hex": "9fa1b2c3d4e5f60789abcdef01234567",
+    "humanity_proof_key_hex": "1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809"
+  },
+  {
+    "user_id": "devnet_demo_user_002",
+    "iris_hash_hex": "a9c23f1e5d7b4f1a3e6c9b2d5f7a1c3e6b9d2f4a7c1e3b5d7f9a2c4e6b8d0f21",
+    "genome_hash_hex": "2b5d8f1a3c6e9b2d5f7a1c3e6b9d2f4a7c1e3b5d7f9a2c4e6b8d0f23f1a9c27e",
+    "salt_hex": "abcdef012345679fa1b2c3d4e5f60789",
+    "humanity_proof_key_hex": "9c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d"
+  },
+  {
+    "user_id": "devnet_demo_user_003",
+    "iris_hash_hex": "5d8f1a3c6e9b2d5f7a1c3e6b9d2f4a7c1e3b5d7f9a2c4e6b8d0f23f1a9c27e2b",
+    "genome_hash_hex": "1a3c6e9b2d5f7a1c3e6b9d2f4a7c1e3b5d7f9a2c4e6b8d0f23f1a9c27e2b5d8f",
+    "salt_hex": "0123456789abcdef9fa1b2c3d4e5f607",
+    "humanity_proof_key_hex": "0f1e2d3c4b5a69788796a5b4c3d2e1f0aa99bb88cc77dd66ee55ff4411223344"
+  },
+  {
+    "user_id": "devnet_demo_user_004",
+    "iris_hash_hex": "9b2d5f7a1c3e6b9d2f4a7c1e3b5d7f9a2c4e6b8d0f23f1a9c27e2b5d8f1a3c6e",
+    "genome_hash_hex": "3e6b9d2f4a7c1e3b5d7f9a2c4e6b8d0f23f1a9c27e2b5d8f1a3c6e9b2d5f7a1c",
+    "salt_hex": "7766554433221100ffeeddccbbaa9988",
+    "humanity_proof_key_hex": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef"
+  },
+  {
+    "user_id": "devnet_demo_user_005",
+    "iris_hash_hex": "2d5f7a1c3e6b9d2f4a7c1e3b5d7f9a2c4e6b8d0f23f1a9c27e2b5d8f1a3c6e9b",
+    "genome_hash_hex": "6b9d2f4a7c1e3b5d7f9a2c4e6b8d0f23f1a9c27e2b5d8f1a3c6e9b2d5f7a1c3e",
+    "salt_hex": "11223344556677889900aabbccddeeff",
+    "humanity_proof_key_hex": "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+  }
+]
+EOF
+            print_success "Fixture de ejemplo creado en $FIXTURES_PATH"
+        fi
+        if [ -x "appchain/seeds/seed_poh.sh" ]; then
+            bash appchain/seeds/seed_poh.sh "$FIXTURES_PATH" || print_warning "Seeding PoH retornó con advertencias"
+        else
+            print_warning "seed_poh.sh no encontrado o no ejecutable. Crea appchain/seeds/seed_poh.sh"
+        fi
+    fi
+
     # Crear scripts de utilidad
     create_utility_scripts
     

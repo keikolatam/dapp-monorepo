@@ -1,0 +1,37 @@
+[
+  {
+    "user_id": "user_001",
+    "iris_hash_hex": "3f1a9c2e5b7d4f1a3c6e9b2d5f7a1c3e6b9d2f4a7c1e3b5d7f9a2c4e6b8d0f2",
+    "genome_hash_hex": "7e2b5d8f1a3c6e9b2d5f7a1c3e6b9d2f4a7c1e3b5d7f9a2c4e6b8d0f23f1a9c2",
+    "salt_hex": "9fa1b2c3d4e5f60789abcdef01234567",
+    "humanity_proof_key_hex": "1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809"
+  },
+  {
+    "user_id": "user_002",
+    "iris_hash_hex": "a9c23f1e5d7b4f1a3e6c9b2d5f7a1c3e6b9d2f4a7c1e3b5d7f9a2c4e6b8d0f21",
+    "genome_hash_hex": "2b5d8f1a3c6e9b2d5f7a1c3e6b9d2f4a7c1e3b5d7f9a2c4e6b8d0f23f1a9c27e",
+    "salt_hex": "abcdef012345679fa1b2c3d4e5f60789",
+    "humanity_proof_key_hex": "9c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d"
+  },
+  {
+    "user_id": "user_003",
+    "iris_hash_hex": "5d8f1a3c6e9b2d5f7a1c3e6b9d2f4a7c1e3b5d7f9a2c4e6b8d0f23f1a9c27e2b",
+    "genome_hash_hex": "1a3c6e9b2d5f7a1c3e6b9d2f4a7c1e3b5d7f9a2c4e6b8d0f23f1a9c27e2b5d8f",
+    "salt_hex": "0123456789abcdef9fa1b2c3d4e5f607",
+    "humanity_proof_key_hex": "0f1e2d3c4b5a69788796a5b4c3d2e1f0aa99bb88cc77dd66ee55ff4411223344"
+  },
+  {
+    "user_id": "user_004",
+    "iris_hash_hex": "9b2d5f7a1c3e6b9d2f4a7c1e3b5d7f9a2c4e6b8d0f23f1a9c27e2b5d8f1a3c6e",
+    "genome_hash_hex": "3e6b9d2f4a7c1e3b5d7f9a2c4e6b8d0f23f1a9c27e2b5d8f1a3c6e9b2d5f7a1c",
+    "salt_hex": "7766554433221100ffeeddccbbaa9988",
+    "humanity_proof_key_hex": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef"
+  },
+  {
+    "user_id": "user_005",
+    "iris_hash_hex": "2d5f7a1c3e6b9d2f4a7c1e3b5d7f9a2c4e6b8d0f23f1a9c27e2b5d8f1a3c6e9b",
+    "genome_hash_hex": "6b9d2f4a7c1e3b5d7f9a2c4e6b8d0f23f1a9c27e2b5d8f1a3c6e9b2d5f7a1c3e",
+    "salt_hex": "11223344556677889900aabbccddeeff",
+    "humanity_proof_key_hex": "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+  }
+]

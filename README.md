@@ -1,6 +1,47 @@
-# Keiko - Red Social Educativa Descentralizada
+# Keiko Latam - Plataforma de Colaboración Educativa Descentralizada
 
-Keiko es una red social educativa descentralizada (DApp) que transforma el aprendizaje en capital humano verificable mediante blockchain. La plataforma permite crear un **Pasaporte de Aprendizaje de Vida** inmutable que registra todas las interacciones educativas usando el estándar xAPI.
+Keiko es una plataforma de colaboración educativa descentralizada (DApp) que transforma el aprendizaje en capital humano verificable mediante blockchain.
+
+Keiko permite a cualquier individuo construir y demostrar su **Pasaporte de Aprendizaje de Vida (LifeLearningPassport)** en blockchain,
+mediante una sucesión de **interacciones de aprendizaje atómicas (LearningInteractions)** compatibles con el estándar [xAPI (Tin Can)](https://xapi.com/).
+
+Estos datos pueden ser:
+- generados en formato xAPI desde el propio **LRS** (Learning Record Store) de Keiko (una aplicación móvil desarrollada en Flutter/Dart)
+- importados en formato SCORM al back-end desde otros LRS tales como Moodle, a través de su API gateway, y eventualmente convertidos a formato xAPI
+
+Las interacciones de aprendizaje atómicas estarán diseñadas para ser registrados en la "Keikochain" (una appchain L3 basada en Starknet).
+  
+**Keiko Latam** - Transformando el aprendizaje en capital humano verificable e infalsificable 🎓✨
+
+---
+
+## Proósito, Objetivo, Principios pedagógicos y políticos
+
+**El propósito de Keiko** es estandarizar el mecanismo de verificación de adquisición de los conocimientos a escala Latinoamérica,
+sin importar el país de origen ni la condición socioeconómica de cada estudiante,
+para poder dejar obsoletas las certificaciones tradicionales, y **priorizar el encadenamiento de las evidencias de aprenzidaje,**
+_sobre la ***confianza ciega*** en actores educativos que emitan títulos o certificaciones físicas o digitales_,
+
+**El objetivo principal de Keiko** es logar que sea imposible adulterar cualquier evidencia de los estudios de cualquier ser humano a través de su vida,
+para ésto se requiere que las interacciones de aprendizaje sean
+- almacenadas de forma descentralizada,
+- públicamente verificables por múltiples actores (no solamente educativos sino de cualquier industria),
+- inmutables e infalsificables.
+
+Keiko se basa en cuatro pilares:
+
+1. **Libertad económica de tutores y mentores**: Los educadores pueden escoger monetizar sesiones individuales o grupales sin intermediarios.
+2. **Democracia participativa de los educandos**: Los aprendices califican la calidad del conocimiento adquirido y de sus pares.
+3. **Descentralización de la gestión de calidad**: Las comunidades regulan sus propios estándares y métodos de validación.
+4. **Auto-determinación de las comunidades**: Cada red o nodo puede establecer su propia gobernanza educativa.
+
+## ¿Por qué "Keiko" (稽古)?
+
+El nombre **Keiko** significa "practicar para adquirir conocimiento" y también "pensar y estudiar el pasado", un concepto que refleja la idea de digitalizar y conservar la historia del aprendizaje de cada persona en una cadena de bloques, garantizando la validez y trazabilidad de ese conocimiento. Más sobre este concepto en [Lexicon Keiko – Renshinjuku](http://www.renshinjuku.nl/2012/10/lexicon-keiko/).
+
+Además, la organización que aloja este repositorio en GitHub se llama **Keiko (稽古)**, inspirada en la filosofía del [**Aikido**](https://aikido-argentina.com.ar/tag/keiko/), donde *Keiko* es la práctica disciplinada y consciente, que busca no solo la perfección técnica, sino el crecimiento personal y la armonía entre mente y cuerpo. Esta visión del aprendizaje constante y reflexivo es fundamental para el proyecto.
+
+En suma, el nombre Keiko simboliza la importancia de practicar y reflexionar sobre el aprendizaje a lo largo del tiempo, lo cual se materializa en la plataforma como un pasaporte digital de vida y aprendizaje, descentralizado e infalsificable.
 
 ## 🔐 Proof-of-Humanity con zkProofs
 
@@ -316,39 +357,137 @@ async fn import_xapi_statements(
 
 ### Configuración Rápida
 
+Para acelerar el desarrollo en local, puedes usar los siguientes scripts automatizados:
+
+- **Appchain Quick Start (Starknet/Cairo)**: configura Keikochain local, compila y despliega contratos Cairo.
+
 ```bash
-# 1. Clonar repositorio
-git clone https://github.com/keikolatam/keiko-dapp
-cd keiko-dapp
+bash appchain/quick-start.sh
+```
 
-# 2. Configurar Keikochain (Starknet appchain) local
-starknet-devnet --host 0.0.0.0 --port 5050
+- **gRPC Gateway Quick Start**: inicializa y levanta el gateway gRPC.
 
-# 3. Compilar y desplegar contratos Cairo
-cd appchain/contracts
-scarb build
-starknet declare --contract target/dev/learning_interactions.sierra.json
-starknet deploy --class-hash <class_hash>
+```bash
+bash grpc-gateway/quick-start.sh
+```
 
-# 4. Configurar gRPC Gateway
-cd ../../grpc-gateway
-cargo run --bin grpc_gateway_server
+- **Services Quick Start**: prepara dependencias (PostgreSQL, Redis) y levanta los microservicios base.
 
-# 5. Configurar services layer
-cd ../services
-docker-compose up -d postgres redis
-cargo run --bin identity_service &
-cargo run --bin learning_service &
-cargo run --bin reputation_service &
+```bash
+bash services/quick-start.sh
+```
 
-# 6. Configurar API Gateway
-cd ../api-gateway
-cargo run --bin graphql_server
+#### Parámetros y uso
 
-# 7. Configurar frontend
-cd ../frontend
-flutter pub get
-flutter run -d web
+- **Appchain (`appchain/quick-start.sh`)**
+  - Uso básico:
+    ```bash
+    bash appchain/quick-start.sh --non-interactive
+    ```
+  - Flags disponibles:
+    - `-f, --force-recreate`: Forzar recreación de la devnet existente
+    - `-y, --yes, --non-interactive`: Ejecutar sin confirmaciones
+    - `--use-existing`: Usar una devnet existente (falla si no hay)
+    - `--provider <auto|podman|docker>`: Seleccionar proveedor (default: auto)
+    - `--wait-blocks <n>`: Esperar n bloques (default: 55)
+    - `--wait-minutes <m>`: Espera aproximada en minutos (default: 10)
+    - `--no-deps-check`: Omitir verificación de dependencias
+    - `-h, --help`: Mostrar ayuda
+  - Ejemplos:
+    ```bash
+    # Auto, sin prompts
+    bash appchain/quick-start.sh --non-interactive
+
+    # Forzar Podman y recrear
+    bash appchain/quick-start.sh --provider podman --force-recreate --non-interactive
+
+    # Usar devnet existente
+    bash appchain/quick-start.sh --use-existing
+    ```
+
+- **gRPC Gateway (`grpc-gateway/quick-start.sh`)**
+  - Sin parámetros. Instala y configura asdf, Scarb y Starknet Foundry.
+
+- **Services (`services/quick-start.sh`)**
+  - Sin parámetros. Instala Rust, herramientas de microservicios y genera estructura base.
+
+### Entorno PoH (ZK) - Python
+
+Tras ejecutar `services/quick-start.sh`, se crea `.venv` con dependencias para biometría y Cairo.
+
+```bash
+# Activar el entorno virtual
+source .venv/bin/activate
+
+# Verificar dependencias clave
+python - << 'EOF'
+import Bio, cairo_lang
+print('OK: BioPython y cairo-lang disponibles')
+EOF
+
+# Salir del entorno cuando termines
+deactivate
+```
+
+### Ejemplos mínimos PoH (biometría + ZK)
+
+```bash
+# 1) Procesamiento simple de iris (OpenCV) y FASTA (BioPython)
+source .venv/bin/activate
+python - << 'EOF'
+import cv2, numpy as np
+from Bio import SeqIO
+
+# Simular un iris como imagen en memoria y aplicar un filtro Gabor básico
+img = np.random.randint(0, 255, (128,128), dtype=np.uint8)
+ksize = 21
+sigma = 5
+theta = 0
+lam = 10
+gamma = 0.5
+psi = 0
+kernel = cv2.getGaborKernel((ksize, ksize), sigma, theta, lam, gamma, psi, ktype=cv2.CV_32F)
+feat = cv2.filter2D(img, cv2.CV_32F, kernel)
+print('Iris feature mean/std:', float(feat.mean()), float(feat.std()))
+
+# Leer una secuencia FASTA simple desde string
+from io import StringIO
+fasta_data = ">seq\nACGTACGTACGT\n"
+handle = StringIO(fasta_data)
+records = list(SeqIO.parse(handle, 'fasta'))
+print('FASTA length:', len(records[0].seq))
+EOF
+
+# 2) Comando Cairo (tooling) de validación rápida
+python - << 'EOF'
+import cairo_lang
+print('Cairo tooling OK:', cairo_lang.__version__ if hasattr(cairo_lang, '__version__') else 'present')
+EOF
+deactivate
+```
+
+```bash
+# 3) Cálculo de humanity_proof_key = sha256(iris_hash || genome_hash || salt)
+source .venv/bin/activate
+python - << 'EOF'
+import hashlib, os, numpy as np
+
+# Supongamos que ya tienes vectores/características extraídas del iris y del genoma.
+# Aquí simulamos bytes de hash previos (p.ej., hash de features Gabor y hash de SNPs).
+iris_hash = hashlib.sha256(os.urandom(32)).digest()
+genome_hash = hashlib.sha256(os.urandom(32)).digest()
+
+# Salt seguro aleatorio (almacénalo de forma segura, por usuario)
+salt = os.urandom(16)
+
+# Concatenación: iris_hash || genome_hash || salt
+composite = iris_hash + genome_hash + salt
+
+# humanity_proof_key
+humanity_proof_key = hashlib.sha256(composite).hexdigest()
+print('humanity_proof_key:', humanity_proof_key)
+EOF
+deactivate
 ```
 
 ## 📋 Estado del Desarrollo
@@ -407,5 +546,3 @@ Este proyecto está licenciado bajo Business Source License 1.1. Ver [LICENSE](L
 - **xAPI**: [xapi.com](https://xapi.com/)
 
 ---
-
-**Keiko Team** - Transformando el aprendizaje en capital humano verificable 🎓✨
