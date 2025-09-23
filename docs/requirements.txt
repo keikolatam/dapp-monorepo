@@ -7,16 +7,17 @@
 mkdocs>=1.5.0
 mkdocs-material>=9.4.0
 
+# Tema GitBook
+mkdocs-gitbook>=1.0.0
+
 # Plugins esenciales
 mkdocs-git-revision-date-localized-plugin>=1.2.0
-mkdocs-git-committers-plugin>=2.3.0
+mkdocs-git-committers-plugin>=0.2.3
 mkdocs-minify-plugin>=0.7.0
-mkdocs-pdf-export-plugin>=0.8.0
-mkdocs-gitbook-plugin>=1.0.0
+mkdocs-pdf-export-plugin>=0.5.10
 
 # Extensiones de Markdown
 pymdown-extensions>=10.0.0
-mkdocs-pymdownx-extras>=1.0.0
 
 # Procesamiento de imágenes
 Pillow>=10.0.0
@@ -29,8 +30,8 @@ jinja2>=3.1.0
 markdown>=3.5.0
 
 # Desarrollo y testing
-mkdocs-serve>=0.1.0
-mkdocs-build-plantuml-plugin>=1.7.0
+# mkdocs-serve>=0.1.0
+# mkdocs-build-plantuml-plugin>=1.7.0
 
 # Opcional: para diagramas avanzados
 # plantuml>=0.3.0

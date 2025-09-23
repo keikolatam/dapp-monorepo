@@ -136,3 +136,6 @@ pids/
 *.pid
 *.seed
 *.pid.lock
+
+# Git credentials (security)
+.git-credentials

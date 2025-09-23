@@ -10,6 +10,10 @@ repo_url: https://github.com/keikolatam/dapp-monorepo
 repo_name: keikolatam/dapp-monorepo
 edit_uri: edit/main/docs/
 
+# Directorio de documentos
+docs_dir: content
+site_dir: ../site
+
 # =============================================================================
 # Configuración del Tema Material
 # =============================================================================
@@ -65,43 +69,8 @@ plugins:
       repository: keikolatam/dapp-monorepo
   - minify:
       minify_html: true
-  - mkdocs-pdf-export-plugin:
-      enabled_if_env: ENABLE_PDF_EXPORT
-  - mkdocs-gitbook-plugin
-  - pymdownx.arithmatex:
-      generic: true
-  - pymdownx.critic
-  - pymdownx.details
-  - pymdownx.emoji:
-      emoji_generator: !!python/name:material.extensions.emoji.to_svg
-      emoji_index: !!python/name:material.extensions.emoji.twemoji
-  - pymdownx.highlight:
-      anchor_linenums: true
-      line_spans: __span
-      pygments_lang_class: true
-  - pymdownx.inlinehilite
-  - pymdownx.keys
-  - pymdownx.magiclink:
-      normalize_issue_symbols: true
-      repo_url_shorthand: true
-      user: keikolatam
-      repo: dapp-monorepo
-  - pymdownx.mark
-  - pymdownx.smartsymbols
-  - pymdownx.superfences:
-      custom_fences:
-        - name: mermaid
-          class: mermaid
-          format: !!python/name:pymdownx.superfences.fence_code_format
-  - pymdownx.tabbed:
-      alternate_style: true
-      combine_header_slug: true
-      slugify: !!python/object/apply:pymdownx.slugs.slugify
-        kwds:
-          case: lower
-  - pymdownx.tasklist:
-      custom_checkbox: true
-  - pymdownx.tilde
+  # - mkdocs-pdf-export-plugin:
+  #     enabled_if_env: ENABLE_PDF_EXPORT
 
 # =============================================================================
 # Configuración de Markdown
@@ -226,9 +195,9 @@ extra:
 # Configuración de desarrollo
 # =============================================================================
 dev_addr: 0.0.0.0:8000
-watch:
-  - docs
-  - overrides
+# watch:
+#   - .
+#   - overrides
 
 # =============================================================================
 # Configuración de archivos estáticos
