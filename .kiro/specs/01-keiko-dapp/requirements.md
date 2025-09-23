@@ -277,7 +277,93 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 
 **Nota:** Para detalles de implementación de interfaces móviles de guías de auto-estudio, ver Spec 02-flutter-frontend-architecture
 
-### Requerimiento 15: Integración con Starknet - Keikochain como Appchain
+### Requerimiento 15: Módulo Guías de Estudio con Pipeline de Contenido de Video
+
+**Componente:** Backend Layer (Módulo SelfStudy Guides)
+
+**Historia de Usuario:** Como estudiante, quiero que el sistema genere automáticamente guías de estudio personalizadas a partir de contenido de video de múltiples plataformas (YouTube, Twitch, Vimeo, Kick, etc.), para poder convertir contenido educativo audiovisual en recursos de aprendizaje estructurados y consultables.
+
+#### Criterios de Aceptación
+
+1. CUANDO se implemente el módulo SelfStudy Guides ENTONCES DEBERÁ usar las siguientes dependencias en Cargo.toml:
+   - `yt-dlp-rs`: Para descarga de audio de múltiples plataformas de video (YouTube, Twitch, Vimeo, Kick, etc.)
+   - `rllm`: Para transcripción de audio a texto
+   - `rig-core`: Para el núcleo del framework rig.rs
+   - `rig-qdrant`: Para conexión con base de datos vectorial Qdrant
+   - `tokio`: Para ejecución asíncrona
+   - `anyhow`: Para manejo robusto de errores
+   - `serde` y `serde_json`: Para serialización y formato JSON
+   - `url`: Para validación de URLs
+
+2. CUANDO se cree la estructura del módulo ENTONCES DEBERÁ implementar una struct principal `VideoStudyGuidePipeline` que se inicialice con configuraciones para conectar con LLM y Qdrant
+
+3. CUANDO se implemente el pipeline principal ENTONCES DEBERÁ crear el método asíncrono `process_video_and_generate_guide(&self, video_url: &str, user_query: &str)` que ejecute secuencialmente:
+
+   **Fase 1: Ingestión del Contenido**
+   - Paso 1: Descargar audio usando `yt-dlp-rs` a archivo temporal (.mp3) desde cualquier plataforma de video soportada
+   - Paso 2: Transcribir audio usando `rllm` (API Whisper) para obtener texto completo
+
+   **Fase 2: Análisis y Generación RAG**
+   - Paso 3: Chunking del texto en fragmentos de 500 caracteres con superposición de 50 caracteres
+   - Paso 4: Generar embeddings usando `EmbeddingModel` de rig.rs para cada chunk
+   - Paso 5: Almacenar chunks y embeddings en colección Qdrant (usando video_id como nombre)
+   - Paso 6: Búsqueda de similitud con user_query para recuperar top 5 chunks relevantes
+   - Paso 7: Orquestación del LLM con prompt contextualizado usando `CompletionModel` de rig.rs
+
+4. CUANDO se genere la salida ENTONCES el método DEBERÁ retornar `Result<String, anyhow::Error>` con JSON que contenga:
+   - Clave principal con contenido de la guía generada por el LLM
+   - Lista opcional de fuentes (chunks originales) utilizados para la respuesta
+
+5. CUANDO se implemente el módulo ENTONCES DEBERÁ incluir función `main` que demuestre:
+   - Inicialización del `VideoStudyGuidePipeline`
+   - Llamada al método principal con URLs de ejemplo de diferentes plataformas (YouTube, Twitch, Vimeo)
+   - Query de ejemplo como "resume los conceptos principales"
+   - Manejo de errores y logging apropiado
+
+6. CUANDO se procese contenido de video ENTONCES el sistema DEBERÁ:
+   - Validar URLs de video de múltiples plataformas antes del procesamiento
+   - Detectar automáticamente la plataforma de origen (YouTube, Twitch, Vimeo, Kick, etc.)
+   - Gestionar errores de descarga (URL inválidas, problemas de red, contenido no disponible)
+   - Limpiar archivos temporales después del procesamiento
+   - Implementar timeouts para operaciones de red
+   - Manejar diferentes formatos de video y restricciones de plataforma
+
+7. CUANDO se almacene en Qdrant ENTONCES el sistema DEBERÁ:
+   - Crear colecciones únicas por video usando video_id
+   - Implementar metadatos para cada chunk (timestamp, posición, etc.)
+   - Manejar errores de conexión con Qdrant
+   - Implementar retry policies para operaciones fallidas
+
+8. CUANDO se genere contenido con LLM ENTONCES el sistema DEBERÁ:
+   - Crear prompts contextualizados que incluyan user_query y chunks recuperados
+   - Instruir al modelo para generar respuestas basadas exclusivamente en el contexto
+   - Manejar diferentes tipos de salida (resúmenes, puntos clave, preguntas de estudio)
+   - Implementar validación de calidad del contenido generado
+
+9. CUANDO se integre con otros módulos ENTONCES el SelfStudy Guides DEBERÁ:
+   - Emitir eventos de dominio via Redis Streams cuando se complete una guía
+   - Permitir que el módulo Learning registre la interacción como LearningInteraction
+   - Integrarse con el módulo Passport para actualizar competencias del usuario
+   - Comunicarse con el módulo AI Tutor para personalización basada en perfil de aprendizaje
+
+10. CUANDO se implemente observabilidad ENTONCES el módulo DEBERÁ:
+    - Instrumentar métricas de tiempo de procesamiento por fase
+    - Loggear errores detallados con contexto de video URL, plataforma de origen y user_query
+    - Trackear uso de recursos (CPU, memoria) durante transcripción y generación
+    - Monitorear latencia de llamadas a APIs externas (Whisper, LLM)
+    - Registrar estadísticas de uso por plataforma de video (YouTube, Twitch, Vimeo, etc.)
+
+11. CUANDO se diseñe para extensibilidad ENTONCES el módulo DEBERÁ:
+    - Implementar un sistema de plugins para agregar soporte a nuevas plataformas de video
+    - Usar `yt-dlp-rs` como base que ya soporta múltiples plataformas (YouTube, Twitch, Vimeo, Kick, etc.)
+    - Crear abstracciones para manejar diferentes formatos de metadatos por plataforma
+    - Implementar detección automática de plataforma basada en patrones de URL
+    - Permitir configuración específica por plataforma (timeouts, formatos preferidos, etc.)
+    - Mantener compatibilidad hacia atrás cuando se agreguen nuevas plataformas
+
+**Nota:** Este módulo extiende el Requerimiento 14 (Guías de Auto-Estudio Adaptativas) proporcionando capacidades específicas de procesamiento de contenido audiovisual de múltiples plataformas para generar guías de estudio estructuradas. YouTube es la plataforma preferida inicialmente, pero el diseño permite extensibilidad para Twitch.tv, Kick.com, Vimeo y otras plataformas de video.
+
+### Requerimiento 16: Integración con Starknet - Keikochain como Appchain
 
 **Componente:** Backend + gRPC Gateway
 
@@ -293,7 +379,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 6. CUANDO un usuario necesita interactuar con Keikochain ENTONCES el sistema DEBERÁ proporcionar una interfaz unificada a través del gRPC Gateway.
 7. CUANDO se implementan nuevas funcionalidades ENTONCES el sistema DEBERÁ seguir las mejores prácticas y estándares del ecosistema Starknet.
 
-### Requerimiento 16: Marketplace de Espacios de Aprendizaje Seguros
+### Requerimiento 17: Marketplace de Espacios de Aprendizaje Seguros
 
 **Componente:** Backend + Frontend Móvil
 
@@ -312,7 +398,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 
 **Nota:** Para detalles de implementación de interfaces móviles de marketplace, ver Spec 02-flutter-frontend-architecture
 
-### Requerimiento 17: Modelado de Sesiones Tutoriales y sus Interacciones de Aprendizaje
+### Requerimiento 18: Modelado de Sesiones Tutoriales y sus Interacciones de Aprendizaje
 
 **Componente:** Backend + Frontend Móvil
 
@@ -334,7 +420,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 
 **Nota:** Para detalles de implementación de navegación jerárquica móvil, ver Spec 02-flutter-frontend-architecture
 
-### Requerimiento 18: Arquitectura Híbrida: API Gateway -> Backend Modular -> gRPC Gateway -> Appchain
+### Requerimiento 19: Arquitectura Híbrida: API Gateway -> Backend Modular -> gRPC Gateway -> Appchain
 
 **Componente:** Appchain + gRPC Gateway + Backend Modular + API Gateway + Frontend
 
@@ -351,9 +437,9 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 7. CUANDO se requieran subscriptions en tiempo real ENTONCES el API Gateway DEBERÁ usar Redis Streams para alimentar GraphQL subscriptions sobre WSS
 8. CUANDO sistemas externos requieran integración ENTONCES DEBERÁ usar endpoints REST en el API Gateway (no en el backend)
 9. CUANDO se despliegue el backend ENTONCES DEBERÁ usar una única base de datos PostgreSQL con schemas separados por módulo
-10. CUANDO se requiera observabilidad ENTONCES DEBERÁ implementar observabilidad específica por capa según el Requerimiento 40
+10. CUANDO se requiera observabilidad ENTONCES DEBERÁ implementar observabilidad específica por capa según el Requerimiento 41
 
-### Requerimiento 19: Jerarquía Completa de Experiencias de Aprendizaje
+### Requerimiento 20: Jerarquía Completa de Experiencias de Aprendizaje
 
 **Componente:** Backend + Frontend
 
@@ -381,7 +467,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 
 ## Requerimientos de Arquitectura Modular
 
-### Requerimiento 20: Arquitectura Modular con Keikochain
+### Requerimiento 21: Arquitectura Modular con Keikochain
 
 **Componente:** Backend Layer + gRPC Gateway + Keikochain
 
@@ -397,7 +483,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 6. CUANDO se requiera comunicación con Keikochain ENTONCES DEBERÁ usar el gRPC Gateway como intermediario
 7. CUANDO el API Gateway requiera datos ENTONCES DEBERÁ usar HTTP/REST para comunicarse con el backend monolítico
 
-### Requerimiento 21: Organización Modular por Dominio
+### Requerimiento 22: Organización Modular por Dominio
 
 **Componente:** Backend Layer + gRPC Gateway
 
@@ -412,7 +498,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 5. CUANDO se refactorice código ENTONCES DEBERÁ mantener la separación de responsabilidades por módulo
 6. CUANDO se requiera escalabilidad futura ENTONCES DEBERÁ diseñar módulos que puedan extraerse como microservicios independientes
 
-### Requerimiento 22: Módulos Independientes por Dominio
+### Requerimiento 23: Módulos Independientes por Dominio
 
 **Componente:** Backend Layer
 
@@ -428,7 +514,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 6. CUANDO se comuniquen módulos ENTONCES DEBERÁ usar interfaces bien definidas y eventos de dominio
 7. CUANDO se acceda a datos ENTONCES DEBERÁ usar el módulo correspondiente sin acceso directo a la base de datos de otros módulos
 
-### Requerimiento 23: Resiliencia y Tolerancia a Fallos
+### Requerimiento 24: Resiliencia y Tolerancia a Fallos
 
 **Componente:** Backend Layer + gRPC Gateway
 
@@ -444,7 +530,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 6. CUANDO falle la comunicación con Keikochain ENTONCES DEBERÁ usar cache local como fallback
 7. CUANDO falle la comunicación con el API Gateway ENTONCES DEBERÁ implementar health checks y restart automático
 
-### Requerimiento 24: Event-Driven Communication
+### Requerimiento 25: Event-Driven Communication
 
 **Componente:** Backend Layer + Redis Streams
 
@@ -460,7 +546,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 6. CUANDO se publiquen eventos ENTONCES DEBERÁ usar Redis Streams (NUNCA Keikochain para eventos)
 7. CUANDO el API Gateway requiera eventos ENTONCES DEBERÁ suscribirse a Redis Streams para GraphQL subscriptions
 
-### Requerimiento 25: API Design y Contratos de Módulo
+### Requerimiento 26: API Design y Contratos de Módulo
 
 **Componente:** Backend Layer + API Gateway
 
@@ -476,7 +562,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 6. CUANDO el API Gateway reciba queries ENTONCES DEBERÁ traducir a llamadas HTTP/REST al backend
 7. CUANDO se comuniquen módulos ENTONCES DEBERÁ usar interfaces bien definidas y documentadas
 
-### Requerimiento 26: Data Consistency y Transacciones Locales
+### Requerimiento 27: Data Consistency y Transacciones Locales
 
 **Componente:** Backend Layer + Keikochain
 
@@ -492,7 +578,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 6. CUANDO se escriban datos críticos ENTONCES DEBERÁ enviar transacciones via gRPC Gateway a Keikochain como fuente de verdad
 7. CUANDO se comuniquen módulos ENTONCES DEBERÁ mantener consistencia eventual via eventos de dominio
 
-### Requerimiento 27: Testing de Arquitectura Modular
+### Requerimiento 28: Testing de Arquitectura Modular
 
 **Componente:** Backend Layer + API Gateway + gRPC Gateway + Keikochain
 
@@ -508,7 +594,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 6. CUANDO se pruebe comunicación con Keikochain ENTONCES DEBERÁ usar mocks del gRPC Gateway
 7. CUANDO se prueben módulos ENTONCES DEBERÁ implementar integration tests entre módulos del backend
 
-### Requerimiento 28: Estrategia de Base de Datos Modular
+### Requerimiento 29: Estrategia de Base de Datos Modular
 
 **Componente:** Backend Layer + PostgreSQL
 
@@ -524,7 +610,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 6. CUANDO se despliegue en producción ENTONCES DEBERÁ evaluar la migración a bases de datos separadas según el crecimiento
 7. CUANDO se comuniquen módulos ENTONCES DEBERÁ usar transacciones locales de PostgreSQL para consistencia
 
-### Requerimiento 31: Proof-of-Humanity con zkProofs para Firmar Interacciones de Aprendizaje
+### Requerimiento 32: Proof-of-Humanity con zkProofs para Firmar Interacciones de Aprendizaje
 
 **Componente:** Backend Layer + gRPC Gateway + Keikochain + Frontend
 
@@ -541,7 +627,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 7. CUANDO se detecta una humanity_proof_key duplicada ENTONCES el sistema DEBERÁ permitir la recuperación de identidad transfiriendo el historial de aprendizaje a la nueva cuenta, manteniendo la unicidad de la persona humana
 8. CUANDO se procesan datos biométricos ENTONCES DEBERÁ hacerse completamente off-chain en microservicios Rust, nunca en Keikochain
 
-### Requerimiento 32: Integración FIDO2 con zkProofs para Autenticación Híbrida
+### Requerimiento 33: Integración FIDO2 con zkProofs para Autenticación Híbrida
 
 **Componente:** Frontend + API Gateway + Service Layer + Keikochain
 
@@ -558,7 +644,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 7. CUANDO se requiere re-autenticación ENTONCES el sistema DEBERÁ permitir usar FIDO2 sin repetir el proceso biométrico completo
 8. CUANDO se detecta actividad sospechosa ENTONCES el sistema DEBERÁ requerir verificación adicional con zkProofs
 
-### Requerimiento 33: Contrato Cairo para Verificación de Pruebas STARK y Proof-of-Humanity en Keikochain
+### Requerimiento 34: Contrato Cairo para Verificación de Pruebas STARK y Proof-of-Humanity en Keikochain
 
 **Componente:** Keikochain (Cairo Smart Contracts)
 
@@ -575,7 +661,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 7. CUANDO se optimiza para gas ENTONCES DEBERÁ usar operaciones eficientes de Cairo y minimizar storage writes
 8. CUANDO se implementa el contrato ENTONCES DEBERÁ seguir las mejores prácticas de Cairo y ser compatible con CairoVM
 
-### Requerimiento 34: Procesamiento Off-Chain de Datos Biométricos
+### Requerimiento 35: Procesamiento Off-Chain de Datos Biométricos
 
 **Componente:** Backend Layer (Rust Monolítico)
 
@@ -592,7 +678,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 7. CUANDO se genera la clave Ed25519 ENTONCES DEBERÁ derivarla de la humanity_proof_key usando funciones criptográficas seguras
 8. CUANDO se envían datos a Keikochain ENTONCES DEBERÁ usar el gRPC Gateway para traducir tipos Rust a Cairo
 
-### Requerimiento 35: Integración gRPC Gateway para Comunicación Rust ↔ Cairo
+### Requerimiento 36: Integración gRPC Gateway para Comunicación Rust ↔ Cairo
 
 **Componente:** gRPC Gateway Layer
 
@@ -609,7 +695,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 7. CUANDO se implementa el gateway ENTONCES DEBERÁ seguir patrones de resiliencia con circuit breakers y retry policies
 8. CUANDO se despliega ENTONCES DEBERÁ exponer un servidor gRPC en `localhost:50051` para comunicación con el backend
 
-### Requerimiento 36: API Gateway con WebSocket Secure (WSS) para GraphQL Subscriptions
+### Requerimiento 37: API Gateway con WebSocket Secure (WSS) para GraphQL Subscriptions
 
 **Componente:** API Gateway (Rust + GraphQL + WSS)
 
@@ -628,7 +714,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 9. CUANDO se implemente el servidor WSS ENTONCES DEBERÁ usar `tokio-tungstenite` con soporte para GraphQL subscriptions
 10. CUANDO se configure WSS ENTONCES DEBERÁ exponer el endpoint en `wss://api.keikolatam.app/graphql-ws` con protocolo GraphQL WebSocket
 
-### Requerimiento 37: Scripts de Desarrollo Automatizados con Make
+### Requerimiento 38: Scripts de Desarrollo Automatizados con Make
 
 **Componente:** DevOps + Desarrollo Local
 
@@ -649,7 +735,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 11. CUANDO se ejecute `make status` ENTONCES DEBERÁ mostrar el estado de todos los componentes (appchain, gRPC gateway, backend, bases de datos)
 12. CUANDO se implemente el Makefile ENTONCES DEBERÁ usar variables de entorno configurables y targets paralelos cuando sea posible
 
-### Requerimiento 38: Configuración Rápida de Desarrollo
+### Requerimiento 39: Configuración Rápida de Desarrollo
 
 **Componente:** DevOps + Entorno de Desarrollo
 
@@ -668,7 +754,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 9. CUANDO se complete la configuración ENTONCES DEBERÁ mostrar un resumen del estado y próximos pasos
 10. CUANDO falle algún paso ENTONCES DEBERÁ proporcionar mensajes de error claros y sugerencias de solución
 
-### Requerimiento 39: Seguimiento del Estado del Desarrollo
+### Requerimiento 40: Seguimiento del Estado del Desarrollo
 
 **Componente:** Project Management + DevOps
 
@@ -687,7 +773,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 9. CUANDO se documente el progreso ENTONCES DEBERÁ incluir estimaciones de tiempo y dependencias entre tareas
 10. CUANDO se complete un milestone ENTONCES DEBERÁ actualizarse automáticamente el estado en la documentación
 
-### Requerimiento 40: Observabilidad Específica por Capa
+### Requerimiento 41: Observabilidad Específica por Capa
 
 **Componente:** Todas las capas (Frontend, API Gateway, Backend, gRPC Gateway, Keikochain)
 
@@ -732,7 +818,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 24. CUANDO se configure logging ENTONCES DEBERÁ usar structured logging con niveles apropiados por capa
 25. CUANDO se implemente health checks ENTONCES DEBERÁ exponer endpoints específicos por capa con métricas de salud
 
-### Requerimiento 41: Infraestructura como Código con Terraform
+### Requerimiento 42: Infraestructura como Código con Terraform
 
 **Componente:** DevOps + OVHCloud Infrastructure
 
@@ -746,7 +832,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 4. CUANDO se gestione el estado ENTONCES Terraform DEBERÁ usar remote state backend separado por entorno en OVH Object Storage (buckets: keikolatam-terraform-state-dev/qa/stage/prod)
 5. CUANDO se actualice infraestructura ENTONCES DEBERÁ seguir el principio de immutable infrastructure y promote changes dev → qa → stage → production
 
-### Requerimiento 42: GitOps con ArgoCD
+### Requerimiento 43: GitOps con ArgoCD
 
 **Componente:** DevOps + Kubernetes
 
@@ -760,7 +846,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 4. CUANDO se detecten cambios en Git ENTONCES ArgoCD DEBERÁ sincronizar automáticamente el estado del cluster correspondiente
 5. CUANDO ocurra drift configuration ENTONCES ArgoCD DEBERÁ auto-heal y restaurar el estado deseado en cada entorno
 
-### Requerimiento 43: CI/CD Pipeline Automatizado
+### Requerimiento 44: CI/CD Pipeline Automatizado
 
 **Componente:** DevOps + GitHub Actions
 
@@ -774,7 +860,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 4. CUANDO se ejecuten tests ENTONCES DEBERÁ incluir unit tests en dev, integration tests en qa, UAT tests en stage, y smoke tests en production
 5. CUANDO falle el pipeline ENTONCES DEBERÁ notificar automáticamente, bloquear promoción a siguiente entorno y permitir rollback
 
-### Requerimiento 44: Gestión de Secretos y Configuración
+### Requerimiento 45: Gestión de Secretos y Configuración
 
 **Componente:** DevOps + Security
 
@@ -788,7 +874,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 4. CUANDO se auditen accesos ENTONCES DEBERÁ mantener logs de acceso a secretos y configuración
 5. CUANDO se encripten datos ENTONCES DEBERÁ usar encryption at rest para todos los secretos en Kubernetes
 
-### Requerimiento 47: Gestión de Secretos con OVHCloud Secret Manager
+### Requerimiento 48: Gestión de Secretos con OVHCloud Secret Manager
 
 **Componente:** DevOps + Security + OVHCloud Secret Manager
 
@@ -805,7 +891,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 7. CUANDO se implemente como fallback ENTONCES DEBERÁ considerar HashiCorp Vault como alternativa si OVHCloud Secret Manager no cumple con los requisitos específicos
 8. CUANDO se monitoree el sistema ENTONCES DEBERÁ integrar métricas de External Secrets Operator con Prometheus para observabilidad completa
 
-### Requerimiento 45: Backup y Disaster Recovery
+### Requerimiento 46: Backup y Disaster Recovery
 
 **Componente:** DevOps + Data Management
 
@@ -819,7 +905,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 4. CUANDO se pruebe disaster recovery ENTONCES DEBERÁ ejecutar drills de recovery mensualmente
 5. CUANDO se almacenen backups ENTONCES DEBERÁ usar OVH Object Storage con retención de 30 días para backups diarios y 1 año para backups semanales
 
-### Requerimiento 46: Networking y Seguridad de Red
+### Requerimiento 47: Networking y Seguridad de Red
 
 **Componente:** DevOps + Security
 
