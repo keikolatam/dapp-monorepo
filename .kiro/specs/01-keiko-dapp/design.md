@@ -4,6 +4,13 @@
 
 Keiko es una red social educativa descentralizada (DApp) construida como un monorepo que integra un backend desarrollado en Rust con contratos inteligentes en Cairo sobre Starknet y un frontend multiplataforma desarrollado en Flutter. Su propósito es convertir el aprendizaje en capital humano verificable e interoperable en tiempo real mediante Proof-of-Humanity con zkProofs. La plataforma permite a cualquier individuo construir y demostrar su Pasaporte de Aprendizaje de Vida (LifeLearningPassport) en blockchain, mediante interacciones de aprendizaje atómicas (LearningInteractions) compatibles con el estándar xAPI (Tin Can).
 
+Keiko se basa en cuatro pilares fundamentales:
+
+1. **Libertad económica de tutores y mentores**: Los educadores pueden escoger monetizar sesiones individuales o grupales sin intermediarios.
+2. **Democracia participativa de los educandos**: Los aprendices califican la calidad del conocimiento adquirido y de sus pares.
+3. **Descentralización de la gestión de calidad**: Las comunidades regulan sus propios estándares y métodos de validación.
+4. **Auto-determinación de las comunidades**: Cada red o nodo puede establecer su propia gobernanza educativa.
+
 ### Arquitectura de Cinco Capas
 
 La arquitectura del proyecto se organiza en cinco capas principales con estructura de carpetas correspondiente:
@@ -20,6 +27,7 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 - **Lectura**: Flutter → GraphQL (HTTPS) → Microservicio → Cache/DB local → (fallback) gRPC Gateway → Keikochain Contract
 - **Tiempo Real**: Keikochain Contract → gRPC Gateway → Microservicio → Redis Streams → API Gateway → GraphQL Subscription (WSS) → Flutter
 - **Autenticación**: Flutter → FIDO2 → JWT → WSS Headers → API Gateway → gRPC Metadata → Microservicios
+- **Importación**: LRS Externos → REST Webhooks → API Gateway → gRPC → Learning Service → gRPC Gateway → Keikochain Contract
 
 ### Principios de Diseño
 
@@ -72,7 +80,8 @@ keiko/
 │   ├── passport_service/             # Agregación de pasaportes (Database per Service)
 │   ├── governance_service/           # Herramientas de gobernanza (Database per Service)
 │   ├── marketplace_service/          # Gestión de espacios (Database per Service)
-│   └── ai_tutor_service/             # Tutores IA especializados (Database per Service)
+│   ├── ai_tutor_service/             # Tutores IA especializados (Database per Service)
+│   └── self_study_service/           # Guías de auto-estudio (Database per Service)
 ├── api-gateway/                      # 🌐 API Layer (API Gateway + Panel Admin)
 │   ├── graphql_server/               # Servidor GraphQL principal
 │   ├── rest_endpoints/               # Endpoints REST para LRS externos
@@ -146,6 +155,7 @@ graph TB
         GovernanceService[Governance Service<br/>gRPC]
         MarketplaceService[Marketplace Service<br/>gRPC]
         AITutorService[AI Tutor Service<br/>gRPC]
+        SelfStudyService[Self Study Service<br/>gRPC]
     end
 
     subgraph "gRPC Gateway Layer"
@@ -196,6 +206,7 @@ graph TB
     APIGateway -->|GraphQL → gRPC| GovernanceService
     APIGateway -->|GraphQL → gRPC| MarketplaceService
     APIGateway -->|GraphQL → gRPC| AITutorService
+    APIGateway -->|GraphQL → gRPC| SelfStudyService
 
     %% Services to gRPC Gateway
     IdentityService -->|gRPC| GRPCGateway
@@ -205,6 +216,7 @@ graph TB
     GovernanceService -->|gRPC| GRPCGateway
     MarketplaceService -->|gRPC| GRPCGateway
     AITutorService -->|gRPC| GRPCGateway
+    SelfStudyService -->|gRPC| GRPCGateway
 
     %% gRPC Gateway to Keikochain
     GRPCGateway -->|Starknet RPC| StarknetRPC
@@ -247,6 +259,7 @@ graph TB
     GovernanceService --> Prometheus
     MarketplaceService --> Prometheus
     AITutorService --> Prometheus
+    SelfStudyService --> Prometheus
     GRPCGateway --> Prometheus
 
     Prometheus --> Grafana
@@ -258,6 +271,7 @@ graph TB
     GovernanceService --> Jaeger
     MarketplaceService --> Jaeger
     AITutorService --> Jaeger
+    SelfStudyService --> Jaeger
     GRPCGateway --> Jaeger
 
     APIGateway --> ELK
@@ -268,6 +282,7 @@ graph TB
     GovernanceService --> ELK
     MarketplaceService --> ELK
     AITutorService --> ELK
+    SelfStudyService --> ELK
     GRPCGateway --> ELK
 ```
 
@@ -331,6 +346,447 @@ pub struct LearningServiceRouter {
     new_service: MicroserviceLearningService,
     migration_config: MigrationConfig,
 }
+```
+
+### Scripts de Desarrollo Automatizados con Make
+
+#### Makefile Principal
+
+El proyecto implementa un sistema de comandos `make` desde la raíz del repositorio para automatizar tareas de desarrollo y configuración:
+
+```makefile
+# Makefile principal en la raíz del repositorio
+.PHONY: help appchain-setup grpc-gateway-setup services-setup poh-env dev-setup clean status
+
+# Variables configurables
+PROVIDER ?= auto
+NON_INTERACTIVE ?= false
+FORCE_RECREATE ?= false
+
+help: ## Mostrar ayuda y comandos disponibles
+	@echo "Comandos disponibles para Keiko DApp:"
+	@echo ""
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+
+appchain-setup: ## Configurar Keikochain local, compilar y desplegar contratos Cairo
+	@echo "🔗 Configurando Keikochain..."
+	@cd appchain && bash quick-start.sh \
+		$(if $(filter true,$(NON_INTERACTIVE)),--non-interactive) \
+		$(if $(filter true,$(FORCE_RECREATE)),--force-recreate) \
+		$(if $(PROVIDER),--provider $(PROVIDER))
+
+grpc-gateway-setup: ## Inicializar y levantar el gateway gRPC con dependencias
+	@echo "🌉 Configurando gRPC Gateway..."
+	@cd grpc-gateway && bash quick-start.sh
+
+services-setup: ## Preparar dependencias (PostgreSQL, Redis) y levantar microservicios
+	@echo "🔧 Configurando microservicios..."
+	@cd services && bash quick-start.sh
+
+poh-env: ## Crear entorno virtual con dependencias para biometría y Cairo
+	@echo "🧬 Configurando entorno Proof-of-Humanity..."
+	@python3 -m venv .venv
+	@.venv/bin/pip install --upgrade pip
+	@.venv/bin/pip install opencv-python biopython cairo-lang
+	@echo "✅ Entorno PoH configurado. Activar con: source .venv/bin/activate"
+
+poh-examples: ## Ejecutar ejemplos de procesamiento biométrico
+	@echo "🧬 Ejecutando ejemplos de biometría..."
+	@source .venv/bin/activate && python3 -c "import cv2, numpy as np; print('OpenCV OK')"
+	@source .venv/bin/activate && python3 -c "from Bio import SeqIO; print('BioPython OK')"
+
+poh-key-gen: ## Generar ejemplo de humanity_proof_key
+	@echo "🔑 Generando ejemplo de humanity_proof_key..."
+	@source .venv/bin/activate && python3 -c "import hashlib, os; print('humanity_proof_key:', hashlib.sha256(os.urandom(32)).hexdigest())"
+
+dev-setup: appchain-setup grpc-gateway-setup services-setup poh-env ## Configuración completa de desarrollo
+	@echo "✅ Configuración de desarrollo completada"
+	@echo "📋 Próximos pasos:"
+	@echo "   1. Activar entorno PoH: source .venv/bin/activate"
+	@echo "   2. Verificar estado: make status"
+	@echo "   3. Ejecutar ejemplos: make poh-examples"
+
+status: ## Mostrar estado de todos los servicios
+	@echo "📊 Estado del sistema:"
+	@echo "🔗 Keikochain: $$(docker ps --filter 'name=keikochain' --format 'table {{.Status}}' 2>/dev/null || echo 'No disponible')"
+	@echo "🌉 gRPC Gateway: $$(ps aux | grep grpc-gateway | grep -v grep | wc -l) procesos"
+	@echo "🔧 Microservicios: $$(ps aux | grep -E '(identity|learning|reputation)-service' | grep -v grep | wc -l) procesos"
+	@echo "🗄️ PostgreSQL: $$(pg_isready -h localhost -p 5432 >/dev/null 2>&1 && echo 'Activo' || echo 'Inactivo')"
+	@echo "📡 Redis: $$(redis-cli ping 2>/dev/null || echo 'Inactivo')"
+
+clean: ## Limpiar contenedores, volúmenes y archivos temporales
+	@echo "🧹 Limpiando entorno de desarrollo..."
+	@docker-compose down -v --remove-orphans 2>/dev/null || true
+	@docker system prune -f
+	@rm -rf .venv
+	@echo "✅ Limpieza completada"
+
+install-deps: ## Instalar dependencias del sistema
+	@echo "📦 Instalando dependencias del sistema..."
+	@curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+	@curl -sSf https://docs.swmansion.com/scarb/install.sh | sh
+	@curl -sSf https://get.starknet.io | sh
+	@echo "✅ Dependencias instaladas"
+
+verify-setup: ## Verificar configuración del entorno
+	@echo "🔍 Verificando configuración..."
+	@command -v rustc >/dev/null 2>&1 && echo "✅ Rust instalado" || echo "❌ Rust no encontrado"
+	@command -v scarb >/dev/null 2>&1 && echo "✅ Scarb instalado" || echo "❌ Scarb no encontrado"
+	@command -v starknet >/dev/null 2>&1 && echo "✅ Starknet CLI instalado" || echo "❌ Starknet CLI no encontrado"
+	@command -v docker >/dev/null 2>&1 && echo "✅ Docker instalado" || echo "❌ Docker no encontrado"
+	@command -v flutter >/dev/null 2>&1 && echo "✅ Flutter instalado" || echo "❌ Flutter no encontrado"
+```
+
+#### Comandos de Desarrollo Específicos
+
+```makefile
+# Comandos específicos por capa
+appchain-start: ## Iniciar Keikochain con opciones configurables
+	@cd appchain && bash quick-start.sh \
+		$(if $(filter true,$(NON_INTERACTIVE)),--non-interactive) \
+		$(if $(filter true,$(FORCE_RECREATE)),--force-recreate) \
+		$(if $(PROVIDER),--provider $(PROVIDER)) \
+		$(if $(WAIT_BLOCKS),--wait-blocks $(WAIT_BLOCKS))
+
+appchain-stop: ## Detener Keikochain
+	@cd appchain && docker-compose down
+
+grpc-gateway-start: ## Iniciar gRPC Gateway
+	@cd grpc-gateway && cargo run
+
+services-start: ## Iniciar todos los microservicios
+	@cd services && docker-compose up -d
+
+services-stop: ## Detener todos los microservicios
+	@cd services && docker-compose down
+
+db-setup: ## Configurar bases de datos PostgreSQL
+	@echo "🗄️ Configurando PostgreSQL..."
+	@createdb keiko_identity 2>/dev/null || true
+	@createdb keiko_learning 2>/dev/null || true
+	@createdb keiko_reputation 2>/dev/null || true
+	@createdb keiko_passport 2>/dev/null || true
+	@echo "✅ Bases de datos configuradas"
+
+redis-setup: ## Configurar Redis para streams
+	@echo "📡 Configurando Redis..."
+	@redis-server --daemonize yes
+	@echo "✅ Redis configurado"
+
+infra-setup: db-setup redis-setup ## Configurar infraestructura completa
+	@echo "✅ Infraestructura configurada"
+
+quick-start: install-deps infra-setup dev-setup ## Configuración rápida completa
+	@echo "🚀 Keiko DApp listo para desarrollo!"
+```
+
+#### Variables de Entorno Configurables
+
+```bash
+# .env.example
+# Configuración de desarrollo
+PROVIDER=auto                    # auto, docker, podman
+NON_INTERACTIVE=false           # true para ejecución sin prompts
+FORCE_RECREATE=false            # true para recrear contenedores
+WAIT_BLOCKS=55                  # bloques a esperar en Keikochain
+
+# Configuración de servicios
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+# Configuración de Keikochain
+KEIKOCHAIN_RPC=wss://keikochain.karnot.xyz
+GRPC_GATEWAY_PORT=50051
+
+# Configuración de desarrollo
+RUST_LOG=info
+CARGO_TARGET_DIR=target
+```
+
+### Configuración Rápida de Desarrollo
+
+#### Flujo de Configuración Automatizada
+
+El sistema de configuración rápida permite a los desarrolladores configurar el entorno completo de Keiko en una sola operación:
+
+```bash
+# Configuración completa en un comando
+make quick-start
+
+# O paso a paso
+make install-deps    # Instalar dependencias del sistema
+make infra-setup     # Configurar PostgreSQL y Redis
+make dev-setup       # Configurar todas las capas
+make verify-setup    # Verificar configuración
+```
+
+#### Validación de Prerrequisitos
+
+```bash
+# Script de validación de prerrequisitos
+#!/bin/bash
+# scripts/validate-prerequisites.sh
+
+echo "🔍 Validando prerrequisitos del sistema..."
+
+# Verificar sistema operativo
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    echo "✅ Sistema operativo: Linux"
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    echo "✅ Sistema operativo: macOS"
+else
+    echo "❌ Sistema operativo no soportado: $OSTYPE"
+    exit 1
+fi
+
+# Verificar memoria disponible
+MEMORY_GB=$(free -g | awk '/^Mem:/{print $2}')
+if [ "$MEMORY_GB" -lt 8 ]; then
+    echo "⚠️  Memoria insuficiente: ${MEMORY_GB}GB (mínimo recomendado: 8GB)"
+fi
+
+# Verificar espacio en disco
+DISK_GB=$(df -BG . | awk 'NR==2{print $4}' | sed 's/G//')
+if [ "$DISK_GB" -lt 20 ]; then
+    echo "⚠️  Espacio en disco insuficiente: ${DISK_GB}GB (mínimo recomendado: 20GB)"
+fi
+
+# Verificar conectividad de red
+if ping -c 1 github.com >/dev/null 2>&1; then
+    echo "✅ Conectividad de red: OK"
+else
+    echo "❌ Sin conectividad a GitHub"
+    exit 1
+fi
+
+echo "✅ Validación de prerrequisitos completada"
+```
+
+#### Configuración de Entorno PoH (Proof-of-Humanity)
+
+```bash
+# scripts/setup-poh-environment.sh
+#!/bin/bash
+
+echo "🧬 Configurando entorno Proof-of-Humanity..."
+
+# Crear entorno virtual Python
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Instalar dependencias de biometría
+pip install --upgrade pip
+pip install opencv-python==4.8.1.78
+pip install biopython==1.81
+pip install cairo-lang==2.0.0
+
+# Instalar dependencias adicionales para procesamiento
+pip install numpy==1.24.3
+pip install scipy==1.11.1
+pip install scikit-image==0.21.0
+
+# Verificar instalación
+echo "🔍 Verificando instalación..."
+python3 -c "import cv2; print(f'OpenCV: {cv2.__version__}')"
+python3 -c "import Bio; print(f'BioPython: {Bio.__version__}')"
+python3 -c "import cairo_lang; print('Cairo-lang: OK')"
+
+# Crear directorio de ejemplos
+mkdir -p examples/biometric
+cat > examples/biometric/iris_example.py << 'EOF'
+import cv2
+import numpy as np
+
+def process_iris_example():
+    # Simular procesamiento de iris con Gabor filters
+    img = np.random.randint(0, 255, (128, 128), dtype=np.uint8)
+    ksize = 21
+    sigma = 5
+    theta = 0
+    lam = 10
+    gamma = 0.5
+    psi = 0
+    kernel = cv2.getGaborKernel((ksize, ksize), sigma, theta, lam, gamma, psi, ktype=cv2.CV_32F)
+    feat = cv2.filter2D(img, cv2.CV_32F, kernel)
+    print(f'Iris feature mean/std: {feat.mean():.2f}, {feat.std():.2f}')
+
+if __name__ == "__main__":
+    process_iris_example()
+EOF
+
+cat > examples/biometric/genome_example.py << 'EOF'
+from Bio import SeqIO
+from io import StringIO
+
+def process_genome_example():
+    # Simular procesamiento de genoma
+    fasta_data = ">seq\nACGTACGTACGT\n"
+    handle = StringIO(fasta_data)
+    records = list(SeqIO.parse(handle, 'fasta'))
+    print(f'FASTA length: {len(records[0].seq)}')
+
+if __name__ == "__main__":
+    process_genome_example()
+EOF
+
+cat > examples/biometric/humanity_key_example.py << 'EOF'
+import hashlib
+import os
+
+def generate_humanity_proof_key():
+    # Simular generación de humanity_proof_key
+    iris_hash = hashlib.sha256(os.urandom(32)).digest()
+    genome_hash = hashlib.sha256(os.urandom(32)).digest()
+    salt = os.urandom(16)
+    
+    composite = iris_hash + genome_hash + salt
+    humanity_proof_key = hashlib.sha256(composite).hexdigest()
+    print(f'humanity_proof_key: {humanity_proof_key}')
+
+if __name__ == "__main__":
+    generate_humanity_proof_key()
+EOF
+
+echo "✅ Entorno PoH configurado"
+echo "📋 Para activar: source .venv/bin/activate"
+echo "🧪 Para probar: python examples/biometric/iris_example.py"
+```
+
+#### Configuración de Bases de Datos
+
+```bash
+# scripts/setup-databases.sh
+#!/bin/bash
+
+echo "🗄️ Configurando bases de datos PostgreSQL..."
+
+# Verificar si PostgreSQL está instalado
+if ! command -v psql &> /dev/null; then
+    echo "❌ PostgreSQL no está instalado"
+    echo "📦 Instalando PostgreSQL..."
+    
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        sudo apt-get update
+        sudo apt-get install -y postgresql postgresql-contrib
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        brew install postgresql
+        brew services start postgresql
+    fi
+fi
+
+# Crear bases de datos por servicio
+DB_NAMES=("keiko_identity" "keiko_learning" "keiko_reputation" "keiko_passport" "keiko_governance" "keiko_marketplace" "keiko_ai_tutor" "keiko_self_study")
+
+for db_name in "${DB_NAMES[@]}"; do
+    echo "📊 Creando base de datos: $db_name"
+    createdb "$db_name" 2>/dev/null || echo "Base de datos $db_name ya existe"
+done
+
+# Crear esquemas por servicio
+for db_name in "${DB_NAMES[@]}"; do
+    schema_name=$(echo "$db_name" | sed 's/keiko_//')
+    echo "📋 Creando esquema: $schema_name en $db_name"
+    psql -d "$db_name" -c "CREATE SCHEMA IF NOT EXISTS $schema_name;" 2>/dev/null || true
+done
+
+echo "✅ Bases de datos configuradas"
+```
+
+#### Configuración de Redis
+
+```bash
+# scripts/setup-redis.sh
+#!/bin/bash
+
+echo "📡 Configurando Redis..."
+
+# Verificar si Redis está instalado
+if ! command -v redis-server &> /dev/null; then
+    echo "📦 Instalando Redis..."
+    
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        sudo apt-get install -y redis-server
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        brew install redis
+    fi
+fi
+
+# Configurar Redis para desarrollo
+cat > redis.conf << 'EOF'
+# Configuración Redis para desarrollo
+port 6379
+bind 127.0.0.1
+save 900 1
+save 300 10
+save 60 10000
+maxmemory 256mb
+maxmemory-policy allkeys-lru
+EOF
+
+# Iniciar Redis
+redis-server redis.conf --daemonize yes
+
+# Verificar conexión
+if redis-cli ping | grep -q "PONG"; then
+    echo "✅ Redis configurado y funcionando"
+else
+    echo "❌ Error al configurar Redis"
+    exit 1
+fi
+```
+
+#### Resumen de Configuración
+
+```bash
+# scripts/setup-summary.sh
+#!/bin/bash
+
+echo "📋 Resumen de configuración de Keiko DApp"
+echo "=========================================="
+echo ""
+
+echo "🔧 Servicios configurados:"
+echo "  - Keikochain (Starknet Appchain): $(docker ps --filter 'name=keikochain' --format '{{.Status}}' 2>/dev/null || echo 'No disponible')"
+echo "  - gRPC Gateway: $(ps aux | grep grpc-gateway | grep -v grep | wc -l) procesos"
+echo "  - PostgreSQL: $(pg_isready -h localhost -p 5432 >/dev/null 2>&1 && echo 'Activo' || echo 'Inactivo')"
+echo "  - Redis: $(redis-cli ping 2>/dev/null || echo 'Inactivo')"
+echo ""
+
+echo "🧬 Entorno PoH:"
+if [ -d ".venv" ]; then
+    echo "  - Entorno virtual: ✅ Configurado"
+    echo "  - OpenCV: $(source .venv/bin/activate && python -c 'import cv2; print(cv2.__version__)' 2>/dev/null || echo 'No disponible')"
+    echo "  - BioPython: $(source .venv/bin/activate && python -c 'import Bio; print(Bio.__version__)' 2>/dev/null || echo 'No disponible')"
+    echo "  - Cairo-lang: $(source .venv/bin/activate && python -c 'import cairo_lang; print("OK")' 2>/dev/null || echo 'No disponible')"
+else
+    echo "  - Entorno virtual: ❌ No configurado"
+fi
+echo ""
+
+echo "📊 Bases de datos:"
+for db in keiko_identity keiko_learning keiko_reputation keiko_passport keiko_governance keiko_marketplace keiko_ai_tutor keiko_self_study; do
+    if psql -lqt | cut -d \| -f 1 | grep -qw "$db"; then
+        echo "  - $db: ✅ Creada"
+    else
+        echo "  - $db: ❌ No encontrada"
+    fi
+done
+echo ""
+
+echo "🚀 Próximos pasos:"
+echo "  1. Activar entorno PoH: source .venv/bin/activate"
+echo "  2. Iniciar servicios: make services-start"
+echo "  3. Verificar estado: make status"
+echo "  4. Ejecutar ejemplos: make poh-examples"
+echo ""
+
+echo "📚 Comandos útiles:"
+echo "  - make help          # Ver todos los comandos disponibles"
+echo "  - make status        # Ver estado del sistema"
+echo "  - make clean         # Limpiar entorno de desarrollo"
+echo "  - make verify-setup  # Verificar configuración"
 ```
 
 ### Infraestructura como Código
@@ -700,13 +1156,14 @@ pub async fn create_interaction(&self, request: CreateInteractionRequest) -> Res
 }
 ```
 
-#### Integración con IBM Instana (Futuro)
+#### Integración con Observabilidad Avanzada
 
-OpenTelemetry permite integración futura con IBM Instana como backend de APM:
+OpenTelemetry permite integración con múltiples backends de observabilidad, tales como IBM Instana:
 
-- **Auto-discovery**: Descubrimiento automático de servicios y dependencias
-- **Análisis de causa raíz**: ML-powered root cause analysis
-- **Dashboards de negocio**: Correlación de métricas técnicas con KPIs
+- **Prometheus + Grafana**: Métricas y dashboards personalizados
+- **Jaeger**: Trazado distribuido para debugging
+- **ELK Stack**: Logging centralizado con Elasticsearch, Logstash y Kibana
+- **OpenTelemetry Collector**: Agregación y procesamiento de telemetría
 - **Alerting inteligente**: Alertas basadas en patrones y anomalías
 - **Performance insights**: Recomendaciones automáticas de optimización
 
@@ -1614,6 +2071,85 @@ impl WSSGraphQLServer {
 
 ### 4. Microservicios Cloud-Native
 
+#### Servicio de Guías de Auto-Estudio
+
+El servicio de guías de auto-estudio es un componente fundamental del ecosistema educativo de Keiko, diseñado para facilitar el aprendizaje autodirigido y complementar las sesiones tutoriales. Este servicio proporciona:
+
+**Características Principales:**
+
+1. **Creación de Guías Estructuradas**
+   - Editor de contenido con soporte para Markdown y HTML
+   - Generación automática de contenido con IA
+   - Validación de prerrequisitos y objetivos de aprendizaje
+   - Sistema de versionado y control de calidad
+
+2. **Contenido Multimedia Rico**
+   - Soporte para videos, imágenes, audio y documentos
+   - Simulaciones interactivas y casos de estudio
+   - Contenido adaptativo según el perfil de aprendizaje
+   - Características de accesibilidad integradas
+
+3. **Sistema de Evaluación Integrado**
+   - Quizzes con diferentes tipos de preguntas
+   - Ejercicios prácticos con retroalimentación inmediata
+   - Checkpoints de aprendizaje distribuidos
+   - Evaluación adaptativa basada en el rendimiento
+
+4. **Seguimiento de Progreso Avanzado**
+   - Métricas detalladas de tiempo y completitud
+   - Análisis de patrones de aprendizaje
+   - Recomendaciones personalizadas
+   - Sistema de notas y bookmarks
+
+5. **Integración con Blockchain**
+   - Registro inmutable de progreso y logros
+   - Verificación de completitud de guías
+   - Sistema de certificación y badges
+   - Interoperabilidad con otros servicios
+
+**Flujo de Uso Típico:**
+
+```mermaid
+sequenceDiagram
+    participant User as 👤 Usuario
+    participant Flutter as 📱 Flutter App
+    participant SelfStudyService as 📚 Self Study Service
+    participant AI as 🤖 AI Service
+    participant Keikochain as ⛓️ Keikochain
+
+    Note over User, Keikochain: Descubrimiento y Recomendación
+
+    User->>Flutter: Buscar guías de auto-estudio
+    Flutter->>SelfStudyService: Solicitar recomendaciones
+    SelfStudyService->>AI: Analizar perfil de aprendizaje
+    AI-->>SelfStudyService: Guías recomendadas
+    SelfStudyService-->>Flutter: Lista de guías personalizadas
+    Flutter-->>User: Mostrar recomendaciones
+
+    Note over User, Keikochain: Inicio de Guía
+
+    User->>Flutter: Seleccionar guía
+    Flutter->>SelfStudyService: Iniciar guía
+    SelfStudyService->>SelfStudyService: Verificar prerrequisitos
+    SelfStudyService->>Keikochain: Registrar inicio
+    Keikochain-->>SelfStudyService: Confirmación
+    SelfStudyService-->>Flutter: Progreso inicializado
+    Flutter-->>User: Mostrar primera sección
+
+    Note over User, Keikochain: Progreso y Evaluación
+
+    User->>Flutter: Completar sección
+    Flutter->>SelfStudyService: Marcar sección completada
+    SelfStudyService->>Keikochain: Registrar progreso
+    User->>Flutter: Tomar quiz
+    Flutter->>SelfStudyService: Enviar respuestas
+    SelfStudyService->>SelfStudyService: Calificar quiz
+    SelfStudyService->>Keikochain: Registrar resultado
+    Keikochain-->>SelfStudyService: Confirmación
+    SelfStudyService-->>Flutter: Resultado y retroalimentación
+    Flutter-->>User: Mostrar progreso actualizado
+```
+
 #### Arquitectura de Microservicios con Keikochain
 
 **Contratos Cairo en Keikochain**
@@ -1999,6 +2535,631 @@ impl AITutoringService {
 }
 ```
 
+#### Servicio de Guías de Auto-Estudio (Rust)
+
+El servicio de guías de auto-estudio proporciona recursos estructurados para el aprendizaje autodirigido, complementando las sesiones tutoriales y facilitando el estudio independiente.
+
+```rust
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
+use chrono::{DateTime, Utc};
+use std::collections::HashMap;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SelfStudyGuide {
+    pub id: Uuid,
+    pub title: String,
+    pub description: String,
+    pub subject: String,
+    pub difficulty_level: DifficultyLevel,
+    pub estimated_duration: u32, // minutos
+    pub learning_objectives: Vec<LearningObjective>,
+    pub prerequisites: Vec<String>,
+    pub content_sections: Vec<ContentSection>,
+    pub practice_exercises: Vec<PracticeExercise>,
+    pub assessment_quizzes: Vec<AssessmentQuiz>,
+    pub resources: Vec<LearningResource>,
+    pub created_by: String, // UserId
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+    pub version: String,
+    pub tags: Vec<String>,
+    pub language: String,
+    pub accessibility_features: Vec<AccessibilityFeature>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum DifficultyLevel {
+    Beginner,
+    Intermediate,
+    Advanced,
+    Expert,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ContentSection {
+    pub id: Uuid,
+    pub title: String,
+    pub order: u32,
+    pub content_type: ContentType,
+    pub content: String, // Markdown o HTML
+    pub media_attachments: Vec<MediaAttachment>,
+    pub estimated_reading_time: u32, // minutos
+    pub learning_checkpoints: Vec<LearningCheckpoint>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum ContentType {
+    Text,
+    Video,
+    Interactive,
+    Simulation,
+    CaseStudy,
+    Tutorial,
+    Reference,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MediaAttachment {
+    pub id: Uuid,
+    pub file_type: MediaType,
+    pub url: String,
+    pub alt_text: Option<String>,
+    pub caption: Option<String>,
+    pub duration: Option<u32>, // segundos para videos
+    pub file_size: Option<u64>, // bytes
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum MediaType {
+    Image,
+    Video,
+    Audio,
+    Document,
+    Interactive,
+    Animation,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LearningCheckpoint {
+    pub id: Uuid,
+    pub question: String,
+    pub question_type: QuestionType,
+    pub options: Option<Vec<String>>,
+    pub correct_answer: String,
+    pub explanation: String,
+    pub difficulty: u8, // 1-5
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum QuestionType {
+    MultipleChoice,
+    TrueFalse,
+    FillInTheBlank,
+    ShortAnswer,
+    Essay,
+    Interactive,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PracticeExercise {
+    pub id: Uuid,
+    pub title: String,
+    pub description: String,
+    pub exercise_type: ExerciseType,
+    pub instructions: String,
+    pub expected_output: Option<String>,
+    pub hints: Vec<String>,
+    pub solution: String,
+    pub difficulty: u8, // 1-5
+    pub estimated_time: u32, // minutos
+    pub prerequisites: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum ExerciseType {
+    Coding,
+    ProblemSolving,
+    Analysis,
+    Design,
+    Research,
+    Creative,
+    Simulation,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AssessmentQuiz {
+    pub id: Uuid,
+    pub title: String,
+    pub description: String,
+    pub questions: Vec<QuizQuestion>,
+    pub passing_score: u8, // porcentaje
+    pub time_limit: Option<u32>, // minutos
+    pub attempts_allowed: u8,
+    pub feedback_mode: FeedbackMode,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuizQuestion {
+    pub id: Uuid,
+    pub question: String,
+    pub question_type: QuestionType,
+    pub options: Option<Vec<String>>,
+    pub correct_answer: String,
+    pub points: u8,
+    pub explanation: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum FeedbackMode {
+    Immediate,
+    AfterCompletion,
+    AfterAttempts,
+    None,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LearningResource {
+    pub id: Uuid,
+    pub title: String,
+    pub resource_type: ResourceType,
+    pub url: String,
+    pub description: String,
+    pub author: Option<String>,
+    pub publication_date: Option<DateTime<Utc>>,
+    pub language: String,
+    pub cost: Option<f64>,
+    pub rating: Option<f64>,
+    pub tags: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum ResourceType {
+    Book,
+    Article,
+    Video,
+    Podcast,
+    Website,
+    Tool,
+    Software,
+    Dataset,
+    Course,
+    Tutorial,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccessibilityFeature {
+    pub feature_type: AccessibilityType,
+    pub description: String,
+    pub implementation: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum AccessibilityType {
+    ScreenReader,
+    HighContrast,
+    LargeText,
+    KeyboardNavigation,
+    AudioDescription,
+    SignLanguage,
+    Captions,
+    AlternativeFormat,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SelfStudyProgress {
+    pub user_id: String,
+    pub guide_id: Uuid,
+    pub current_section: Option<Uuid>,
+    pub completed_sections: Vec<Uuid>,
+    pub completed_exercises: Vec<Uuid>,
+    pub completed_quizzes: Vec<QuizResult>,
+    pub total_time_spent: u32, // minutos
+    pub last_accessed: DateTime<Utc>,
+    pub progress_percentage: f64,
+    pub learning_notes: Vec<LearningNote>,
+    pub bookmarks: Vec<Bookmark>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuizResult {
+    pub quiz_id: Uuid,
+    pub score: u8,
+    pub max_score: u8,
+    pub completed_at: DateTime<Utc>,
+    pub time_taken: u32, // minutos
+    pub answers: Vec<QuizAnswer>,
+    pub passed: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuizAnswer {
+    pub question_id: Uuid,
+    pub answer: String,
+    pub is_correct: bool,
+    pub time_spent: u32, // segundos
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LearningNote {
+    pub id: Uuid,
+    pub section_id: Uuid,
+    pub content: String,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+    pub is_private: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Bookmark {
+    pub id: Uuid,
+    pub section_id: Uuid,
+    pub title: String,
+    pub notes: Option<String>,
+    pub created_at: DateTime<Utc>,
+}
+
+pub struct SelfStudyService {
+    db_pool: sqlx::PgPool,
+    ai_client: Client,
+    blockchain_client: ParachainClient,
+    content_generator: ContentGenerator,
+}
+
+impl SelfStudyService {
+    pub async fn create_guide(
+        &self,
+        creator_id: String,
+        guide_data: CreateGuideRequest,
+    ) -> Result<SelfStudyGuide, SelfStudyError> {
+        // Validar prerrequisitos del creador
+        self.validate_creator_permissions(&creator_id, &guide_data.subject).await?;
+        
+        // Generar contenido con IA si es necesario
+        let enhanced_content = if guide_data.auto_generate_content {
+            self.content_generator.generate_guide_content(&guide_data).await?
+        } else {
+            guide_data.content_sections
+        };
+        
+        // Crear guía
+        let guide = SelfStudyGuide {
+            id: Uuid::new_v4(),
+            title: guide_data.title,
+            description: guide_data.description,
+            subject: guide_data.subject,
+            difficulty_level: guide_data.difficulty_level,
+            estimated_duration: guide_data.estimated_duration,
+            learning_objectives: guide_data.learning_objectives,
+            prerequisites: guide_data.prerequisites,
+            content_sections: enhanced_content,
+            practice_exercises: guide_data.practice_exercises,
+            assessment_quizzes: guide_data.assessment_quizzes,
+            resources: guide_data.resources,
+            created_by: creator_id,
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+            version: "1.0.0".to_string(),
+            tags: guide_data.tags,
+            language: guide_data.language,
+            accessibility_features: guide_data.accessibility_features,
+        };
+        
+        // Guardar en base de datos
+        self.save_guide(&guide).await?;
+        
+        // Registrar en blockchain
+        self.register_guide_in_blockchain(&guide).await?;
+        
+        Ok(guide)
+    }
+    
+    pub async fn start_guide(
+        &self,
+        user_id: String,
+        guide_id: Uuid,
+    ) -> Result<SelfStudyProgress, SelfStudyError> {
+        // Verificar que la guía existe
+        let guide = self.get_guide(guide_id).await?;
+        
+        // Verificar prerrequisitos del usuario
+        self.check_user_prerequisites(&user_id, &guide.prerequisites).await?;
+        
+        // Crear o actualizar progreso
+        let progress = SelfStudyProgress {
+            user_id: user_id.clone(),
+            guide_id,
+            current_section: guide.content_sections.first().map(|s| s.id),
+            completed_sections: Vec::new(),
+            completed_exercises: Vec::new(),
+            completed_quizzes: Vec::new(),
+            total_time_spent: 0,
+            last_accessed: Utc::now(),
+            progress_percentage: 0.0,
+            learning_notes: Vec::new(),
+            bookmarks: Vec::new(),
+        };
+        
+        self.save_progress(&progress).await?;
+        
+        // Registrar inicio en blockchain
+        self.record_learning_interaction(
+            &user_id,
+            "started",
+            &format!("Self-study guide: {}", guide.title),
+            None,
+        ).await?;
+        
+        Ok(progress)
+    }
+    
+    pub async fn complete_section(
+        &self,
+        user_id: String,
+        guide_id: Uuid,
+        section_id: Uuid,
+        time_spent: u32,
+    ) -> Result<(), SelfStudyError> {
+        // Actualizar progreso
+        let mut progress = self.get_progress(&user_id, guide_id).await?;
+        
+        if !progress.completed_sections.contains(&section_id) {
+            progress.completed_sections.push(section_id);
+            progress.total_time_spent += time_spent;
+            progress.last_accessed = Utc::now();
+            
+            // Calcular porcentaje de progreso
+            let guide = self.get_guide(guide_id).await?;
+            progress.progress_percentage = 
+                (progress.completed_sections.len() as f64 / guide.content_sections.len() as f64) * 100.0;
+            
+            self.save_progress(&progress).await?;
+            
+            // Registrar interacción en blockchain
+            self.record_learning_interaction(
+                &user_id,
+                "completed",
+                &format!("Section: {}", section_id),
+                Some(time_spent),
+            ).await?;
+        }
+        
+        Ok(())
+    }
+    
+    pub async fn submit_quiz(
+        &self,
+        user_id: String,
+        guide_id: Uuid,
+        quiz_id: Uuid,
+        answers: Vec<QuizAnswer>,
+        time_taken: u32,
+    ) -> Result<QuizResult, SelfStudyError> {
+        // Obtener quiz
+        let guide = self.get_guide(guide_id).await?;
+        let quiz = guide.assessment_quizzes
+            .iter()
+            .find(|q| q.id == quiz_id)
+            .ok_or(SelfStudyError::QuizNotFound)?;
+        
+        // Calcular puntuación
+        let mut score = 0;
+        let mut max_score = 0;
+        
+        for (answer, question) in answers.iter().zip(quiz.questions.iter()) {
+            max_score += question.points;
+            if answer.is_correct {
+                score += question.points;
+            }
+        }
+        
+        let percentage = (score as f64 / max_score as f64) * 100.0;
+        let passed = percentage >= quiz.passing_score as f64;
+        
+        let result = QuizResult {
+            quiz_id,
+            score,
+            max_score,
+            completed_at: Utc::now(),
+            time_taken,
+            answers,
+            passed,
+        };
+        
+        // Actualizar progreso
+        let mut progress = self.get_progress(&user_id, guide_id).await?;
+        progress.completed_quizzes.push(result.clone());
+        self.save_progress(&progress).await?;
+        
+        // Registrar en blockchain
+        self.record_learning_interaction(
+            &user_id,
+            if passed { "passed_quiz" } else { "failed_quiz" },
+            &format!("Quiz: {}", quiz.title),
+            Some(time_taken),
+        ).await?;
+        
+        Ok(result)
+    }
+    
+    pub async fn get_recommended_guides(
+        &self,
+        user_id: String,
+        limit: u32,
+    ) -> Result<Vec<SelfStudyGuide>, SelfStudyError> {
+        // Obtener perfil de aprendizaje del usuario
+        let learning_profile = self.get_user_learning_profile(&user_id).await?;
+        
+        // Obtener historial de aprendizaje
+        let learning_history = self.get_user_learning_history(&user_id).await?;
+        
+        // Generar recomendaciones usando IA
+        let recommendations = self.ai_client
+            .post("/recommendations/guides")
+            .json(&RecommendationRequest {
+                user_id: user_id.clone(),
+                learning_profile,
+                learning_history,
+                preferences: self.get_user_preferences(&user_id).await?,
+                limit,
+            })
+            .send()
+            .await?
+            .json::<Vec<GuideRecommendation>>()
+            .await?;
+        
+        // Obtener guías recomendadas
+        let mut guides = Vec::new();
+        for rec in recommendations {
+            if let Ok(guide) = self.get_guide(rec.guide_id).await {
+                guides.push(guide);
+            }
+        }
+        
+        Ok(guides)
+    }
+    
+    pub async fn add_learning_note(
+        &self,
+        user_id: String,
+        guide_id: Uuid,
+        section_id: Uuid,
+        content: String,
+    ) -> Result<LearningNote, SelfStudyError> {
+        let note = LearningNote {
+            id: Uuid::new_v4(),
+            section_id,
+            content,
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+            is_private: true,
+        };
+        
+        // Guardar nota
+        self.save_learning_note(&user_id, guide_id, &note).await?;
+        
+        Ok(note)
+    }
+    
+    pub async fn add_bookmark(
+        &self,
+        user_id: String,
+        guide_id: Uuid,
+        section_id: Uuid,
+        title: String,
+        notes: Option<String>,
+    ) -> Result<Bookmark, SelfStudyError> {
+        let bookmark = Bookmark {
+            id: Uuid::new_v4(),
+            section_id,
+            title,
+            notes,
+            created_at: Utc::now(),
+        };
+        
+        // Guardar bookmark
+        self.save_bookmark(&user_id, guide_id, &bookmark).await?;
+        
+        Ok(bookmark)
+    }
+    
+    pub async fn get_learning_analytics(
+        &self,
+        user_id: String,
+        guide_id: Option<Uuid>,
+    ) -> Result<LearningAnalytics, SelfStudyError> {
+        let progress_records = if let Some(guide_id) = guide_id {
+            vec![self.get_progress(&user_id, guide_id).await?]
+        } else {
+            self.get_all_user_progress(&user_id).await?
+        };
+        
+        let analytics = LearningAnalytics {
+            total_guides_started: progress_records.len(),
+            total_guides_completed: progress_records.iter()
+                .filter(|p| p.progress_percentage >= 100.0)
+                .count(),
+            average_progress: progress_records.iter()
+                .map(|p| p.progress_percentage)
+                .sum::<f64>() / progress_records.len() as f64,
+            total_time_spent: progress_records.iter()
+                .map(|p| p.total_time_spent)
+                .sum(),
+            strongest_subjects: self.calculate_strongest_subjects(&progress_records).await?,
+            improvement_areas: self.calculate_improvement_areas(&progress_records).await?,
+            learning_patterns: self.analyze_learning_patterns(&progress_records).await?,
+        };
+        
+        Ok(analytics)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateGuideRequest {
+    pub title: String,
+    pub description: String,
+    pub subject: String,
+    pub difficulty_level: DifficultyLevel,
+    pub estimated_duration: u32,
+    pub learning_objectives: Vec<LearningObjective>,
+    pub prerequisites: Vec<String>,
+    pub content_sections: Vec<ContentSection>,
+    pub practice_exercises: Vec<PracticeExercise>,
+    pub assessment_quizzes: Vec<AssessmentQuiz>,
+    pub resources: Vec<LearningResource>,
+    pub tags: Vec<String>,
+    pub language: String,
+    pub accessibility_features: Vec<AccessibilityFeature>,
+    pub auto_generate_content: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GuideRecommendation {
+    pub guide_id: Uuid,
+    pub relevance_score: f64,
+    pub reasoning: String,
+    pub estimated_difficulty: u8,
+    pub estimated_duration: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LearningAnalytics {
+    pub total_guides_started: usize,
+    pub total_guides_completed: usize,
+    pub average_progress: f64,
+    pub total_time_spent: u32,
+    pub strongest_subjects: Vec<String>,
+    pub improvement_areas: Vec<String>,
+    pub learning_patterns: LearningPatterns,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LearningPatterns {
+    pub preferred_learning_times: Vec<String>,
+    pub average_session_duration: u32,
+    pub completion_rate_by_difficulty: HashMap<String, f64>,
+    pub most_effective_content_types: Vec<ContentType>,
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum SelfStudyError {
+    #[error("Guide not found: {0}")]
+    GuideNotFound(Uuid),
+    #[error("Quiz not found: {0}")]
+    QuizNotFound(Uuid),
+    #[error("Insufficient permissions")]
+    InsufficientPermissions,
+    #[error("Prerequisites not met: {0}")]
+    PrerequisitesNotMet(String),
+    #[error("Database error: {0}")]
+    DatabaseError(#[from] sqlx::Error),
+    #[error("Blockchain error: {0}")]
+    BlockchainError(String),
+    #[error("AI service error: {0}")]
+    AIServiceError(String),
+}
+```
+
 ### 3. Frontend - Aplicación Flutter + Panel Admin Leptos
 
 #### Aplicación Flutter (Principal)
@@ -2024,6 +3185,19 @@ lib/
 │   │   └── widgets/
 │   │       └── reputation_charts.dart   # Cristalyse reputation viz
 │   ├── marketplace/
+│   ├── self_study/                      # Guías de auto-estudio
+│   │   ├── widgets/
+│   │   │   ├── guide_card.dart
+│   │   │   ├── progress_tracker.dart
+│   │   │   ├── content_viewer.dart
+│   │   │   ├── quiz_widget.dart
+│   │   │   └── notes_widget.dart
+│   │   ├── models/
+│   │   │   ├── self_study_guide.dart
+│   │   │   ├── content_section.dart
+│   │   │   └── quiz_result.dart
+│   │   └── services/
+│   │       └── self_study_service.dart
 │   └── analytics/                       # Dashboard con Cristalyse
 │       ├── widgets/
 │       │   ├── learning_metrics.dart
@@ -2050,11 +3224,13 @@ middleware/admin_panel/src/
 │   ├── user_management/
 │   ├── interaction_validation/
 │   ├── tutor_approval/
+│   ├── guide_management/        # Gestión de guías de auto-estudio
 │   └── system_monitoring/
 ├── pages/              # Páginas administrativas
 │   ├── dashboard.rs
 │   ├── users.rs
 │   ├── interactions.rs
+│   ├── guides.rs       # Gestión de guías de auto-estudio
 │   └── reports.rs
 ├── services/           # Servicios para comunicación con GraphQL
 │   ├── graphql_client.rs
@@ -2062,44 +3238,47 @@ middleware/admin_panel/src/
 └── main.rs             # Punto de entrada admin
 ```
 
-#### Visualización de Datos con Cristalyse
+#### Visualización de Datos con Flutter Charts
 
 ```dart
-// Implementación de visualizaciones educativas con Cristalyse
-import 'package:cristalyse/cristalyse.dart';
+// Implementación de visualizaciones educativas con Flutter Charts
+import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/material.dart';
 
 class LearningTimelineChart extends StatelessWidget {
   final List<LearningInteraction> interactions;
 
   @override
   Widget build(BuildContext context) {
-    return CristalyseChart(
-      type: ChartType.timeline,
-      data: _transformInteractionsToChartData(interactions),
-      config: TimelineConfig(
-        showProgress: true,
-        interactiveNodes: true,
-        hierarchicalView: true,
-        colorScheme: EducationalColorScheme.learning,
+    return LineChart(
+      LineChartData(
+        gridData: FlGridData(show: true),
+        titlesData: FlTitlesData(show: true),
+        borderData: FlBorderData(show: true),
+        lineBarsData: _transformInteractionsToChartData(interactions),
+        lineTouchData: LineTouchData(
+          enabled: true,
+          touchCallback: (event, response) => _showInteractionDetails(event),
+        ),
       ),
-      onNodeTap: (interaction) => _showInteractionDetails(interaction),
     );
   }
 
-  List<TimelineNode> _transformInteractionsToChartData(
+  List<LineChartBarData> _transformInteractionsToChartData(
     List<LearningInteraction> interactions
   ) {
-    return interactions.map((interaction) => TimelineNode(
-      id: interaction.id,
-      title: interaction.title,
-      timestamp: interaction.timestamp,
-      type: _mapInteractionType(interaction.type),
-      metadata: {
-        'course': interaction.courseId,
-        'tutor': interaction.tutorId,
-        'result': interaction.result,
-      },
-    )).toList();
+    return [
+      LineChartBarData(
+        spots: interactions.map((interaction) => FlSpot(
+          interaction.timestamp.millisecondsSinceEpoch.toDouble(),
+          interaction.result?.score?.toDouble() ?? 0.0,
+        )).toList(),
+        isCurved: true,
+        color: Colors.blue,
+        barWidth: 3,
+        dotData: FlDotData(show: true),
+      ),
+    ];
   }
 }
 
@@ -2108,38 +3287,36 @@ class ReputationAnalyticsChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CristalyseChart(
-      type: ChartType.multiSeries,
-      data: _buildReputationChartData(reputationData),
-      config: MultiSeriesConfig(
-        series: [
-          SeriesConfig(
-            name: 'Reputación Actual',
-            type: SeriesType.line,
+    return LineChart(
+      LineChartData(
+        gridData: FlGridData(show: true),
+        titlesData: FlTitlesData(
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (value, meta) => Text(value.toStringAsFixed(1)),
+            ),
+          ),
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (value, meta) => Text(
+                DateTime.fromMillisecondsSinceEpoch(value.toInt()).toString().substring(0, 10),
+              ),
+            ),
+          ),
+        ),
+        borderData: FlBorderData(show: true),
+        lineBarsData: [
+          LineChartBarData(
+            spots: _buildReputationChartData(reputationData),
+            isCurved: true,
             color: Colors.blue,
-          ),
-          SeriesConfig(
-            name: 'Reputación Histórica',
-            type: SeriesType.area,
-            color: Colors.blue.withOpacity(0.3),
-          ),
-          SeriesConfig(
-            name: 'Calificaciones Recientes',
-            type: SeriesType.scatter,
-            color: Colors.green,
+            barWidth: 3,
+            dotData: FlDotData(show: true),
           ),
         ],
-        xAxis: AxisConfig(
-          title: 'Tiempo',
-          type: AxisType.datetime,
-        ),
-        yAxis: AxisConfig(
-          title: 'Puntuación de Reputación',
-          min: 0,
-          max: 5,
-        ),
-        interactive: true,
-        zoomEnabled: true,
+        lineTouchData: LineTouchData(enabled: true),
       ),
     );
   }
@@ -2150,46 +3327,47 @@ class LearningAnalyticsDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CristalyseDashboard(
-      title: 'Analytics de Aprendizaje',
-      widgets: [
-        DashboardWidget(
-          title: 'Progreso de Aprendizaje',
-          chart: CristalyseChart(
-            type: ChartType.radialProgress,
-            data: analyticsData.progressData,
-            config: RadialProgressConfig(
-              showPercentage: true,
-              animationDuration: Duration(milliseconds: 1500),
+    return Scaffold(
+      appBar: AppBar(title: Text('Analytics de Aprendizaje')),
+      body: GridView.count(
+        crossAxisCount: 2,
+        children: [
+          Card(
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  Text('Progreso de Aprendizaje', style: Theme.of(context).textTheme.titleMedium),
+                  SizedBox(height: 16),
+                  CircularProgressIndicator(
+                    value: analyticsData.progressData,
+                    strokeWidth: 8,
+                  ),
+                  SizedBox(height: 8),
+                  Text('${(analyticsData.progressData * 100).toInt()}%'),
+                ],
+              ),
             ),
           ),
-        ),
-        DashboardWidget(
-          title: 'Distribución de Actividades',
-          chart: CristalyseChart(
-            type: ChartType.donut,
-            data: analyticsData.activityDistribution,
-            config: DonutConfig(
-              showLabels: true,
-              interactive: true,
-              colorScheme: EducationalColorScheme.activities,
+          Card(
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  Text('Distribución de Actividades', style: Theme.of(context).textTheme.titleMedium),
+                  SizedBox(height: 16),
+                  PieChart(
+                    PieChartData(
+                      sections: _buildActivityDistribution(analyticsData.activityDistribution),
+                      centerSpaceRadius: 40,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-        DashboardWidget(
-          title: 'Tendencias de Aprendizaje',
-          chart: CristalyseChart(
-            type: ChartType.heatmap,
-            data: analyticsData.learningTrends,
-            config: HeatmapConfig(
-              xAxis: 'Días de la Semana',
-              yAxis: 'Horas del Día',
-              colorGradient: [Colors.blue[100]!, Colors.blue[900]!],
-            ),
-          ),
-        ),
-      ],
-      layout: DashboardLayout.responsive,
+        ],
+      ),
     );
   }
 }

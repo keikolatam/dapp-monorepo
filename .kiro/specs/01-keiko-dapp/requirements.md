@@ -4,20 +4,28 @@
 
 Keiko es una red social educativa descentralizada (DApp) construida como un monorepo que integra un backend desarrollado en Rust con contratos inteligentes en Cairo sobre Starknet y un frontend multiplataforma desarrollado en Flutter. Su propósito es convertir el aprendizaje en capital humano verificable e interoperable en tiempo real. La plataforma permite a cualquier individuo construir y demostrar su Pasaporte de Aprendizaje de Vida (LifeLearningPassport) en blockchain, mediante interacciones de aprendizaje atómicas (LearningInteractions) compatibles con el estándar xAPI (Tin Can). El objetivo principal es reemplazar las certificaciones tradicionales con evidencia encadenada e infalsificable de aprendizaje, evaluada por múltiples actores y almacenada de forma descentralizada.
 
+Keiko se basa en cuatro pilares fundamentales:
+
+1. **Libertad económica de tutores y mentores**: Los educadores pueden escoger monetizar sesiones individuales o grupales sin intermediarios.
+2. **Democracia participativa de los educandos**: Los aprendices califican la calidad del conocimiento adquirido y de sus pares.
+3. **Descentralización de la gestión de calidad**: Las comunidades regulan sus propios estándares y métodos de validación.
+4. **Auto-determinación de las comunidades**: Cada red o nodo puede establecer su propia gobernanza educativa.
+
 La arquitectura del proyecto se organiza en cinco capas principales con estructura de carpetas correspondiente:
 
 - **Keikochain Layer** (`appchain/`): Contratos Cairo en Keikochain (Starknet Appchain) para almacenamiento inmutable y consenso
-- **gRPC Gateway Layer** (`grpc-gateway/`): Traductor Rust ↔ Cairo que comunica microservicios con Keikochain (Starknet Appchain)
-- **Service Layer** (`services/`): Microservicios Rust con comunicación gRPC, cache PostgreSQL local, y eventos Redis Streams
-- **API Layer** (`api-gateway/`): API Gateway GraphQL que traduce queries del frontend a llamadas gRPC y orquesta respuestas, con comunicación WSS para GraphQL subscriptions
+- **gRPC Gateway Layer** (`grpc-gateway/`): Traductor Rust ↔ Cairo que comunica el backend con Keikochain (Starknet Appchain)
+- **Backend Layer** (`backend/`): Aplicación monolítica modular en Rust con cache PostgreSQL local y eventos Redis Streams
+- **API Gateway Layer** (`api-gateway/`): API Gateway GraphQL que traduce queries del frontend a llamadas HTTP/REST y orquesta respuestas, con comunicación WSS para GraphQL subscriptions
 - **Frontend Layer** (`frontend/`): Aplicación Flutter multiplataforma que se comunica exclusivamente via GraphQL
 
 **Flujo de Datos Híbrido:**
 
-- **Escritura**: Flutter → GraphQL (HTTPS) → Microservicio → gRPC Gateway → Keikochain Contract → Evento Redis → GraphQL Subscription (WSS)
-- **Lectura**: Flutter → GraphQL (HTTPS) → Microservicio → Cache/DB local → (fallback) gRPC Gateway → Keikochain Contract
-- **Tiempo Real**: Keikochain Contract → gRPC Gateway → Microservicio → Redis Streams → API Gateway → GraphQL Subscription (WSS) → Flutter
-- **Autenticación**: Flutter → FIDO2 → JWT → WSS Headers → API Gateway → gRPC Metadata → Microservicios
+- **Escritura**: Flutter → GraphQL (HTTPS) → API Gateway → HTTP/REST → Backend → gRPC Gateway → Keikochain Contract → Evento Redis → GraphQL Subscription (WSS)
+- **Lectura**: Flutter → GraphQL (HTTPS) → API Gateway → HTTP/REST → Backend → Cache/DB local → (fallback) gRPC Gateway → Keikochain Contract
+- **Tiempo Real**: Keikochain Contract → gRPC Gateway → Backend → Redis Streams → API Gateway → GraphQL Subscription (WSS) → Flutter
+- **Autenticación**: Flutter → FIDO2 → JWT → WSS Headers → API Gateway → HTTP Headers → Backend
+- **Importación**: LRS Externos → REST Webhooks → API Gateway → HTTP → Backend → gRPC Gateway → Keikochain Contract
 
 ## Requerimientos
 
@@ -58,36 +66,36 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 
 ### Requerimiento 3: Integración con Learning Record Stores (LRS) y SCORM
 
-**Componente:** API Gateway + Microservicios
+**Componente:** API Gateway + Backend
 
-**Historia de Usuario:** Como institución educativa, quiero integrar mi Learning Record Store existente y contenido SCORM con Keiko, para transferir automáticamente los registros de aprendizaje a los microservicios y a Keikochain.
+**Historia de Usuario:** Como institución educativa, quiero integrar mi Learning Record Store existente y contenido SCORM con Keiko, para transferir automáticamente los registros de aprendizaje al backend y a Keikochain.
 
 #### Criterios de Aceptación
 
 1. CUANDO un LRS compatible envía datos via REST webhook ENTONCES el API Gateway DEBERÁ procesar y validar estos datos xAPI
 2. CUANDO se configura la integración con un LRS ENTONCES el sistema DEBERÁ proporcionar endpoints REST y credenciales de webhook
-3. CUANDO se reciben datos de Learning Locker ENTONCES el API Gateway DEBERÁ transformarlos y enviarlos via gRPC al Learning Service
+3. CUANDO se reciben datos de Learning Locker ENTONCES el API Gateway DEBERÁ transformarlos y enviarlos via HTTP al módulo Learning
 4. CUANDO se importa contenido SCORM desde Moodle ENTONCES el API Gateway DEBERÁ procesar paquetes SCORM y convertirlos automáticamente a statements xAPI estándar
 5. CUANDO se procesa un paquete SCORM ENTONCES el sistema DEBERÁ extraer metadatos, actividades y progreso para convertirlos a statements xAPI y almacenarlos en Keikochain
-6. SI la conexión con microservicios falla ENTONCES el API Gateway DEBERÁ almacenar los datos en Redis Streams para reintento
+6. SI la conexión con algún módulo del backend falla ENTONCES el API Gateway DEBERÁ almacenar los datos en Redis Streams para reintentos
 7. CUANDO se actualiza el LRS ENTONCES el sistema DEBERÁ sincronizar los nuevos registros via eventos de dominio en Redis Streams
 8. CUANDO se importa contenido desde LRS basados en SCORM ENTONCES el sistema DEBERÁ transformar automáticamente los datos a formato xAPI antes de almacenarlos en Keikochain, priorizando la compatibilidad con xAPI sobre SCORM
 
 ### Requerimiento 4: Ecosistema de Aprendizaje Híbrido (Humano-IA)
 
-**Componente:** Microservicios + Frontend
+**Componente:** Backend + Frontend
 
 **Historia de Usuario:** Como usuario, quiero acceder tanto a educadores humanos como a tutores basados en IA, para obtener la mejor experiencia de aprendizaje según mis necesidades y preferencias.
 
 #### Criterios de Aceptación
 
-1. CUANDO un usuario busca recursos educativos ENTONCES el Marketplace Service DEBERÁ ofrecer opciones tanto de tutores humanos como de agentes IA via gRPC
-2. CUANDO un educador humano crea una oferta educativa ENTONCES el Marketplace Service DEBERÁ permitir establecer precios y publicar evento de dominio
-3. CUANDO un usuario interactúa con un tutor IA ENTONCES el Learning Service DEBERÁ registrar estas interacciones via gRPC y emitir eventos
-4. CUANDO se completa una sesión educativa ENTONCES el sistema DEBERÁ coordinar pago via eventos entre Marketplace y Identity Services
-5. CUANDO un tutor IA proporciona contenido ENTONCES el AI Tutor Service DEBERÁ verificar calidad antes de enviar via gRPC
-6. SI una sesión es disputada ENTONCES el Governance Service DEBERÁ iniciar proceso de resolución via eventos de dominio
-7. CUANDO se utilizan tutores IA ENTONCES el sistema DEBERÁ personalizar experiencia basándose en datos del Passport Service via gRPC
+1. CUANDO un usuario busca recursos educativos ENTONCES el módulo Marketplace del Backend DEBERÁ ofrecer opciones tanto de tutores humanos como las guías de auto-estudio evaluadas con un agente IA
+2. CUANDO un educador humano crea una oferta educativa ENTONCES el módulo Marketplace del Backend DEBERÁ permitir establecer precios y publicar evento de dominio
+3. CUANDO un usuario interactúa con un tutor IA ENTONCES el módulo Learning del Backend DEBERÁ registrar estas interacciones y emitir eventos
+4. CUANDO se completa una sesión educativa ENTONCES el sistema DEBERÁ coordinar pago via eventos entre módulos Marketplace e Identity del Backend
+5. CUANDO un tutor IA proporciona contenido ENTONCES el módulo AI Tutor del Backend DEBERÁ verificar calidad antes de enviar
+6. SI una sesión es disputada ENTONCES el módulo Governance del Backend DEBERÁ iniciar proceso de resolución via eventos de dominio
+7. CUANDO se utilizan tutores IA ENTONCES el sistema DEBERÁ personalizar experiencia basándose en datos del módulo Passport del Backend
 
 ### Requerimiento 5: Sistema de Calificación, Comentarios y Reputación Dinámica
 
@@ -163,19 +171,19 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 
 **Componente:** API Gateway (Rust)
 
-**Historia de Usuario:** Como desarrollador de frontend, quiero un API Gateway GraphQL que traduzca mis queries a llamadas gRPC a microservicios, para tener una interfaz unificada y type-safe desde el frontend Flutter sin conocer la arquitectura interna de microservicios.
+**Historia de Usuario:** Como desarrollador de frontend, quiero un API Gateway GraphQL que traduzca mis queries a llamadas HTTP/REST al backend monolítico, para tener una interfaz unificada y type-safe desde el frontend Flutter sin conocer la arquitectura interna del backend.
 
 #### Criterios de Aceptación
 
-1. CUANDO el frontend Flutter envía queries GraphQL ENTONCES el API Gateway DEBERÁ traducir automáticamente a llamadas gRPC a los microservicios correspondientes
-2. CUANDO se requieran datos de múltiples microservicios ENTONCES el API Gateway DEBERÁ orquestar llamadas gRPC paralelas y agregar resultados
-3. CUANDO se ejecuten mutations GraphQL ENTONCES el API Gateway DEBERÁ traducir a llamadas gRPC y manejar transacciones distribuidas
-4. CUANDO ocurran errores en microservicios ENTONCES el API Gateway DEBERÁ mapear errores gRPC a errores GraphQL comprensibles
-5. CUANDO se requiera autenticación ENTONCES el API Gateway DEBERÁ validar tokens JWT y propagar contexto de usuario via gRPC metadata
+1. CUANDO el frontend Flutter envía queries GraphQL ENTONCES el API Gateway DEBERÁ traducir automáticamente a llamadas HTTP/REST al backend monolítico
+2. CUANDO se requieran datos de múltiples módulos ENTONCES el API Gateway DEBERÁ orquestar llamadas HTTP paralelas y agregar resultados
+3. CUANDO se ejecuten mutations GraphQL ENTONCES el API Gateway DEBERÁ traducir a llamadas HTTP y manejar transacciones locales
+4. CUANDO ocurran errores en el backend ENTONCES el API Gateway DEBERÁ mapear errores HTTP a errores GraphQL comprensibles
+5. CUANDO se requiera autenticación ENTONCES el API Gateway DEBERÁ validar tokens JWT y propagar contexto de usuario via headers HTTP
 6. CUANDO se necesite cache ENTONCES el API Gateway DEBERÁ implementar cache de queries GraphQL con invalidación basada en eventos Redis
 7. CUANDO se reciban eventos de dominio ENTONCES el API Gateway DEBERÁ actualizar subscriptions GraphQL en tiempo real sobre WSS
 8. CUANDO sistemas externos requieran integración ENTONCES el API Gateway DEBERÁ exponer endpoints REST para webhooks y APIs de terceros
-9. CUANDO se requiera observabilidad ENTONCES el API Gateway DEBERÁ instrumentar todas las llamadas GraphQL → gRPC con OpenTelemetry
+9. CUANDO se requiera observabilidad ENTONCES el API Gateway DEBERÁ instrumentar todas las llamadas GraphQL → HTTP con OpenTelemetry
 
 ### Requerimiento 10: Interoperabilidad y Estándares Abiertos
 
@@ -190,6 +198,11 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 3. CUANDO se desarrollan nuevas APIs ENTONCES el sistema DEBERÁ documentarlas siguiendo especificaciones OpenAPI.
 4. CUANDO se requiere interoperabilidad con otras blockchains ENTONCES el sistema DEBERÁ implementar puentes compatibles.
 5. CUANDO cambian los estándares de la industria ENTONCES el sistema DEBERÁ adaptarse manteniendo compatibilidad hacia atrás.
+6. CUANDO se implemente el backend ENTONCES DEBERÁ usar Rust con módulos organizados por dominio
+7. CUANDO se configure la base de datos ENTONCES DEBERÁ usar PostgreSQL con schemas separados por módulo para recursos limitados
+8. CUANDO se implemente event-driven architecture ENTONCES DEBERÁ usar Redis Streams (NUNCA Keikochain para eventos)
+9. CUANDO se implemente el API Gateway ENTONCES DEBERÁ usar GraphQL (async-graphql) con Axum como framework web
+10. CUANDO se implemente el panel administrativo ENTONCES DEBERÁ usar Leptos para SSR/CSR
 
 ### Requerimiento 11: Seguridad y Privacidad de Datos
 
@@ -207,6 +220,9 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 6. CUANDO se procesan datos biométricos ENTONCES el sistema DEBERÁ garantizar que nunca se almacenen en blockchain, solo hashes y pruebas STARK.
 7. CUANDO se genera la humanity_proof_key ENTONCES el sistema DEBERÁ usar salt único por usuario y eliminar datos biométricos originales después del procesamiento.
 8. CUANDO se implementa autenticación biométrica ENTONCES el sistema DEBERÁ usar pruebas de conocimiento cero para verificar humanidad sin exponer datos sensibles.
+9. CUANDO se configure el entorno de desarrollo ENTONCES DEBERÁ incluir OpenCV (4.0+) para procesamiento de datos biométricos
+10. CUANDO se configure el entorno de desarrollo ENTONCES DEBERÁ incluir Python (3.8+) con BioPython para análisis genómico
+11. CUANDO se configure el entorno de desarrollo ENTONCES DEBERÁ incluir FIDO2/WebAuthn para autenticación inicial
 
 ### Requerimiento 12: Tutores IA Avanzados
 
@@ -242,11 +258,11 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 
 **Nota:** Para detalles de implementación de interfaces móviles de evaluación, ver Spec 02-flutter-frontend-architecture
 
-### Requerimiento 14: Planes de Acción Tutorial Adaptativos para Aprendizaje Asíncrono
+### Requerimiento 14: Guías de Auto-Estudio Adaptativas
 
 **Componente:** Backend + Frontend Móvil
 
-**Historia de Usuario:** Como estudiante con un ritmo de aprendizaje variable, quiero que el sistema genere y adapte planes de acción tutorial de forma dinámica sin necesidad de un plan de estudios predefinido, para poder aprender de manera asíncrona según mis intereses y disponibilidad desde mi dispositivo móvil.
+**Historia de Usuario:** Como estudiante con un ritmo de aprendizaje variable, quiero que el sistema genere y adapte guías de auto-estudio de forma dinámica sin necesidad de un plan de estudios predefinido, para poder aprender de manera asíncrona según mis intereses y disponibilidad desde mi dispositivo móvil.
 
 #### Criterios de Aceptación
 
@@ -254,12 +270,12 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 2. CUANDO se acumulan suficientes datos de interacción ENTONCES el sistema DEBERÁ generar automáticamente recomendaciones de aprendizaje personalizadas (algoritmos de backend)
 3. CUANDO un usuario completa una actividad de aprendizaje ENTONCES el sistema DEBERÁ sugerir el siguiente paso lógico basado en su progreso y objetivos
 4. CUANDO un usuario retoma su aprendizaje después de un período de inactividad ENTONCES la aplicación móvil DEBERÁ proporcionar un resumen contextual y recomendaciones actualizadas
-5. CUANDO un usuario muestra interés en un nuevo tema ENTONCES el sistema DEBERÁ integrar este tema en su plan adaptativo sin interrumpir su progreso actual
+5. CUANDO un usuario muestra interés en un nuevo tema ENTONCES el sistema DEBERÁ integrar este tema en su guía de auto-estudio sin interrumpir su progreso actual
 6. CUANDO se detectan brechas de conocimiento ENTONCES el sistema DEBERÁ sugerir recursos complementarios para abordarlas (lógica de IA en backend)
-7. SI un usuario desea más estructura ENTONCES la aplicación móvil DEBERÁ permitir la creación de planes de aprendizaje más formales a partir de sus interacciones asíncronas previas
+7. SI un usuario desea más estructura ENTONCES la aplicación móvil DEBERÁ permitir la creación de guías de auto-estudio más formales a partir de sus interacciones asíncronas previas
 8. CUANDO un usuario aprende de manera asíncrona ENTONCES el sistema DEBERÁ mantener la coherencia y progresión lógica entre sesiones discontinuas
 
-**Nota:** Para detalles de implementación de interfaces móviles de planes adaptativos, ver Spec 02-flutter-frontend-architecture
+**Nota:** Para detalles de implementación de interfaces móviles de guías de auto-estudio, ver Spec 02-flutter-frontend-architecture
 
 ### Requerimiento 15: Integración con Starknet - Keikochain como Appchain
 
@@ -318,24 +334,24 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 
 **Nota:** Para detalles de implementación de navegación jerárquica móvil, ver Spec 02-flutter-frontend-architecture
 
-### Requerimiento 18: Arquitectura Híbrida Appchain-gRPC Gateway-Microservicios
+### Requerimiento 18: Arquitectura Híbrida: API Gateway -> Backend Modular -> gRPC Gateway -> Appchain
 
-**Componente:** Appchain + gRPC Gateway + Services + API Gateway
+**Componente:** Appchain + gRPC Gateway + Backend Modular + API Gateway + Frontend
 
-**Historia de Usuario:** Como arquitecto de software, quiero una arquitectura híbrida donde Keikochain sea la fuente de verdad, el gRPC Gateway traduzca entre Rust y Cairo, y los microservicios actúen como capa de servicio, para combinar las ventajas de blockchain (inmutabilidad, consenso) con la flexibilidad de microservicios (escalabilidad, cache, APIs modernas).
+**Historia de Usuario:** Como arquitecto de software, quiero una arquitectura modular donde Keikochain sea la fuente de verdad, el gRPC Gateway traduzca entre Rust y Cairo, el backend monolítico actúe como capa de servicio, y el API Gateway traduzca GraphQL a HTTP, para combinar las ventajas de blockchain (inmutabilidad, consenso) con la simplicidad de una aplicación monolítica (desarrollo más rápido, debugging más fácil) y la flexibilidad de GraphQL.
 
 #### Criterios de Aceptación
 
-1. CUANDO se escriban datos críticos ENTONCES los microservicios DEBERÁ enviar transacciones via gRPC Gateway a Keikochain como fuente de verdad inmutable
-2. CUANDO se lean datos frecuentemente ENTONCES los microservicios DEBERÁ servir desde cache local con fallback a gRPC Gateway → Keikochain
-3. CUANDO ocurran cambios en Keikochain ENTONCES el gRPC Gateway DEBERÁ detectar eventos y notificar a microservicios para actualizar cache local
-4. CUANDO se requiera comunicación entre microservicios ENTONCES DEBERÁ usar exclusivamente gRPC con service discovery
-5. CUANDO se publiquen eventos de dominio ENTONCES los microservicios DEBERÁ usar Redis Streams (NUNCA Keikochain)
-6. CUANDO el API Gateway reciba queries GraphQL ENTONCES DEBERÁ traducir a llamadas gRPC y orquestar respuestas de múltiples microservicios
+1. CUANDO se escriban datos críticos ENTONCES el backend DEBERÁ enviar transacciones via gRPC Gateway a Keikochain como fuente de verdad inmutable
+2. CUANDO se lean datos frecuentemente ENTONCES el backend DEBERÁ servir desde cache local con fallback a gRPC Gateway → Keikochain
+3. CUANDO ocurran cambios en Keikochain ENTONCES el gRPC Gateway DEBERÁ detectar eventos y notificar al backend para actualizar cache local
+4. CUANDO se requiera comunicación entre módulos ENTONCES DEBERÁ usar llamadas directas de función (no gRPC)
+5. CUANDO se publiquen eventos de dominio ENTONCES el backend DEBERÁ usar Redis Streams (NUNCA Keikochain)
+6. CUANDO el API Gateway reciba queries GraphQL ENTONCES DEBERÁ traducir a llamadas HTTP/REST al backend monolítico
 7. CUANDO se requieran subscriptions en tiempo real ENTONCES el API Gateway DEBERÁ usar Redis Streams para alimentar GraphQL subscriptions sobre WSS
-8. CUANDO sistemas externos requieran integración ENTONCES DEBERÁ usar endpoints REST solo en el API Gateway (no en microservicios)
-9. CUANDO se desplieguen microservicios ENTONCES cada uno DEBERÁ tener su propia base de datos PostgreSQL independiente
-10. CUANDO se requiera observabilidad ENTONCES DEBERÁ instrumentar toda la cadena: GraphQL → gRPC → gRPC Gateway → Keikochain Contract
+8. CUANDO sistemas externos requieran integración ENTONCES DEBERÁ usar endpoints REST en el API Gateway (no en el backend)
+9. CUANDO se despliegue el backend ENTONCES DEBERÁ usar una única base de datos PostgreSQL con schemas separados por módulo
+10. CUANDO se requiera observabilidad ENTONCES DEBERÁ implementar observabilidad específica por capa según el Requerimiento 40
 
 ### Requerimiento 19: Jerarquía Completa de Experiencias de Aprendizaje
 
@@ -363,174 +379,154 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 11. CUANDO se generan certificaciones o credenciales ENTONCES el sistema DEBERÁ poder emitirlas a cualquier nivel de la jerarquía (curso completo, clase específica, o logro particular).
 12. CUANDO se exportan datos de aprendizaje ENTONCES el sistema DEBERÁ preservar esta estructura jerárquica completa.
 
-## Requerimientos de Microservicios
+## Requerimientos de Arquitectura Modular
 
-### Requerimiento 20: Arquitectura de Microservicios con Keikochain
+### Requerimiento 20: Arquitectura Modular con Keikochain
 
-**Componente:** Service Layer + gRPC Gateway + Keikochain
+**Componente:** Backend Layer + gRPC Gateway + Keikochain
 
-**Historia de Usuario:** Como arquitecto de software, quiero descomponer la lógica de negocio en microservicios independientes que se comuniquen con Keikochain via gRPC Gateway, para que cada dominio de negocio pueda desarrollarse, desplegarse y escalarse de forma autónoma.
+**Historia de Usuario:** Como arquitecto de software, quiero organizar la lógica de negocio en módulos independientes dentro de una aplicación monolítica que se comunique con Keikochain via gRPC Gateway, para que cada dominio de negocio pueda desarrollarse de forma organizada sin la complejidad de microservicios.
 
 #### Criterios de Aceptación
 
-1. CUANDO se identifiquen los bounded contexts ENTONCES el sistema DEBERÁ separar cada dominio de negocio en un servicio independiente
-2. CUANDO se implemente la separación ENTONCES cada servicio DEBERÁ tener su propio schema PostgreSQL separado (Database per Service o Schema per Service según recursos disponibles)
-3. CUANDO se comuniquen los servicios ENTONCES DEBERÁ usar gRPC bien definidas y event-driven architecture con Redis Streams
-4. CUANDO se desplieguen los servicios ENTONCES cada uno DEBERÁ ser containerizado y desplegable independientemente
-5. SI un servicio falla ENTONCES los otros servicios DEBERÁ continuar funcionando (fault isolation)
+1. CUANDO se identifiquen los bounded contexts ENTONCES el sistema DEBERÁ separar cada dominio de negocio en un módulo independiente
+2. CUANDO se implemente la separación ENTONCES cada módulo DEBERÁ tener su propio schema PostgreSQL separado
+3. CUANDO se comuniquen los módulos ENTONCES DEBERÁ usar llamadas directas de función y event-driven architecture con Redis Streams
+4. CUANDO se despliegue el backend ENTONCES DEBERÁ ser una aplicación monolítica containerizada
+5. SI un módulo falla ENTONCES el sistema DEBERÁ implementar circuit breakers internos para aislar fallos
 6. CUANDO se requiera comunicación con Keikochain ENTONCES DEBERÁ usar el gRPC Gateway como intermediario
+7. CUANDO el API Gateway requiera datos ENTONCES DEBERÁ usar HTTP/REST para comunicarse con el backend monolítico
 
-### Requerimiento 21: Patrones de Migración Gradual
+### Requerimiento 21: Organización Modular por Dominio
 
-**Componente:** Service Layer + gRPC Gateway
+**Componente:** Backend Layer + gRPC Gateway
 
-**Historia de Usuario:** Como DevOps engineer, quiero implementar una migración gradual hacia microservicios usando patrones probados, para que la transición sea controlada y sin interrupciones de servicio.
-
-#### Criterios de Aceptación
-
-1. CUANDO se inicie la migración ENTONCES DEBERÁ implementarse el Strangler Fig Pattern para dirigir tráfico gradualmente
-2. CUANDO se creen abstracciones ENTONCES DEBERÁ usarse Branch by Abstraction Pattern para permitir implementaciones duales
-3. CUANDO se organicen los equipos ENTONCES DEBERÁ aplicarse Service per Team Pattern con repositorios independientes
-4. CUANDO se migre un servicio ENTONCES DEBERÁ mantener sincronización de datos durante la transición
-5. CUANDO se complete la migración de un servicio ENTONCES DEBERÁ eliminarse el código legacy correspondiente
-
-### Requerimiento 22: Servicios Independientes por Dominio
-
-**Componente:** Service Layer
-
-**Historia de Usuario:** Como desarrollador de backend, quiero que cada dominio de negocio tenga su propio servicio independiente, para que pueda desarrollar y desplegar sin afectar otros dominios.
+**Historia de Usuario:** Como desarrollador de backend, quiero organizar el código en módulos por dominio de negocio dentro de una aplicación monolítica, para mantener una arquitectura limpia y organizada sin la complejidad de microservicios.
 
 #### Criterios de Aceptación
 
-1. CUANDO se extraiga Identity Service ENTONCES DEBERÁ gestionar autenticación, autorización y perfiles de usuario
-2. CUANDO se extraiga Learning Service ENTONCES DEBERÁ procesar xAPI statements y interacciones de aprendizaje
-3. CUANDO se extraiga Reputation Service ENTONCES DEBERÁ calcular y gestionar reputación de tutores y estudiantes
-4. CUANDO se extraiga Passport Service ENTONCES DEBERÁ agregar competencias y gestionar pasaportes de aprendizaje
-5. CUANDO se creen nuevos servicios ENTONCES DEBERÁ incluir Governance Service, Marketplace Service y AI Tutor Service
+1. CUANDO se organice el código ENTONCES DEBERÁ estructurarse en módulos por bounded context de dominio
+2. CUANDO se implementen módulos ENTONCES DEBERÁ usar abstracciones bien definidas entre módulos
+3. CUANDO se organicen los equipos ENTONCES DEBERÁ asignarse un módulo por equipo dentro del mismo repositorio
+4. CUANDO se desarrolle un módulo ENTONCES DEBERÁ mantener interfaces claras con otros módulos
+5. CUANDO se refactorice código ENTONCES DEBERÁ mantener la separación de responsabilidades por módulo
+6. CUANDO se requiera escalabilidad futura ENTONCES DEBERÁ diseñar módulos que puedan extraerse como microservicios independientes
+
+### Requerimiento 22: Módulos Independientes por Dominio
+
+**Componente:** Backend Layer
+
+**Historia de Usuario:** Como desarrollador de backend, quiero que cada dominio de negocio tenga su propio módulo independiente dentro del backend monolítico, para que pueda desarrollar de forma organizada sin afectar otros dominios.
+
+#### Criterios de Aceptación
+
+1. CUANDO se implemente Identity Module ENTONCES DEBERÁ gestionar autenticación, autorización y perfiles de usuario
+2. CUANDO se implemente Learning Module ENTONCES DEBERÁ procesar xAPI statements e interacciones de aprendizaje
+3. CUANDO se implemente Reputation Module ENTONCES DEBERÁ calcular y gestionar reputación de tutores y estudiantes
+4. CUANDO se implemente Passport Module ENTONCES DEBERÁ agregar competencias y gestionar pasaportes de aprendizaje
+5. CUANDO se creen nuevos módulos ENTONCES DEBERÁ incluir Governance Module, Marketplace Module y AI Tutor Module
+6. CUANDO se comuniquen módulos ENTONCES DEBERÁ usar interfaces bien definidas y eventos de dominio
+7. CUANDO se acceda a datos ENTONCES DEBERÁ usar el módulo correspondiente sin acceso directo a la base de datos de otros módulos
 
 ### Requerimiento 23: Resiliencia y Tolerancia a Fallos
 
-**Componente:** Service Layer + gRPC Gateway
+**Componente:** Backend Layer + gRPC Gateway
 
-**Historia de Usuario:** Como arquitecto de software, quiero que el sistema sea resiliente a fallos, para que la indisponibilidad de un servicio no afecte la funcionalidad completa del sistema.
+**Historia de Usuario:** Como arquitecto de software, quiero que el sistema sea resiliente a fallos, para que la indisponibilidad de un módulo no afecte la funcionalidad completa del sistema.
 
 #### Criterios de Aceptación
 
-1. CUANDO un servicio no responda ENTONCES DEBERÁ implementar Circuit Breaker Pattern para evitar cascading failures
+1. CUANDO un módulo no responda ENTONCES DEBERÁ implementar Circuit Breaker Pattern interno para evitar cascading failures
 2. CUANDO ocurran errores transitorios ENTONCES DEBERÁ implementar retry policies con exponential backoff
 3. CUANDO se pierda conectividad ENTONCES DEBERÁ implementar graceful degradation de funcionalidades
-4. CUANDO se sobrecargue un servicio ENTONCES DEBERÁ implementar rate limiting y load shedding
-5. CUANDO se reinicie un servicio ENTONCES DEBERÁ implementar graceful shutdown y startup
+4. CUANDO se sobrecargue el backend ENTONCES DEBERÁ implementar rate limiting y load shedding
+5. CUANDO se reinicie el backend ENTONCES DEBERÁ implementar graceful shutdown y startup
 6. CUANDO falle la comunicación con Keikochain ENTONCES DEBERÁ usar cache local como fallback
+7. CUANDO falle la comunicación con el API Gateway ENTONCES DEBERÁ implementar health checks y restart automático
 
 ### Requerimiento 24: Event-Driven Communication
 
-**Componente:** Service Layer + Redis Streams
+**Componente:** Backend Layer + Redis Streams
 
-**Historia de Usuario:** Como desarrollador de backend, quiero que los servicios se comuniquen de forma asíncrona usando eventos, para que el sistema sea más resiliente y desacoplado.
+**Historia de Usuario:** Como desarrollador de backend, quiero que los módulos se comuniquen de forma asíncrona usando eventos, para que el sistema sea más resiliente y desacoplado.
 
 #### Criterios de Aceptación
 
-1. CUANDO ocurra un evento de dominio ENTONCES DEBERÁ publicarse en Redis Streams para notificar servicios interesados
+1. CUANDO ocurra un evento de dominio ENTONCES DEBERÁ publicarse en Redis Streams para notificar módulos interesados
 2. CUANDO se procesen eventos ENTONCES DEBERÁ garantizar at-least-once delivery y idempotencia
 3. CUANDO se definan eventos ENTONCES DEBERÁ seguir un schema versionado y backward compatible
-4. CUANDO se suscriban servicios ENTONCES DEBERÁ implementar dead letter queues para eventos fallidos
+4. CUANDO se suscriban módulos ENTONCES DEBERÁ implementar dead letter queues para eventos fallidos
 5. CUANDO se implemente event sourcing ENTONCES DEBERÁ mantener audit trail completo de cambios de estado
 6. CUANDO se publiquen eventos ENTONCES DEBERÁ usar Redis Streams (NUNCA Keikochain para eventos)
+7. CUANDO el API Gateway requiera eventos ENTONCES DEBERÁ suscribirse a Redis Streams para GraphQL subscriptions
 
-### Requerimiento 25: API Design y Contratos de Servicio
+### Requerimiento 25: API Design y Contratos de Módulo
 
-**Componente:** Service Layer + API Gateway
+**Componente:** Backend Layer + API Gateway
 
-**Historia de Usuario:** Como desarrollador de frontend, quiero que los microservicios expongan APIs bien definidas y documentadas, para que pueda integrarme fácilmente sin conocer la implementación interna.
+**Historia de Usuario:** Como desarrollador de frontend, quiero que el backend exponga APIs bien definidas y documentadas, para que pueda integrarme fácilmente sin conocer la implementación interna.
 
 #### Criterios de Aceptación
 
-1. CUANDO se diseñen APIs ENTONCES DEBERÁ seguir principios gRPC y usar Protocol Buffers specification
+1. CUANDO se diseñen APIs internas ENTONCES DEBERÁ seguir principios REST y usar JSON schemas
 2. CUANDO se versionen APIs ENTONCES DEBERÁ mantener backward compatibility y deprecation policies
 3. CUANDO se documenten APIs ENTONCES DEBERÁ incluir ejemplos, códigos de error y rate limits
-4. CUANDO se cambien contratos ENTONCES DEBERÁ usar consumer-driven contract testing
-5. CUANDO se expongan GraphQL APIs ENTONCES DEBERÁ implementar schema federation para queries distribuidas
-6. CUANDO el API Gateway reciba queries ENTONCES DEBERÁ traducir a llamadas gRPC a microservicios
+4. CUANDO se cambien contratos ENTONCES DEBERÁ usar contract testing entre API Gateway y Backend
+5. CUANDO se expongan GraphQL APIs ENTONCES DEBERÁ implementar schema centralizado para queries unificadas
+6. CUANDO el API Gateway reciba queries ENTONCES DEBERÁ traducir a llamadas HTTP/REST al backend
+7. CUANDO se comuniquen módulos ENTONCES DEBERÁ usar interfaces bien definidas y documentadas
 
-### Requerimiento 26: Data Consistency y Transacciones Distribuidas
+### Requerimiento 26: Data Consistency y Transacciones Locales
 
-**Componente:** Service Layer + Keikochain
+**Componente:** Backend Layer + Keikochain
 
-**Historia de Usuario:** Como desarrollador de backend, quiero manejar la consistencia de datos entre microservicios y Keikochain, para que las operaciones complejas mantengan integridad.
+**Historia de Usuario:** Como desarrollador de backend, quiero manejar la consistencia de datos entre módulos del backend y Keikochain, para que las operaciones complejas mantengan integridad.
 
 #### Criterios de Aceptación
 
-1. CUANDO se requieran transacciones distribuidas ENTONCES DEBERÁ implementar Saga Pattern para coordinación
+1. CUANDO se requieran transacciones entre módulos ENTONCES DEBERÁ usar transacciones locales de PostgreSQL
 2. CUANDO se sincronicen datos ENTONCES DEBERÁ usar eventual consistency con compensating actions
 3. CUANDO se detecten inconsistencias ENTONCES DEBERÁ implementar reconciliation processes automáticos
 4. CUANDO se repliquen datos ENTONCES DEBERÁ usar event sourcing para mantener audit trail
-5. CUANDO se requiera consistencia fuerte ENTONCES DEBERÁ identificar bounded contexts que requieren transacciones locales
+5. CUANDO se requiera consistencia fuerte ENTONCES DEBERÁ usar transacciones ACID de PostgreSQL
 6. CUANDO se escriban datos críticos ENTONCES DEBERÁ enviar transacciones via gRPC Gateway a Keikochain como fuente de verdad
+7. CUANDO se comuniquen módulos ENTONCES DEBERÁ mantener consistencia eventual via eventos de dominio
 
-### Requerimiento 27: Service Discovery y Load Balancing
+### Requerimiento 27: Testing de Arquitectura Modular
 
-**Componente:** Service Layer + gRPC Gateway
+**Componente:** Backend Layer + API Gateway + gRPC Gateway + Keikochain
 
-**Historia de Usuario:** Como desarrollador de microservicios, quiero que los servicios se descubran automáticamente, para que no tenga que hardcodear direcciones IP y pueda escalar dinámicamente.
-
-#### Criterios de Aceptación
-
-1. CUANDO se desplieguen servicios ENTONCES DEBERÁ usar service discovery automático de Kubernetes
-2. CUANDO se balancee carga ENTONCES DEBERÁ implementar client-side load balancing con circuit breakers
-3. CUANDO se enruten requests ENTONCES DEBERÁ usar service mesh para traffic management
-4. CUANDO se requiera failover ENTONCES DEBERÁ implementar health checks y automatic failover
-5. CUANDO se escalen servicios ENTONCES DEBERÁ distribuir tráfico automáticamente a nuevas instancias
-6. CUANDO se comuniquen con Keikochain ENTONCES DEBERÁ usar el gRPC Gateway como punto de entrada único
-
-### Requerimiento 28: Testing de Microservicios
-
-**Componente:** Service Layer + gRPC Gateway + Keikochain
-
-**Historia de Usuario:** Como desarrollador, quiero estrategias de testing específicas para microservicios, para que pueda validar tanto servicios individuales como el sistema completo.
+**Historia de Usuario:** Como desarrollador, quiero estrategias de testing específicas para la arquitectura modular, para que pueda validar tanto módulos individuales como el sistema completo.
 
 #### Criterios de Aceptación
 
-1. CUANDO se prueben servicios individuales ENTONCES DEBERÁ implementar unit tests con mocks para dependencias
-2. CUANDO se prueben integraciones ENTONCES DEBERÁ usar contract testing entre servicios
+1. CUANDO se prueben módulos individuales ENTONCES DEBERÁ implementar unit tests con mocks para dependencias
+2. CUANDO se prueben integraciones ENTONCES DEBERÁ usar contract testing entre API Gateway y Backend
 3. CUANDO se pruebe el sistema completo ENTONCES DEBERÁ implementar end-to-end tests en entorno de staging
-4. CUANDO se pruebe performance ENTONCES DEBERÁ implementar load testing por servicio y sistema completo
+4. CUANDO se pruebe performance ENTONCES DEBERÁ implementar load testing del backend y sistema completo
 5. CUANDO se pruebe resiliencia ENTONCES DEBERÁ implementar chaos engineering para validar fault tolerance
 6. CUANDO se pruebe comunicación con Keikochain ENTONCES DEBERÁ usar mocks del gRPC Gateway
+7. CUANDO se prueben módulos ENTONCES DEBERÁ implementar integration tests entre módulos del backend
 
-### Requerimiento 29: Migración de Datos y Estado
+### Requerimiento 28: Estrategia de Base de Datos Modular
 
-**Componente:** Service Layer + Keikochain
+**Componente:** Backend Layer + PostgreSQL
 
-**Historia de Usuario:** Como DBA, quiero migrar datos hacia microservicios de forma segura, para que no se pierda información y se mantenga la integridad durante la transición.
-
-#### Criterios de Aceptación
-
-1. CUANDO se migren datos ENTONCES DEBERÁ crear estrategia de migración por fases con rollback capability
-2. CUANDO se sincronicen datos ENTONCES DEBERÁ mantener dual-write durante período de transición
-3. CUANDO se validen migraciones ENTONCES DEBERÁ implementar data validation y reconciliation
-4. CUANDO se complete migración ENTONCES DEBERÁ eliminar dual-write y limpiar datos legacy
-5. CUANDO se requiera rollback ENTONCES DEBERÁ poder revertir migración sin pérdida de datos
-6. CUANDO se migren datos críticos ENTONCES DEBERÁ mantener Keikochain como fuente de verdad inmutable
-
-### Requerimiento 30: Estrategia de Base de Datos para Recursos Limitados
-
-**Componente:** Service Layer + PostgreSQL
-
-**Historia de Usuario:** Como desarrollador con recursos limitados, quiero usar una estrategia pragmática de base de datos que mantenga la separación de dominios pero sea económicamente viable, para poder desarrollar microservicios sin la complejidad de múltiples instancias de base de datos.
+**Historia de Usuario:** Como desarrollador con recursos limitados, quiero usar una estrategia pragmática de base de datos que mantenga la separación de dominios pero sea económicamente viable, para poder desarrollar módulos sin la complejidad de múltiples instancias de base de datos.
 
 #### Criterios de Aceptación
 
-1. CUANDO se configure la base de datos ENTONCES DEBERÁ usar una única instancia PostgreSQL con schemas separados por servicio
-2. CUANDO se definan schemas ENTONCES DEBERÁ crear un schema por microservicio (identity_schema, learning_schema, reputation_schema, etc.)
-3. CUANDO se configuren conexiones ENTONCES cada microservicio DEBERÁ conectarse solo a su schema específico
+1. CUANDO se configure la base de datos ENTONCES DEBERÁ usar una única instancia PostgreSQL con schemas separados por módulo
+2. CUANDO se definan schemas ENTONCES DEBERÁ crear un schema por módulo (identity_schema, learning_schema, reputation_schema, etc.)
+3. CUANDO se configuren conexiones ENTONCES cada módulo DEBERÁ conectarse solo a su schema específico
 4. CUANDO se requiera escalabilidad ENTONCES DEBERÁ poder migrar fácilmente de schemas a bases de datos separadas
-5. CUANDO se implemente esta estrategia ENTONCES DEBERÁ documentar claramente la migración futura a Database per Service
+5. CUANDO se implemente esta estrategia ENTONCES DEBERÁ documentar claramente la migración futura a bases de datos separadas si es necesario
 6. CUANDO se despliegue en producción ENTONCES DEBERÁ evaluar la migración a bases de datos separadas según el crecimiento
+7. CUANDO se comuniquen módulos ENTONCES DEBERÁ usar transacciones locales de PostgreSQL para consistencia
 
 ### Requerimiento 31: Proof-of-Humanity con zkProofs para Firmar Interacciones de Aprendizaje
 
-**Componente:** Service Layer + gRPC Gateway + Keikochain + Frontend
+**Componente:** Backend Layer + gRPC Gateway + Keikochain + Frontend
 
 **Historia de Usuario:** Como usuario de la plataforma, quiero demostrar mi humanidad única usando datos biométricos (iris y genoma) con pruebas de conocimiento cero, para poder firmar mis interacciones de aprendizaje de forma única y verificable, garantizando que cada interacción proviene de una persona humana real.
 
@@ -581,14 +577,14 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 
 ### Requerimiento 34: Procesamiento Off-Chain de Datos Biométricos
 
-**Componente:** Service Layer (Rust Microservices)
+**Componente:** Backend Layer (Rust Monolítico)
 
 **Historia de Usuario:** Como desarrollador de backend, quiero procesar datos biométricos de forma segura off-chain, para generar la humanity_proof_key y pruebas STARK sin exponer datos sensibles en blockchain.
 
 #### Criterios de Aceptación
 
-1. CUANDO se procesan datos de iris ENTONCES el microservicio DEBERÁ usar OpenCV con Gabor filters para generar iris_hash
-2. CUANDO se procesan datos genómicos ENTONCES el microservicio DEBERÁ usar BioPython para analizar SNPs en archivos VCF/FASTA y generar genoma_hash
+1. CUANDO se procesan datos de iris ENTONCES el módulo Identity del Backend DEBERÁ usar OpenCV con Gabor filters para generar iris_hash
+2. CUANDO se procesan datos genómicos ENTONCES el módulo Identity del Backend DEBERÁ usar BioPython para analizar SNPs en archivos VCF/FASTA y generar genoma_hash
 3. CUANDO se genera la humanity_proof_key ENTONCES DEBERÁ usar SHA-256 con concatenación segura de iris_hash || genoma_hash || salt
 4. CUANDO se crean pruebas STARK ENTONCES DEBERÁ usar `cairo-lang` para generar pruebas que verifiquen la validez sin exponer inputs
 5. CUANDO se procesan datos biométricos ENTONCES DEBERÁ hacerse en un entorno seguro con cifrado en reposo y en tránsito
@@ -600,18 +596,18 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 
 **Componente:** gRPC Gateway Layer
 
-**Historia de Usuario:** Como desarrollador de microservicios, quiero un gateway que traduzca llamadas Rust a transacciones Cairo, para comunicarme con Keikochain sin conocer los detalles de implementación de Starknet.
+**Historia de Usuario:** Como desarrollador de backend, quiero un gateway que traduzca llamadas Rust a transacciones Cairo, para comunicarme con Keikochain sin conocer los detalles de implementación de Starknet.
 
 #### Criterios de Aceptación
 
-1. CUANDO se envían datos desde microservicios ENTONCES el gRPC Gateway DEBERÁ traducir tipos Rust a tipos Cairo compatibles
+1. CUANDO se envían datos desde el backend ENTONCES el gRPC Gateway DEBERÁ traducir tipos Rust a tipos Cairo compatibles
 2. CUANDO se invocan contratos ENTONCES DEBERÁ usar `starknet-rs` para comunicarse con el RPC de Keikochain
 3. CUANDO se procesan transacciones ENTONCES DEBERÁ manejar confirmaciones y estados de transacciones Starknet
 4. CUANDO ocurren errores ENTONCES DEBERÁ mapear errores de Starknet a errores gRPC comprensibles
 5. CUANDO se requiere optimización ENTONCES DEBERÁ implementar batching de transacciones cuando sea posible
 6. CUANDO se configura la conexión ENTONCES DEBERÁ usar el RPC endpoint de Keikochain (`wss://keikochain.karnot.xyz`)
 7. CUANDO se implementa el gateway ENTONCES DEBERÁ seguir patrones de resiliencia con circuit breakers y retry policies
-8. CUANDO se despliega ENTONCES DEBERÁ exponer un servidor gRPC en `localhost:50051` para comunicación con microservicios
+8. CUANDO se despliega ENTONCES DEBERÁ exponer un servidor gRPC en `localhost:50051` para comunicación con el backend
 
 ### Requerimiento 36: API Gateway con WebSocket Secure (WSS) para GraphQL Subscriptions
 
@@ -631,3 +627,107 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 8. CUANDO se maneje Proof-of-Humanity ENTONCES DEBERÁ usar encriptación adicional para datos biométricos en tránsito
 9. CUANDO se implemente el servidor WSS ENTONCES DEBERÁ usar `tokio-tungstenite` con soporte para GraphQL subscriptions
 10. CUANDO se configure WSS ENTONCES DEBERÁ exponer el endpoint en `wss://api.keikolatam.app/graphql-ws` con protocolo GraphQL WebSocket
+
+### Requerimiento 37: Scripts de Desarrollo Automatizados con Make
+
+**Componente:** DevOps + Desarrollo Local
+
+**Historia de Usuario:** Como desarrollador, quiero comandos `make` desde la raíz del repositorio para configurar rápidamente el entorno de desarrollo local, para acelerar el onboarding y reducir la configuración manual con una interfaz estándar y familiar.
+
+#### Criterios de Aceptación
+
+1. CUANDO se ejecute `make appchain-setup` ENTONCES el sistema DEBERÁ configurar Keikochain local, compilar y desplegar contratos Cairo automáticamente
+2. CUANDO se ejecute `make grpc-gateway-setup` ENTONCES el sistema DEBERÁ inicializar y levantar el gateway gRPC con todas las dependencias (asdf, Scarb, Starknet Foundry)
+3. CUANDO se ejecute `make backend-setup` ENTONCES el sistema DEBERÁ preparar dependencias (PostgreSQL, Redis) y levantar el backend monolítico
+4. CUANDO se ejecute `make poh-env` ENTONCES el sistema DEBERÁ crear `.venv` con dependencias para biometría y Cairo (OpenCV, BioPython, cairo-lang)
+5. CUANDO se ejecute `make dev-setup` ENTONCES el sistema DEBERÁ ejecutar todos los setups anteriores en secuencia para configuración completa
+6. CUANDO se ejecute `make appchain-start` ENTONCES DEBERÁ soportar flags como `FORCE_RECREATE=true`, `NON_INTERACTIVE=true`, `PROVIDER=podman|docker`
+7. CUANDO se ejecute `make poh-examples` ENTONCES DEBERÁ ejecutar ejemplos mínimos de procesamiento biométrico (iris con Gabor filters, genoma con BioPython)
+8. CUANDO se ejecute `make poh-key-gen` ENTONCES DEBERÁ generar ejemplos de cálculo de humanity_proof_key con `sha256(iris_hash || genoma_hash || salt)`
+9. CUANDO se ejecute `make help` ENTONCES DEBERÁ mostrar todos los comandos disponibles con descripciones
+10. CUANDO se ejecute `make clean` ENTONCES DEBERÁ limpiar contenedores, volúmenes y archivos temporales de desarrollo
+11. CUANDO se ejecute `make status` ENTONCES DEBERÁ mostrar el estado de todos los componentes (appchain, gRPC gateway, backend, bases de datos)
+12. CUANDO se implemente el Makefile ENTONCES DEBERÁ usar variables de entorno configurables y targets paralelos cuando sea posible
+
+### Requerimiento 38: Configuración Rápida de Desarrollo
+
+**Componente:** DevOps + Entorno de Desarrollo
+
+**Historia de Usuario:** Como desarrollador nuevo, quiero una configuración rápida que me permita empezar a desarrollar inmediatamente, para reducir el tiempo de setup y enfocarme en el desarrollo.
+
+#### Criterios de Aceptación
+
+1. CUANDO se ejecute `make install-deps` ENTONCES el sistema DEBERÁ instalar automáticamente Rust (stable + nightly), Cairo (1.0+), Flutter (3.0+)
+2. CUANDO se ejecute `make infra-setup` ENTONCES el sistema DEBERÁ configurar Docker y Docker Compose para servicios de infraestructura
+3. CUANDO se ejecute `make db-setup` ENTONCES el sistema DEBERÁ configurar PostgreSQL 14+ con schemas separados por módulo
+4. CUANDO se ejecute `make redis-setup` ENTONCES el sistema DEBERÁ configurar Redis 7+ para Redis Streams
+5. CUANDO se ejecute `make poh-setup` ENTONCES el sistema DEBERÁ crear ejemplos funcionales de procesamiento biométrico
+6. CUANDO se ejecute `make verify-setup` ENTONCES el sistema DEBERÁ proporcionar comandos de verificación para cada componente
+7. CUANDO se ejecute `make quick-start` ENTONCES el sistema DEBERÁ ejecutar toda la configuración en una sola operación
+8. CUANDO se configure el entorno ENTONCES DEBERÁ incluir validación de prerrequisitos del sistema
+9. CUANDO se complete la configuración ENTONCES DEBERÁ mostrar un resumen del estado y próximos pasos
+10. CUANDO falle algún paso ENTONCES DEBERÁ proporcionar mensajes de error claros y sugerencias de solución
+
+### Requerimiento 39: Seguimiento del Estado del Desarrollo
+
+**Componente:** Project Management + DevOps
+
+**Historia de Usuario:** Como desarrollador o stakeholder, quiero tener visibilidad clara del estado actual del desarrollo, para poder planificar y priorizar el trabajo efectivamente.
+
+#### Criterios de Aceptación
+
+1. CUANDO se documente el estado ENTONCES DEBERÁ categorizar por capas: Keikochain Layer, gRPC Gateway Layer, Backend Layer, API Gateway Layer, Frontend Layer
+2. CUANDO se actualice el estado ENTONCES DEBERÁ usar iconos claros: 🔄 Reiniciando, 🚧 En Desarrollo, 📋 Pendiente, ✅ Completado
+3. CUANDO se documente cada componente ENTONCES DEBERÁ incluir sub-tareas específicas y medibles
+4. CUANDO se complete una tarea ENTONCES DEBERÁ actualizarse el estado correspondiente en la documentación
+5. CUANDO se planifique el desarrollo ENTONCES DEBERÁ priorizarse según la arquitectura híbrida (de abajo hacia arriba)
+6. CUANDO se ejecute `make status` ENTONCES DEBERÁ mostrar el estado actual de todos los componentes del sistema
+7. CUANDO se ejecute `make progress` ENTONCES DEBERÁ mostrar métricas de progreso por capa y componente
+8. CUANDO se actualice el estado ENTONCES DEBERÁ mantener sincronización entre README.md y requirements.md
+9. CUANDO se documente el progreso ENTONCES DEBERÁ incluir estimaciones de tiempo y dependencias entre tareas
+10. CUANDO se complete un milestone ENTONCES DEBERÁ actualizarse automáticamente el estado en la documentación
+
+### Requerimiento 40: Observabilidad Específica por Capa
+
+**Componente:** Todas las capas (Frontend, API Gateway, Backend, gRPC Gateway, Keikochain)
+
+**Historia de Usuario:** Como desarrollador y operador del sistema, quiero observabilidad específica y optimizada para cada capa de la arquitectura, para poder diagnosticar problemas, monitorear performance y mantener la salud del sistema de manera eficiente.
+
+#### Criterios de Aceptación
+
+**Frontend Layer (Flutter):**
+1. CUANDO se implemente observabilidad en Flutter ENTONCES DEBERÁ usar `flutter_logs` y `sentry_flutter` para logging y error tracking
+2. CUANDO se monitoree performance ENTONCES DEBERÁ instrumentar métricas de UI rendering, network calls y memory usage
+3. CUANDO se trackeen errores ENTONCES DEBERÁ capturar stack traces completos y contexto de usuario
+4. CUANDO se analice uso ENTONCES DEBERÁ trackear eventos de navegación y interacciones críticas
+
+**API Gateway Layer (Rust + GraphQL):**
+5. CUANDO se implemente observabilidad en el API Gateway ENTONCES DEBERÁ usar OpenTelemetry con `tracing` y `metrics` para instrumentar queries GraphQL
+6. CUANDO se monitoree performance ENTONCES DEBERÁ trackear latencia de queries, throughput y error rates
+7. CUANDO se analice GraphQL ENTONCES DEBERÁ instrumentar query complexity, field-level metrics y resolver performance
+8. CUANDO se monitoree WSS ENTONCES DEBERÁ trackear conexiones activas, mensajes por segundo y reconexiones
+
+**Backend Layer (Rust Monolítico):**
+9. CUANDO se implemente observabilidad en el Backend ENTONCES DEBERÁ usar `tracing` con structured logging y métricas de módulos
+10. CUANDO se monitoree módulos ENTONCES DEBERÁ trackear performance por bounded context (Identity, Learning, Reputation, etc.)
+11. CUANDO se analice base de datos ENTONCES DEBERÁ instrumentar query performance, connection pools y transaction metrics
+12. CUANDO se monitoree Redis ENTONCES DEBERÁ trackear Redis Streams throughput, consumer lag y memory usage
+
+**gRPC Gateway Layer:**
+13. CUANDO se implemente observabilidad en el gRPC Gateway ENTONCES DEBERÁ usar `tonic` tracing y métricas de gRPC calls
+14. CUANDO se monitoree comunicación ENTONCES DEBERÁ trackear latencia de traducción Rust ↔ Cairo y error rates
+15. CUANDO se analice transacciones ENTONCES DEBERÁ instrumentar batching efficiency y confirmation times
+16. CUANDO se monitoree Keikochain ENTONCES DEBERÁ trackear connectivity, RPC response times y transaction success rates
+
+**Keikochain Layer (Cairo Contracts):**
+17. CUANDO se implemente observabilidad en Keikochain ENTONCES DEBERÁ usar eventos Cairo y métricas de contrato
+18. CUANDO se monitoree contratos ENTONCES DEBERÁ trackear gas usage, execution time y storage operations
+19. CUANDO se analice Proof-of-Humanity ENTONCES DEBERÁ instrumentar verificación de pruebas STARK y humanity_proof_key operations
+20. CUANDO se monitoree LearningInteractions ENTONCES DEBERÁ trackear throughput de interacciones y storage growth
+
+**Observabilidad Transversal:**
+21. CUANDO se implemente distributed tracing ENTONCES DEBERÁ usar OpenTelemetry con correlation IDs a través de todas las capas
+22. CUANDO se configure alerting ENTONCES DEBERÁ usar thresholds específicos por capa y tipo de métrica
+23. CUANDO se implemente dashboards ENTONCES DEBERÁ crear vistas separadas por capa con métricas relevantes
+24. CUANDO se configure logging ENTONCES DEBERÁ usar structured logging con niveles apropiados por capa
+25. CUANDO se implemente health checks ENTONCES DEBERÁ exponer endpoints específicos por capa con métricas de salud

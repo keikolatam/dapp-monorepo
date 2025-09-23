@@ -51,7 +51,7 @@
 
 ### Fase 1: Keikochain Layer (Starknet Appchain)
 
-- [ ] 1. Configurar Keikochain (Starknet Appchain)
+- [ ] 01. Configurar Keikochain (Starknet Appchain)
 
   - Configurar entorno de desarrollo con Starknet devnet
   - Configurar conexión a Keikochain (wss://keikochain.karnot.xyz)
@@ -60,16 +60,7 @@
   - Crear scripts de despliegue y testing para contratos Cairo
   - _Requerimientos: Configuración base de Keikochain_
 
-- [ ] 2. Migrar pallets Substrate a contratos Cairo
-
-  - Migrar pallet_learning_interactions → contrato learning_interactions.cairo
-  - Migrar pallet_life_learning_passport → contrato life_learning_passport.cairo
-  - Migrar pallet_reputation_system → contrato reputation_system.cairo
-  - Adaptar lógica de negocio de Rust/Substrate a Cairo/Starknet
-  - Mantener compatibilidad con estándar xAPI
-  - _Requerimientos: 2.1-2.10, 1.1-1.5, 5.1-5.9_
-
-- [ ] 3. Implementar contrato Proof-of-Humanity
+- [ ] 02. Implementar contrato Proof-of-Humanity
 
   - Crear contrato proof_of_humanity.cairo con verificación STARK
   - Implementar registro de humanity_proof_key con verificación de unicidad
@@ -78,7 +69,7 @@
   - Implementar tests unitarios para verificación STARK y Ed25519
   - _Requerimientos: Proof-of-Humanity con zkProofs_
 
-- [ ] 4. Implementar contrato Learning Interactions
+- [ ] 03. Implementar contrato Learning Interactions
 
   - Crear contrato learning_interactions.cairo con soporte xAPI completo
   - Implementar jerarquías educativas (Course, Class, TutorialSession)
@@ -87,7 +78,7 @@
   - Implementar tests unitarios para validación xAPI y jerarquías
   - _Requerimientos: 2.1-2.10, jerarquías educativas_
 
-- [ ] 5. Implementar contrato Life Learning Passport
+- [ ] 04. Implementar contrato Life Learning Passport
 
   - Crear contrato life_learning_passport.cairo con gestión de pasaportes
   - Implementar configuraciones de privacidad granulares
@@ -96,7 +87,7 @@
   - Implementar tests unitarios para gestión de pasaportes y privacidad
   - _Requerimientos: 1.1-1.5, perfiles de aprendizaje_
 
-- [ ] 6. Implementar contrato Reputation System
+- [ ] 05. Implementar contrato Reputation System
 
   - Crear contrato reputation_system.cairo con sistema de calificaciones
   - Implementar calificaciones con expiración de 30 días
@@ -105,7 +96,7 @@
   - Implementar tests unitarios para expiración y cálculo de reputación
   - _Requerimientos: 5.1-5.9, sistema de reputación dinámica_
 
-- [ ] 7. Implementar contrato Governance
+- [ ] 06. Implementar contrato Governance
 
   - Crear contrato governance.cairo con herramientas de gobernanza comunitaria
   - Implementar sistema de propuestas y votaciones democráticas
@@ -114,7 +105,7 @@
   - Implementar tests unitarios para sistema de gobernanza
   - _Requerimientos: 6.1-6.5, gobernanza comunitaria_
 
-- [ ] 8. Implementar contrato Marketplace
+- [ ] 07. Implementar contrato Marketplace
 
   - Crear contrato marketplace.cairo con gestión de espacios de aprendizaje
   - Implementar sistema de reservas y disponibilidad de espacios
@@ -123,7 +114,7 @@
   - Implementar tests unitarios para gestión de espacios y reservas
   - _Requerimientos: 15.1-15.8, marketplace de espacios seguros_
 
-- [ ] 9. Desplegar y probar contratos en Keikochain
+- [ ] 08. Desplegar y probar contratos en Keikochain
 
   - Desplegar todos los contratos Cairo en Keikochain (Starknet Appchain)
   - Configurar direcciones de contratos y actualizar configuración
@@ -134,7 +125,7 @@
 
 ### Fase 2: gRPC Gateway Layer
 
-- [ ] 10. Configurar gRPC Gateway base
+- [ ] 09. Configurar gRPC Gateway base
 
   - Crear estructura base del gRPC Gateway en grpc-gateway/
   - Configurar cliente Starknet RPC con WebSocketConnector
@@ -143,7 +134,7 @@
   - Crear configuración para diferentes entornos (dev, staging, production)
   - _Requerimientos: Configuración base del gRPC Gateway_
 
-- [ ] 11. Implementar traductor Rust ↔ Cairo
+- [ ] 10. Implementar traductor Rust ↔ Cairo
 
   - Crear módulo translator/ para conversión de tipos
   - Implementar conversión de tipos Rust a FieldElement (Cairo)
@@ -152,7 +143,7 @@
   - Implementar validación de tipos y manejo de errores
   - _Requerimientos: Traductor Rust ↔ Cairo_
 
-- [ ] 12. Implementar servicios gRPC para contratos Cairo
+- [ ] 11. Implementar servicios gRPC para contratos Cairo
 
   - Crear proto/learning.proto con servicios para Learning Interactions
   - Crear proto/passport.proto con servicios para Life Learning Passport
@@ -162,7 +153,7 @@
   - Implementar servidor gRPC con tonic para todos los servicios
   - _Requerimientos: Servicios gRPC para contratos Cairo_
 
-- [ ] 13. Implementar clientes gRPC para microservicios
+- [ ] 12. Implementar clientes gRPC para microservicios
 
   - Crear clientes gRPC para Identity, Learning, Reputation, Passport, Governance y Marketplace Services
   - Implementar pool de conexiones gRPC con load balancing y circuit breakers
@@ -171,7 +162,7 @@
   - Escribir tests para comunicación gRPC con mocks de microservicios
   - _Requerimientos: Comunicación gRPC con microservicios_
 
-- [ ] 14. Implementar manejo de transacciones y eventos
+- [ ] 13. Implementar manejo de transacciones y eventos
 
   - Implementar invocación de contratos Cairo via Starknet RPC
   - Implementar consultas de contratos Cairo via Starknet RPC
@@ -182,7 +173,7 @@
 
 ### Fase 4: Service Layer + API Gateway Layer
 
-- [ ] 15. Crear Identity Service
+- [ ] 14. Crear Identity Service
 
   - Crear directorio services/identity-service/ con estructura Rust + tonic
   - Implementar proto/identity.proto con servicios gRPC para autenticación y usuarios
