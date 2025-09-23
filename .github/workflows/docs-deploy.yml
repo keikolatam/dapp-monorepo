@@ -19,7 +19,7 @@ permissions:
 # Evitar jobs concurrentes
 concurrency:
   group: "pages"
-  cancel-in-pending: true
+  cancel-in-progress: true
 
 jobs:
   # =============================================================================
@@ -172,7 +172,7 @@ jobs:
             const body = `## 📚 Validación de documentación
             
             ### ✅ Resultado
-            ${{ job.status === 'success' ? '✅ **PASÓ** - La documentación se construyó exitosamente' : '❌ **FALLÓ** - Hay errores en la documentación' }}
+            ${{ job.status == 'success' && '✅ **PASÓ** - La documentación se construyó exitosamente' || '❌ **FALLÓ** - Hay errores en la documentación' }}
             
             ### 📋 Detalles
             - **Branch**: \`${{ github.head_ref || github.ref_name }}\`
@@ -184,7 +184,7 @@ jobs:
             - ✅ Construcción exitosa
             - ✅ Sin errores de sintaxis
             
-            ${{ job.status === 'success' ? '🎉 La documentación está lista para ser desplegada!' : '⚠️ Por favor, revisa los errores antes de hacer merge.' }}`;
+            ${{ job.status == 'success' && '🎉 La documentación está lista para ser desplegada!' || '⚠️ Por favor, revisa los errores antes de hacer merge.' }}`;
             
             if (botComment) {
               await github.rest.issues.updateComment({
