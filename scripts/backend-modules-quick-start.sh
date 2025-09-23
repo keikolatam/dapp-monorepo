@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Script de configuración rápida para el Services Layer - Keiko DApp
-# Instala Rust, herramientas de desarrollo y dependencias para microservicios
-# Basado en la documentación oficial de Rust y mejores prácticas para microservicios
+# Script de configuración rápida para el Backend Layer - Keiko DApp
+# Configura la aplicación monolítica modular en Rust con módulos organizados por dominio
+# Basado en la arquitectura híbrida de Keiko Latam según design.md
 
 set -e  # Salir si cualquier comando falla
 
@@ -344,38 +344,38 @@ EOF
 
 # Función para crear estructura básica del proyecto
 create_project_structure() {
-    print_status "Creando estructura básica del proyecto..."
+    print_status "Creando estructura del backend monolítico modular..."
     
-    # Crear directorios para microservicios
-    mkdir -p {identity-service,learning-service,reputation-service,passport-service,governance-service,marketplace-service,ai-tutor-service}
+    # Crear directorios para módulos del backend según design.md
+    mkdir -p backend/modules/{identity,learning_passport,reputation,governance,marketplace,selfstudy_guides}
+    mkdir -p backend/shared
+    mkdir -p backend/src
     
-    # Crear directorio para componentes compartidos
-    mkdir -p shared/{auth,config,database,grpc,logging,metrics,utils}
+    # Crear directorio para componentes compartidos cross-cutting
+    mkdir -p shared/{types,proto,utils,events,observability}
     
     # Crear archivo Cargo.toml principal para workspace
     cat > Cargo.toml << EOF
 [workspace]
 members = [
-    "identity-service",
-    "learning-service", 
-    "reputation-service",
-    "passport-service",
-    "governance-service",
-    "marketplace-service",
-    "ai-tutor-service",
-    "shared/auth",
-    "shared/config",
-    "shared/database",
-    "shared/grpc",
-    "shared/logging",
-    "shared/metrics",
+    "backend",
+    "backend/modules/identity",
+    "backend/modules/learning_passport",
+    "backend/modules/reputation",
+    "backend/modules/governance",
+    "backend/modules/marketplace",
+    "backend/modules/selfstudy_guides",
+    "shared/types",
+    "shared/proto",
     "shared/utils",
+    "shared/events",
+    "shared/observability",
 ]
 
 resolver = "2"
 
 [workspace.dependencies]
-# Dependencias comunes para todos los microservicios
+# Dependencias comunes para el backend monolítico modular
 tokio = { version = "1.0", features = ["full"] }
 tonic = "0.12"
 prost = "0.13"
@@ -394,6 +394,9 @@ sha2 = "0.10"
 ed25519-dalek = "2.0"
 jsonwebtoken = "9.0"
 argon2 = "0.5"
+axum = { version = "0.7", features = ["json", "ws"] }
+tower = "0.4"
+tower-http = { version = "0.5", features = ["cors", "trace"] }
 fido2 = "0.1"
 opencv = "0.88"
 bio = "1.5"
@@ -425,7 +428,281 @@ env_logger = "0.10"
 log = "0.4"
 EOF
 
-    print_success "Estructura del proyecto creada"
+    # Crear Cargo.toml para cada módulo del backend
+    for module in identity learning_passport reputation governance marketplace selfstudy_guides; do
+        cat > "backend/modules/$module/Cargo.toml" << EOF
+[package]
+name = "$module"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+sqlx = { workspace = true }
+redis = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+shared = { path = "../../shared" }
+
+# Dependencias específicas por módulo
+EOF
+        
+        # Agregar dependencias específicas por módulo
+        case $module in
+            "identity")
+                cat >> "backend/modules/$module/Cargo.toml" << EOF
+jsonwebtoken = { workspace = true }
+argon2 = { workspace = true }
+fido2 = { workspace = true }
+base64 = { workspace = true }
+sha2 = { workspace = true }
+ed25519-dalek = { workspace = true }
+EOF
+                ;;
+            "learning_passport")
+                cat >> "backend/modules/$module/Cargo.toml" << EOF
+cairo-lang = { workspace = true }
+starknet-rs = { workspace = true }
+url = { workspace = true }
+reqwest = { workspace = true }
+regex = { workspace = true }
+opencv = { workspace = true }
+bio = { workspace = true }
+base64 = { workspace = true }
+sha2 = { workspace = true }
+ed25519-dalek = { workspace = true }
+EOF
+                ;;
+            "reputation")
+                cat >> "backend/modules/$module/Cargo.toml" << EOF
+dashmap = { workspace = true }
+parking_lot = { workspace = true }
+crossbeam = { workspace = true }
+rayon = { workspace = true }
+EOF
+                ;;
+            "governance")
+                cat >> "backend/modules/$module/Cargo.toml" << EOF
+clap = { workspace = true }
+config = { workspace = true }
+dotenvy = { workspace = true }
+EOF
+                ;;
+            "marketplace")
+                cat >> "backend/modules/$module/Cargo.toml" << EOF
+axum = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+tungstenite = { workspace = true }
+futures-util = { workspace = true }
+async-trait = { workspace = true }
+EOF
+                ;;
+            "selfstudy_guides")
+                cat >> "backend/modules/$module/Cargo.toml" << EOF
+opencv = { workspace = true }
+bio = { workspace = true }
+prometheus = { workspace = true }
+opentelemetry = { workspace = true }
+opentelemetry-jaeger = { workspace = true }
+opentelemetry-prometheus = { workspace = true }
+EOF
+                ;;
+        esac
+        
+        # Crear estructura básica del módulo
+        mkdir -p "backend/modules/$module/src"
+        
+        # Crear lib.rs para cada módulo
+        cat > "backend/modules/$module/src/lib.rs" << EOF
+use anyhow::Result;
+
+pub mod domain;
+pub mod repository;
+pub mod service;
+
+/// Inicializar el módulo $module
+pub async fn init() -> Result<()> {
+    tracing::info!("Inicializando módulo $module");
+    
+    // TODO: Implementar inicialización del módulo
+    // - Conexión a base de datos
+    // - Configuración de Redis Streams
+    // - Registro de eventos de dominio
+    
+    Ok(())
+}
+
+/// Cerrar el módulo $module
+pub async fn shutdown() -> Result<()> {
+    tracing::info!("Cerrando módulo $module");
+    
+    // TODO: Implementar limpieza del módulo
+    // - Cerrar conexiones
+    // - Finalizar streams
+    
+    Ok(())
+}
+EOF
+        
+        # Crear archivos básicos del módulo
+        mkdir -p "backend/modules/$module/src/{domain,repository,service}"
+        
+        cat > "backend/modules/$module/src/domain/mod.rs" << EOF
+// Entidades de dominio para el módulo $module
+
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
+use chrono::{DateTime, Utc};
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ${module^}Id(pub Uuid);
+
+impl ${module^}Id {
+    pub fn new() -> Self {
+        Self(Uuid::new_v4())
+    }
+}
+
+// TODO: Implementar entidades específicas del módulo $module
+EOF
+        
+        cat > "backend/modules/$module/src/repository/mod.rs" << EOF
+// Repositorios para persistencia del módulo $module
+
+use anyhow::Result;
+use sqlx::PgPool;
+
+pub struct ${module^}Repository {
+    pool: PgPool,
+}
+
+impl ${module^}Repository {
+    pub fn new(pool: PgPool) -> Self {
+        Self { pool }
+    }
+    
+    // TODO: Implementar métodos de repositorio específicos del módulo $module
+}
+EOF
+        
+        cat > "backend/modules/$module/src/service/mod.rs" << EOF
+// Servicios de aplicación para el módulo $module
+
+use anyhow::Result;
+use crate::repository::${module^}Repository;
+
+pub struct ${module^}Service {
+    repository: ${module^}Repository,
+}
+
+impl ${module^}Service {
+    pub fn new(repository: ${module^}Repository) -> Self {
+        Self { repository }
+    }
+    
+    // TODO: Implementar lógica de negocio específica del módulo $module
+}
+EOF
+        
+        print_success "Módulo $module configurado"
+    done
+    
+    # Crear Cargo.toml principal del backend
+    cat > "backend/Cargo.toml" << EOF
+[package]
+name = "keiko-backend"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "keiko-backend"
+path = "src/main.rs"
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+sqlx = { workspace = true }
+redis = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+axum = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+tonic = { workspace = true }
+prost = { workspace = true }
+
+# Módulos internos
+identity = { path = "modules/identity" }
+learning_passport = { path = "modules/learning_passport" }
+reputation = { path = "modules/reputation" }
+governance = { path = "modules/governance" }
+marketplace = { path = "modules/marketplace" }
+selfstudy_guides = { path = "modules/selfstudy_guides" }
+shared = { path = "../shared" }
+EOF
+    
+    # Crear main.rs del backend monolítico
+    cat > "backend/src/main.rs" << EOF
+use anyhow::Result;
+use tokio::signal;
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    // Inicializar logging
+    tracing_subscriber::init();
+    
+    tracing::info!("🎓 Iniciando Keiko Backend - Aplicación Monolítica Modular");
+    
+    // Inicializar todos los módulos
+    identity::init().await?;
+    learning_passport::init().await?;
+    reputation::init().await?;
+    governance::init().await?;
+    marketplace::init().await?;
+    selfstudy_guides::init().await?;
+    
+    tracing::info!("✅ Todos los módulos inicializados correctamente");
+    
+    // Configurar shutdown graceful
+    let shutdown = async {
+        signal::ctrl_c()
+            .await
+            .expect("Failed to install CTRL+C signal handler");
+        tracing::info!("🛑 Señal de shutdown recibida");
+    };
+    
+    // TODO: Iniciar servidor HTTP y gRPC
+    // let server = start_http_server();
+    // let grpc_server = start_grpc_server();
+    
+    // Esperar shutdown
+    shutdown.await;
+    
+    // Cerrar módulos
+    tracing::info!("🔄 Cerrando módulos...");
+    identity::shutdown().await?;
+    learning_passport::shutdown().await?;
+    reputation::shutdown().await?;
+    governance::shutdown().await?;
+    marketplace::shutdown().await?;
+    selfstudy_guides::shutdown().await?;
+    
+    tracing::info!("👋 Keiko Backend cerrado correctamente");
+    Ok(())
+}
+EOF
+
+    print_success "Estructura del backend monolítico modular creada"
 }
 
 # Función para verificar instalaciones

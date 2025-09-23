@@ -731,3 +731,104 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 23. CUANDO se implemente dashboards ENTONCES DEBERÁ crear vistas separadas por capa con métricas relevantes
 24. CUANDO se configure logging ENTONCES DEBERÁ usar structured logging con niveles apropiados por capa
 25. CUANDO se implemente health checks ENTONCES DEBERÁ exponer endpoints específicos por capa con métricas de salud
+
+### Requerimiento 41: Infraestructura como Código con Terraform
+
+**Componente:** DevOps + OVHCloud Infrastructure
+
+**Historia de Usuario:** Como DevOps engineer, quiero gestionar toda la infraestructura de OVHCloud usando Terraform, para que el aprovisionamiento sea reproducible, versionado y automatizado.
+
+#### Criterios de Aceptación
+
+1. CUANDO se provisione infraestructura ENTONCES Terraform DEBERÁ crear tres clusters de Kubernetes en OVHCloud: "keikolatam-dev", "keikolatam-qa", "keikolatam-stage", "keikolatam-production"
+2. CUANDO se configuren recursos ENTONCES DEBERÁ incluir bases de datos PostgreSQL independientes por servicio en cada entorno
+3. CUANDO se desplieguen los clusters ENTONCES DEBERÁ configurar node pools diferenciados (system y applications) con sizing apropiado por entorno
+4. CUANDO se gestione el estado ENTONCES Terraform DEBERÁ usar remote state backend separado por entorno en OVH Object Storage (buckets: keikolatam-terraform-state-dev/qa/stage/prod)
+5. CUANDO se actualice infraestructura ENTONCES DEBERÁ seguir el principio de immutable infrastructure y promote changes dev → qa → stage → production
+
+### Requerimiento 42: GitOps con ArgoCD
+
+**Componente:** DevOps + Kubernetes
+
+**Historia de Usuario:** Como desarrollador, quiero que los deployments de aplicaciones sean automáticos y declarativos usando GitOps, para que cualquier cambio en Git se refleje automáticamente en el cluster.
+
+#### Criterios de Aceptación
+
+1. CUANDO se instale ArgoCD ENTONCES DEBERÁ configurarse automáticamente via Terraform en cada cluster (dev, qa, stage, production)
+2. CUANDO se implemente App of Apps ENTONCES ArgoCD DEBERÁ gestionar todas las aplicaciones desde repositorios centrales con overlays por entorno
+3. CUANDO se actualice código ENTONCES DEBERÁ triggear automáticamente el rebuild y redeploy siguiendo el flujo dev → qa → stage → production
+4. CUANDO se detecten cambios en Git ENTONCES ArgoCD DEBERÁ sincronizar automáticamente el estado del cluster correspondiente
+5. CUANDO ocurra drift configuration ENTONCES ArgoCD DEBERÁ auto-heal y restaurar el estado deseado en cada entorno
+
+### Requerimiento 43: CI/CD Pipeline Automatizado
+
+**Componente:** DevOps + GitHub Actions
+
+**Historia de Usuario:** Como desarrollador, quiero que cada servicio tenga su propio pipeline de CI/CD, para que pueda desplegar cambios de forma rápida y segura sin afectar otros servicios.
+
+#### Criterios de Aceptación
+
+1. CUANDO se haga commit a develop ENTONCES DEBERÁ triggear automáticamente deploy a dev, commit a qa DEBERÁ deploy a qa, commit a staging DEBERÁ deploy a stage, commit a main DEBERÁ deploy a production
+2. CUANDO se construya imagen ENTONCES DEBERÁ taggearse con commit SHA y pushearse al registry de OVH (registry.gra.cloud.ovh.net/keikolatam/)
+3. CUANDO se actualice imagen ENTONCES DEBERÁ modificar automáticamente los manifiestos de Kubernetes del entorno correspondiente
+4. CUANDO se ejecuten tests ENTONCES DEBERÁ incluir unit tests en dev, integration tests en qa, UAT tests en stage, y smoke tests en production
+5. CUANDO falle el pipeline ENTONCES DEBERÁ notificar automáticamente, bloquear promoción a siguiente entorno y permitir rollback
+
+### Requerimiento 44: Gestión de Secretos y Configuración
+
+**Componente:** DevOps + Security
+
+**Historia de Usuario:** Como DevOps engineer, quiero gestionar secretos y configuración de forma centralizada y segura, para que las credenciales estén protegidas y la configuración sea consistente entre entornos.
+
+#### Criterios de Aceptación
+
+1. CUANDO se gestionen secretos ENTONCES DEBERÁ usar External Secrets Operator para sincronizar desde OVHCloud Secret Manager
+2. CUANDO se configure aplicaciones ENTONCES DEBERÁ usar Helm charts con values específicos por entorno
+3. CUANDO se roten credenciales ENTONCES DEBERÁ implementar rotación automática sin downtime
+4. CUANDO se auditen accesos ENTONCES DEBERÁ mantener logs de acceso a secretos y configuración
+5. CUANDO se encripten datos ENTONCES DEBERÁ usar encryption at rest para todos los secretos en Kubernetes
+
+### Requerimiento 47: Gestión de Secretos con OVHCloud Secret Manager
+
+**Componente:** DevOps + Security + OVHCloud Secret Manager
+
+**Historia de Usuario:** Como DevOps engineer, quiero usar OVHCloud Secret Manager para gestionar secretos de forma centralizada y segura, para aprovechar la integración nativa con el ecosistema OVHCloud y reducir la complejidad operacional.
+
+#### Criterios de Aceptación
+
+1. CUANDO se configure OVHCloud Secret Manager ENTONCES DEBERÁ usar el servicio nativo de OVHCloud disponible en la región eu-west-par
+2. CUANDO se integre con Kubernetes ENTONCES DEBERÁ usar External Secrets Operator para sincronización automática con Kubernetes Secrets
+3. CUANDO se configuren credenciales de acceso ENTONCES DEBERÁ usar OVHCloud IAM con roles específicos para Keiko
+4. CUANDO se auditen accesos ENTONCES DEBERÁ usar los logs de auditoría integrados de OVHCloud Logs Platform
+5. CUANDO se roten secretos ENTONCES DEBERÁ implementar rotación automática sin downtime usando External Secrets Operator
+6. CUANDO se configuren secretos específicos ENTONCES DEBERÁ incluir: credenciales de base de datos, JWT secrets, Redis credentials, certificados TLS y claves de Proof-of-Humanity
+7. CUANDO se implemente como fallback ENTONCES DEBERÁ considerar HashiCorp Vault como alternativa si OVHCloud Secret Manager no cumple con los requisitos específicos
+8. CUANDO se monitoree el sistema ENTONCES DEBERÁ integrar métricas de External Secrets Operator con Prometheus para observabilidad completa
+
+### Requerimiento 45: Backup y Disaster Recovery
+
+**Componente:** DevOps + Data Management
+
+**Historia de Usuario:** Como SRE, quiero tener backups automáticos y un plan de disaster recovery, para que pueda recuperar el sistema en caso de fallos catastróficos.
+
+#### Criterios de Aceptación
+
+1. CUANDO se ejecuten backups ENTONCES DEBERÁ hacer backup automático de bases de datos PostgreSQL cada 6 horas
+2. CUANDO se respalden configuraciones ENTONCES DEBERÁ hacer backup de manifiestos Kubernetes y configuración de ArgoCD
+3. CUANDO se requiera recovery ENTONCES DEBERÁ poder restaurar cualquier entorno en menos de 2 horas
+4. CUANDO se pruebe disaster recovery ENTONCES DEBERÁ ejecutar drills de recovery mensualmente
+5. CUANDO se almacenen backups ENTONCES DEBERÁ usar OVH Object Storage con retención de 30 días para backups diarios y 1 año para backups semanales
+
+### Requerimiento 46: Networking y Seguridad de Red
+
+**Componente:** DevOps + Security
+
+**Historia de Usuario:** Como security engineer, quiero que la red esté segura y bien configurada, para que solo el tráfico autorizado pueda acceder a los servicios.
+
+#### Criterios de Aceptación
+
+1. CUANDO se configure networking ENTONCES DEBERÁ usar Network Policies de Kubernetes para microsegmentación
+2. CUANDO se exponga servicios ENTONCES DEBERÁ usar Ingress Controller con TLS automático via cert-manager
+3. CUANDO se comuniquen servicios ENTONCES DEBERÁ implementar service mesh con Istio para mTLS automático
+4. CUANDO se acceda externamente ENTONCES DEBERÁ implementar WAF (Web Application Firewall) en el Ingress
+5. CUANDO se monitoree tráfico ENTONCES DEBERÁ implementar network monitoring y detección de anomalías

@@ -16,25 +16,25 @@ Keiko se basa en cuatro pilares fundamentales:
 La arquitectura del proyecto se organiza en cinco capas principales con estructura de carpetas correspondiente:
 
 - **Keikochain Layer** (`appchain/`): Contratos Cairo en Keikochain (Starknet Appchain) para almacenamiento inmutable y consenso
-- **gRPC Gateway Layer** (`grpc-gateway/`): Traductor Rust ↔ Cairo que comunica microservicios con Keikochain (Starknet Appchain)
-- **Service Layer** (`services/`): Microservicios Rust con comunicación gRPC, cache PostgreSQL local, y eventos Redis Streams
-- **API Layer** (`api-gateway/`): API Gateway GraphQL que traduce queries del frontend a llamadas gRPC y orquesta respuestas, con comunicación WSS para GraphQL subscriptions
+- **gRPC Gateway Layer** (`grpc-gateway/`): Traductor Rust ↔ Cairo que comunica el backend modular con Keikochain (Starknet Appchain)
+- **Backend Layer** (`backend/`): Aplicación monolítica modular en Rust con cache PostgreSQL local, y eventos Redis Streams
+- **API Layer** (`api-gateway/`): API Gateway GraphQL que traduce queries del frontend a llamadas HTTP/REST y orquesta respuestas, con comunicación WSS para GraphQL subscriptions
 - **Frontend Layer** (`frontend/`): Aplicación Flutter multiplataforma que se comunica exclusivamente via GraphQL
 
 ### Flujo de Datos Híbrido
 
-- **Escritura**: Flutter → GraphQL (HTTPS) → Microservicio → gRPC Gateway → Keikochain Contract → Evento Redis → GraphQL Subscription (WSS)
-- **Lectura**: Flutter → GraphQL (HTTPS) → Microservicio → Cache/DB local → (fallback) gRPC Gateway → Keikochain Contract
-- **Tiempo Real**: Keikochain Contract → gRPC Gateway → Microservicio → Redis Streams → API Gateway → GraphQL Subscription (WSS) → Flutter
-- **Autenticación**: Flutter → FIDO2 → JWT → WSS Headers → API Gateway → gRPC Metadata → Microservicios
-- **Importación**: LRS Externos → REST Webhooks → API Gateway → gRPC → Learning Service → gRPC Gateway → Keikochain Contract
+- **Escritura**: Flutter → GraphQL (HTTPS) → HTTP/REST → Backend → gRPC Gateway → Keikochain Contract → Evento Redis → GraphQL Subscription (WSS)
+- **Lectura**: Flutter → GraphQL (HTTPS) → HTTP/REST → Backend → Cache/DB local → (fallback) gRPC Gateway → Keikochain Contract
+- **Tiempo Real**: Keikochain Contract → gRPC Gateway → Backend → Redis Streams → API Gateway → GraphQL Subscription (WSS) → Flutter
+- **Autenticación**: Flutter → FIDO2 → JWT → WSS Headers → API Gateway → HTTP Headers → Backend
+- **Importación**: LRS Externos → REST Webhooks → API Gateway → HTTP/REST → Backend → gRPC Gateway → Keikochain Contract
 
 ### Principios de Diseño
 
 1. **Atomicidad**: Cada interacción de aprendizaje es una unidad indivisible y verificable
 2. **Interoperabilidad**: Compatibilidad total con estándares xAPI y ecosistemas educativos existentes
 3. **Descentralización**: Datos inmutables en blockchain con control de privacidad del usuario
-4. **Escalabilidad**: Arquitectura de microservicios que soporta crecimiento orgánico
+4. **Escalabilidad**: Arquitectura modular que soporta crecimiento orgánico y permite extracción gradual a microservicios
 5. **Experiencia de Usuario**: Interfaz intuitiva que abstrae la complejidad blockchain
 6. **Resiliencia**: Tolerancia a fallos con aislamiento de servicios y recuperación automática
 7. **Observabilidad**: Monitoreo completo con métricas, logs y trazas distribuidas
@@ -42,18 +42,18 @@ La arquitectura del proyecto se organiza en cinco capas principales con estructu
 
 ## Arquitectura
 
-### Evolución Arquitectónica: Monolito → Microservicios
+### Evolución Arquitectónica: Monolito → Backend Modular
 
-La arquitectura de Keiko evoluciona desde una parachain monolítica hacia microservicios cloud-native:
+La arquitectura de Keiko evoluciona desde una parachain monolítica hacia una aplicación monolítica modular:
 
 **Fase 1 (Completada)**: Migración de Polkadot parachain a Starknet appchain (Keikochain)
-**Fase 2 (Actual)**: Implementación de arquitectura híbrida de cinco capas
-**Fase 3 (En Progreso)**: Descomposición gradual usando Strangler Fig Pattern
-**Fase 4 (Objetivo)**: Microservicios cloud-native completamente independientes
+**Fase 2 (Actual)**: Implementación de arquitectura híbrida de cinco capas con backend modular
+**Fase 3 (Futura)**: Extracción gradual de módulos a microservicios cuando sea necesario
+**Fase 4 (Opcional)**: Microservicios cloud-native completamente independientes (si se requiere escalabilidad extrema)
 
 ### Estructura del Proyecto
 
-Siguiendo los principios de microservicios y la arquitectura de cinco capas, la estructura del proyecto se organiza de manera que cada capa tenga responsabilidades claras y esté desacoplada:
+Siguiendo los principios de arquitectura modular y la arquitectura de cinco capas, la estructura del proyecto se organiza de manera que cada capa tenga responsabilidades claras y esté desacoplada:
 
 ```
 keiko/
@@ -73,15 +73,17 @@ keiko/
 │   ├── server/                       # Servidor gRPC Gateway
 │   ├── translator/                   # Traductor Rust ↔ Cairo
 │   └── config/                       # Configuración del gateway
-├── services/                         # 🔧 Service Layer (Microservicios independientes)
-│   ├── identity_service/             # Autenticación y usuarios (Database per Service)
-│   ├── learning_service/             # Procesamiento xAPI (Database per Service)
-│   ├── reputation_service/           # Cálculo de reputación (Database per Service)
-│   ├── passport_service/             # Agregación de pasaportes (Database per Service)
-│   ├── governance_service/           # Herramientas de gobernanza (Database per Service)
-│   ├── marketplace_service/          # Gestión de espacios (Database per Service)
-│   ├── ai_tutor_service/             # Tutores IA especializados (Database per Service)
-│   └── self_study_service/           # Guías de auto-estudio (Database per Service)
+├── backend/                          # 🔧 Backend Layer (Aplicación Monolítica Modular)
+│   ├── modules/                      # Módulos organizados por dominio
+│   │   ├── identity/                 # Autenticación y usuarios (Schema separado)
+│   │   ├── learning/                 # Procesamiento xAPI (Schema separado)
+│   │   ├── reputation/               # Cálculo de reputación (Schema separado)
+│   │   ├── passport/                 # Agregación de pasaportes (Schema separado)
+│   │   ├── governance/               # Herramientas de gobernanza (Schema separado)
+│   │   ├── marketplace/              # Gestión de espacios (Schema separado)
+│   │   └── selfstudy_guides/         # Guías de auto-estudio evaluadas por agente IA (Schema separado)
+│   ├── shared/                       # Componentes compartidos del backend
+│   └── main.rs                       # Punto de entrada monolítico
 ├── api-gateway/                      # 🌐 API Layer (API Gateway + Panel Admin)
 │   ├── graphql_server/               # Servidor GraphQL principal
 │   ├── rest_endpoints/               # Endpoints REST para LRS externos
@@ -103,35 +105,35 @@ keiko/
 
 ### Principios de Arquitectura Aplicados
 
-Esta estructura sigue los principios fundamentales de microservicios:
+Esta estructura sigue los principios fundamentales de arquitectura modular:
 
 #### **1. Twelve-Factor App**
-- **Base de Código Única**: Cada servicio tiene su propio directorio y repositorio
-- **Dependencias Explícitas**: Cada servicio declara sus dependencias en `Cargo.toml`
+- **Base de Código Única**: Una sola aplicación con módulos organizados por dominio
+- **Dependencias Explícitas**: Todas las dependencias declaradas en `Cargo.toml` principal
 - **Configuración Externa**: Configuración gestionada via `config/` y variables de entorno
-- **Servicios de Respaldo**: Bases de datos y Redis como recursos adjuntos
-- **Procesos sin Estado**: Cada servicio es stateless, estado en PostgreSQL/Redis
-- **Vinculación de Puertos**: Cada servicio expone su propio puerto
-- **Escalado por Concurrencia**: Escalado horizontal agregando instancias
-- **Disponibilidad Rápida**: Servicios diseñados para startup/shutdown rápido
+- **Servicios de Respaldo**: Base de datos PostgreSQL única y Redis como recursos adjuntos
+- **Procesos sin Estado**: La aplicación es stateless, estado en PostgreSQL/Redis
+- **Vinculación de Puertos**: Una sola aplicación expone un puerto HTTP
+- **Escalado por Concurrencia**: Escalado horizontal agregando instancias de la aplicación
+- **Disponibilidad Rápida**: Aplicación diseñada para startup/shutdown rápido
 - **Paridad Dev/Prod**: Misma configuración en todos los entornos
 - **Logs como Flujos**: Logs a stdout/stderr para agregación
-- **Procesos Admin**: Tareas administrativas como Jobs de Kubernetes
+- **Procesos Admin**: Tareas administrativas como comandos CLI integrados
 
-#### **2. Microservicios (Autocontenidos)**
-- **Responsabilidad Única**: Cada servicio maneja un dominio específico
-- **Acoplamiento Flexible**: Servicios independientes con APIs bien definidas
-- **Tolerancia a Fallos**: Circuit breakers y retry policies implementados
-- **Gestión de Datos Descentralizada**: Database per Service con schemas separados
+#### **2. Arquitectura Modular (Monolítica)**
+- **Responsabilidad Única**: Cada módulo maneja un dominio específico
+- **Acoplamiento Flexible**: Módulos independientes con interfaces bien definidas
+- **Tolerancia a Fallos**: Circuit breakers internos y retry policies implementados
+- **Gestión de Datos Modular**: Base de datos única con schemas separados por módulo
 - **Separación de Preocupaciones**: Cada capa tiene responsabilidades claras
 
 #### **3. Patrones de Diseño**
 - **API Gateway**: Punto único de entrada para clientes
-- **Database per Service**: Cada servicio tiene su propia base de datos
-- **Event-Driven**: Comunicación asíncrona via Redis Streams
-- **Circuit Breaker**: Resiliencia ante fallos de servicios
+- **Schema per Module**: Cada módulo tiene su propio schema en la base de datos única
+- **Event-Driven**: Comunicación asíncrona entre módulos via Redis Streams
+- **Circuit Breaker**: Resiliencia ante fallos internos de módulos
 - **CQRS**: Separación de comandos y queries
-- **Saga**: Transacciones distribuidas coordinadas
+- **Saga**: Transacciones distribuidas coordinadas entre módulos
 
 ### Arquitectura Híbrida de Cinco Capas
 
@@ -147,15 +149,15 @@ graph TB
         LoadBalancer[Load Balancer]
     end
 
-    subgraph "Service Layer"
-        IdentityService[Identity Service<br/>gRPC]
-        LearningService[Learning Service<br/>gRPC]
-        ReputationService[Reputation Service<br/>gRPC]
-        PassportService[Passport Service<br/>gRPC]
-        GovernanceService[Governance Service<br/>gRPC]
-        MarketplaceService[Marketplace Service<br/>gRPC]
-        AITutorService[AI Tutor Service<br/>gRPC]
-        SelfStudyService[Self Study Service<br/>gRPC]
+    subgraph "Backend Layer"
+        BackendApp[Backend Monolítico<br/>HTTP/REST]
+        IdentityModule[Identity Module]
+        LearningModule[Learning Module]
+        ReputationModule[Reputation Module]
+        PassportModule[Passport Module]
+        GovernanceModule[Governance Module]
+        MarketplaceModule[Marketplace Module]
+        SelfStudyModule[Self Study Module]
     end
 
     subgraph "gRPC Gateway Layer"
@@ -169,10 +171,13 @@ graph TB
     end
 
     subgraph "Data & Events Layer"
-        IdentityDB[(Identity DB<br/>PostgreSQL)]
-        LearningDB[(Learning DB<br/>PostgreSQL)]
-        ReputationDB[(Reputation DB<br/>PostgreSQL)]
-        PassportDB[(Passport DB<br/>PostgreSQL)]
+        IdentitySchema[(Identity Schema<br/>PostgreSQL)]
+        LearningSchema[(Learning Schema<br/>PostgreSQL)]
+        ReputationSchema[(Reputation Schema<br/>PostgreSQL)]
+        PassportSchema[(Passport Schema<br/>PostgreSQL)]
+        GovernanceSchema[(Governance Schema<br/>PostgreSQL)]
+        MarketplaceSchema[(Marketplace Schema<br/>PostgreSQL)]
+        SelfStudySchema[(Self Study Schema<br/>PostgreSQL)]
         RedisStreams[(Redis Streams<br/>Event Bus)]
         RedisCache[(Redis Cache<br/>Session Store)]
     end
@@ -190,7 +195,7 @@ graph TB
         Prometheus[Prometheus<br/>Metrics]
         Grafana[Grafana<br/>Dashboards]
         Jaeger[Jaeger<br/>Tracing]
-        ELK[ELK Stack<br/>Logging]
+        OpenTelemetry[OpenTelemetry<br/>Collector]
     end
 
     %% Frontend to API Gateway
@@ -198,53 +203,47 @@ graph TB
     AdminPanel -->|GraphQL HTTPS| LoadBalancer
     LoadBalancer --> APIGateway
 
-    %% API Gateway to Services
-    APIGateway -->|GraphQL → gRPC| IdentityService
-    APIGateway -->|GraphQL → gRPC| LearningService
-    APIGateway -->|GraphQL → gRPC| ReputationService
-    APIGateway -->|GraphQL → gRPC| PassportService
-    APIGateway -->|GraphQL → gRPC| GovernanceService
-    APIGateway -->|GraphQL → gRPC| MarketplaceService
-    APIGateway -->|GraphQL → gRPC| AITutorService
-    APIGateway -->|GraphQL → gRPC| SelfStudyService
+    %% API Gateway to Backend
+    APIGateway -->|GraphQL → HTTP/REST| BackendApp
+    BackendApp --> IdentityModule
+    BackendApp --> LearningModule
+    BackendApp --> ReputationModule
+    BackendApp --> PassportModule
+    BackendApp --> GovernanceModule
+    BackendApp --> MarketplaceModule
+    BackendApp --> SelfStudyModule
 
-    %% Services to gRPC Gateway
-    IdentityService -->|gRPC| GRPCGateway
-    LearningService -->|gRPC| GRPCGateway
-    ReputationService -->|gRPC| GRPCGateway
-    PassportService -->|gRPC| GRPCGateway
-    GovernanceService -->|gRPC| GRPCGateway
-    MarketplaceService -->|gRPC| GRPCGateway
-    AITutorService -->|gRPC| GRPCGateway
-    SelfStudyService -->|gRPC| GRPCGateway
+    %% Backend to gRPC Gateway
+    BackendApp -->|gRPC| GRPCGateway
 
     %% gRPC Gateway to Keikochain
     GRPCGateway -->|Starknet RPC| StarknetRPC
     StarknetRPC --> Keikochain
     Keikochain --> CairoContracts
 
-    %% Services to Data Layer
-    IdentityService --> IdentityDB
-    LearningService --> LearningDB
-    ReputationService --> ReputationDB
-    PassportService --> PassportDB
+    %% Backend to Data Layer
+    BackendApp --> IdentitySchema
+    BackendApp --> LearningSchema
+    BackendApp --> ReputationSchema
+    BackendApp --> PassportSchema
+    BackendApp --> GovernanceSchema
+    BackendApp --> MarketplaceSchema
+    BackendApp --> SelfStudySchema
 
     %% Event Communication
-    LearningService -->|Events| RedisStreams
-    ReputationService -->|Events| RedisStreams
-    PassportService -->|Events| RedisStreams
+    BackendApp -->|Events| RedisStreams
     RedisStreams -->|Real-time Updates| APIGateway
     APIGateway -->|WSS Subscriptions| FlutterApp
 
     %% Cache Layer
-    AITutorService --> RedisCache
+    BackendApp --> RedisCache
     APIGateway --> RedisCache
 
-    %% External Integrations
-    LearningService --> LearningLocker
-    LearningService --> SCORMCloud
-    LearningService --> MoodleLMS
-    LearningService --> CanvasLMS
+    %% External Integrations (Webhooks hacia API Gateway)
+    LearningLocker -->|Webhooks| APIGateway
+    SCORMCloud -->|Webhooks| APIGateway
+    MoodleLMS -->|Webhooks| APIGateway
+    CanvasLMS -->|Webhooks| APIGateway
 
     %% Blockchain Bridges
     Keikochain -->|Bridge| StarknetMainnet
@@ -252,101 +251,30 @@ graph TB
 
     %% Observability
     APIGateway --> Prometheus
-    IdentityService --> Prometheus
-    LearningService --> Prometheus
-    ReputationService --> Prometheus
-    PassportService --> Prometheus
-    GovernanceService --> Prometheus
-    MarketplaceService --> Prometheus
-    AITutorService --> Prometheus
-    SelfStudyService --> Prometheus
+    IdentityModule --> Prometheus
+    LearningModule --> Prometheus
+    ReputationModule --> Prometheus
+    PassportModule --> Prometheus
+    GovernanceModule --> Prometheus
+    MarketplaceModule --> Prometheus
+    SelfStudyModule --> Prometheus
     GRPCGateway --> Prometheus
 
     Prometheus --> Grafana
-    APIGateway --> Jaeger
-    IdentityService --> Jaeger
-    LearningService --> Jaeger
-    ReputationService --> Jaeger
-    PassportService --> Jaeger
-    GovernanceService --> Jaeger
-    MarketplaceService --> Jaeger
-    AITutorService --> Jaeger
-    SelfStudyService --> Jaeger
-    GRPCGateway --> Jaeger
+    APIGateway --> OpenTelemetry
+    IdentityModule --> OpenTelemetry
+    LearningModule --> OpenTelemetry
+    ReputationModule --> OpenTelemetry
+    PassportModule --> OpenTelemetry
+    GovernanceModule --> OpenTelemetry
+    MarketplaceModule --> OpenTelemetry
+    SelfStudyModule --> OpenTelemetry
+    GRPCGateway --> OpenTelemetry
 
-    APIGateway --> ELK
-    IdentityService --> ELK
-    LearningService --> ELK
-    ReputationService --> ELK
-    PassportService --> ELK
-    GovernanceService --> ELK
-    MarketplaceService --> ELK
-    AITutorService --> ELK
-    SelfStudyService --> ELK
-    GRPCGateway --> ELK
+    OpenTelemetry --> Jaeger
+    OpenTelemetry --> Prometheus
 ```
 
-### Patrones de Migración Gradual
-
-#### Strangler Fig Pattern
-
-La migración del monolito hacia microservicios sigue el patrón Strangler Fig:
-
-```mermaid
-graph LR
-    subgraph "Fase 1: Monolito Actual"
-        MonolithRuntime[Parachain Runtime]
-        MonolithPallets[Todos los Pallets]
-    end
-
-    subgraph "Fase 2: Migración Gradual"
-        APIGateway[API Gateway]
-        NewService[Nuevo Microservicio]
-        LegacyRuntime[Runtime Legacy]
-        RemainingPallets[Pallets Restantes]
-    end
-
-    subgraph "Fase 3: Microservicios Completos"
-        AllServices[Todos los Microservicios]
-        EventBus[Event Bus]
-    end
-
-    MonolithRuntime --> APIGateway
-    APIGateway --> NewService
-    APIGateway --> LegacyRuntime
-    NewService --> AllServices
-    LegacyRuntime --> AllServices
-```
-
-#### Branch by Abstraction Pattern
-
-Permite implementaciones duales durante la transición:
-
-```rust
-// Abstracción para permitir implementaciones duales
-pub trait LearningInteractionService {
-    async fn create_interaction(&self, interaction: LearningInteraction) -> Result<InteractionId>;
-    async fn get_interactions(&self, user_id: AccountId) -> Result<Vec<LearningInteraction>>;
-}
-
-// Implementación legacy (parachain)
-pub struct ParachainLearningService {
-    client: ParachainClient,
-}
-
-// Nueva implementación (microservicio)
-pub struct MicroserviceLearningService {
-    client: HttpClient,
-    endpoint: String,
-}
-
-// Router que decide qué implementación usar
-pub struct LearningServiceRouter {
-    legacy_service: ParachainLearningService,
-    new_service: MicroserviceLearningService,
-    migration_config: MigrationConfig,
-}
-```
 
 ### Scripts de Desarrollo Automatizados con Make
 
@@ -379,9 +307,9 @@ grpc-gateway-setup: ## Inicializar y levantar el gateway gRPC con dependencias
 	@echo "🌉 Configurando gRPC Gateway..."
 	@cd grpc-gateway && bash quick-start.sh
 
-services-setup: ## Preparar dependencias (PostgreSQL, Redis) y levantar microservicios
-	@echo "🔧 Configurando microservicios..."
-	@cd services && bash quick-start.sh
+backend-setup: ## Preparar dependencias (PostgreSQL, Redis) y levantar backend modular
+	@echo "🔧 Configurando backend modular..."
+	@cd backend && bash quick-start.sh
 
 poh-env: ## Crear entorno virtual con dependencias para biometría y Cairo
 	@echo "🧬 Configurando entorno Proof-of-Humanity..."
@@ -410,7 +338,7 @@ status: ## Mostrar estado de todos los servicios
 	@echo "📊 Estado del sistema:"
 	@echo "🔗 Keikochain: $$(docker ps --filter 'name=keikochain' --format 'table {{.Status}}' 2>/dev/null || echo 'No disponible')"
 	@echo "🌉 gRPC Gateway: $$(ps aux | grep grpc-gateway | grep -v grep | wc -l) procesos"
-	@echo "🔧 Microservicios: $$(ps aux | grep -E '(identity|learning|reputation)-service' | grep -v grep | wc -l) procesos"
+	@echo "🔧 Backend: $$(ps aux | grep -E 'keiko-backend' | grep -v grep | wc -l) procesos"
 	@echo "🗄️ PostgreSQL: $$(pg_isready -h localhost -p 5432 >/dev/null 2>&1 && echo 'Activo' || echo 'Inactivo')"
 	@echo "📡 Redis: $$(redis-cli ping 2>/dev/null || echo 'Inactivo')"
 
@@ -789,6 +717,1342 @@ echo "  - make clean         # Limpiar entorno de desarrollo"
 echo "  - make verify-setup  # Verificar configuración"
 ```
 
+## Estrategia de Despliegue en OVHCloud Kubernetes
+
+### Visión General del Despliegue
+
+La estrategia de despliegue de Keiko está diseñada para aprovechar al máximo las capacidades de OVHCloud Managed Kubernetes, implementando una arquitectura cloud-native que evoluciona gradualmente desde un MVP hasta una solución completamente optimizada.
+
+### Fases de Despliegue
+
+#### **Fase 1: Backend Monolítico con PostgreSQL Managed**
+
+**Objetivo**: Establecer la infraestructura base con la menor complejidad operacional.
+
+```yaml
+# Fase 1 - Estructura de Despliegue
+namespace: keiko-prod
+deployments:
+  - name: backend
+    replicas: 2
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+  - name: api-gateway
+    replicas: 2
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+  - name: grpc-gateway
+    replicas: 1
+    resources:
+      requests:
+        cpu: 300m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+
+services:
+  - name: backend-service
+    type: ClusterIP
+  - name: api-gateway-service
+    type: LoadBalancer
+  - name: grpc-gateway-service
+    type: ClusterIP
+
+external_dependencies:
+  - name: postgresql-managed
+    provider: OVHCloud
+    plan: business
+    version: "14"
+  - name: redis-managed
+    provider: OVHCloud
+    plan: business
+```
+
+**Características de Fase 1:**
+- **Base de Datos**: PostgreSQL Managed de OVHCloud (alta disponibilidad automática)
+- **Redis**: Redis Managed para streams y cache
+- **Escalado Manual**: Replicas fijas configuradas manualmente
+- **Monitoreo Básico**: Logs nativos de Kubernetes
+- **CI/CD**: Pipeline básico con GitHub Actions
+
+#### **Fase 2: Agregar Observabilidad (Prometheus, Jaeger, OpenTelemetry)**
+
+**Objetivo**: Implementar observabilidad completa para monitoreo y debugging.
+
+```yaml
+# Fase 2 - Observabilidad Stack
+observability_stack:
+  prometheus:
+    deployment_type: StatefulSet
+    storage_class: ceph-ssd
+    retention: 30d
+    scrape_configs:
+      - job_name: 'backend'
+        kubernetes_sd_configs:
+          - role: endpoints
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_name]
+            action: keep
+            regex: backend-service
+      - job_name: 'api-gateway'
+        kubernetes_sd_configs:
+          - role: endpoints
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_name]
+            action: keep
+            regex: api-gateway-service
+
+  grafana:
+    deployment_type: Deployment
+    replicas: 2
+    persistence:
+      enabled: true
+      storage_class: ceph-ssd
+      size: 10Gi
+    dashboards:
+      - backend-performance
+      - api-gateway-metrics
+      - database-performance
+      - business-metrics
+
+  jaeger:
+    deployment_type: StatefulSet
+    storage_backend: elasticsearch
+    elasticsearch:
+      replicas: 3
+      storage_class: ceph-ssd
+      storage_size: 100Gi
+
+  opentelemetry_collector:
+    deployment_type: DaemonSet
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+```
+
+**Características de Fase 2:**
+- **Métricas Granulares**: Cada módulo expone métricas específicas
+- **Distributed Tracing**: Traces completos a través de todas las capas
+- **Dashboards**: Visualización en tiempo real del estado del sistema
+- **Alerting**: Alertas automáticas para problemas críticos
+
+#### **Fase 3: Implementar CI/CD con GitOps (ArgoCD/Flux)**
+
+**Objetivo**: Automatización completa del ciclo de vida de la aplicación.
+
+```yaml
+# Fase 3 - GitOps con ArgoCD
+argocd:
+  deployment:
+    replicas: 2
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+  
+  applications:
+    - name: keiko-backend
+      source:
+        repo: https://github.com/keikolatam/dapp-monorepo
+        path: k8s/overlays/production
+        target_revision: main
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: keiko-prod
+      sync_policy:
+        automated:
+          prune: true
+          self_heal: true
+        sync_options:
+          - CreateNamespace=true
+          - PrunePropagationPolicy=foreground
+          - PruneLast=true
+
+    - name: keiko-observability
+      source:
+        repo: https://github.com/keikolatam/dapp-monorepo
+        path: k8s/monitoring
+        target_revision: main
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: monitoring
+
+# Pipeline de CI/CD
+github_actions:
+  workflow_triggers:
+    - push:
+        branches: [main, develop]
+    - pull_request:
+        branches: [main]
+  
+  stages:
+    - name: build
+      jobs:
+        - build-and-test-backend
+        - build-and-test-api-gateway
+        - build-and-test-grpc-gateway
+        - security-scan
+        - unit-tests
+        - integration-tests
+    
+    - name: deploy
+      jobs:
+        - deploy-to-staging
+        - run-e2e-tests
+        - deploy-to-production
+        - notify-teams
+```
+
+**Características de Fase 3:**
+- **GitOps**: Estado deseado declarativo en Git
+- **Automated Sync**: Despliegues automáticos desde Git
+- **Multi-Environment**: Staging y Production con promotion automática
+- **Security**: Scanning de vulnerabilidades en CI/CD
+- **Rollback**: Rollback automático en caso de fallos
+
+#### **Fase 4: Optimización de Recursos y Autoscaling**
+
+**Objetivo**: Optimización automática de recursos y escalado dinámico con pod affinity y multi-environment.
+
+```yaml
+# Fase 4 - Autoscaling Avanzado
+autoscaling:
+  horizontal_pod_autoscaler:
+    backend:
+      min_replicas: 2
+      max_replicas: 20
+      target_cpu_utilization: 70
+      target_memory_utilization: 80
+      behavior:
+        scale_up:
+          stabilization_window_seconds: 60
+          policies:
+            - type: Percent
+              value: 100
+              period_seconds: 15
+        scale_down:
+          stabilization_window_seconds: 300
+          policies:
+            - type: Percent
+              value: 10
+              period_seconds: 60
+    
+    api_gateway:
+      min_replicas: 2
+      max_replicas: 15
+      target_cpu_utilization: 60
+      target_memory_utilization: 70
+      custom_metrics:
+        - type: Pods
+          pods:
+            metric:
+              name: http_requests_per_second
+            target:
+              type: AverageValue
+              averageValue: "100"
+
+  vertical_pod_autoscaler:
+    backend:
+      update_mode: "Auto"
+      resource_policy:
+        container_policies:
+          - container_name: backend
+            min_allowed:
+              cpu: 200m
+              memory: 512Mi
+            max_allowed:
+              cpu: 2000m
+              memory: 4Gi
+            controlled_resources: ["cpu", "memory"]
+            controlled_values: RequestsAndLimits
+    
+    api_gateway:
+      update_mode: "Auto"
+      resource_policy:
+        container_policies:
+          - container_name: api-gateway
+            min_allowed:
+              cpu: 100m
+              memory: 256Mi
+            max_allowed:
+              cpu: 1000m
+              memory: 2Gi
+
+  cluster_autoscaler:
+    enabled: true
+    scale_down_delay_after_add: "10m"
+    scale_down_unneeded_time: "10m"
+    max_node_provision_time: "15m"
+    node_groups:
+      - name: applications
+        min_nodes: 3
+        max_nodes: 20
+        machine_types:
+          - b2-15
+          - b2-30
+          - c2-30
+
+  custom_metrics:
+    - name: learning_interactions_per_minute
+      type: Pods
+      selector:
+        matchLabels:
+          app: backend
+      metric:
+        name: learning_interactions_per_minute
+      target:
+        type: AverageValue
+        averageValue: "50"
+```
+
+**Características de Fase 4:**
+- **HPA**: Escalado horizontal basado en CPU, memoria y métricas custom
+- **VPA**: Optimización automática de requests y limits
+- **Cluster Autoscaler**: Escalado automático de nodos
+- **Pod Affinity**: Distribución inteligente para alta disponibilidad
+- **Multi-Environment**: 4 entornos (DEV, QA, STAGE, PROD) con promotion automática
+- **Predictive Scaling**: Escalado predictivo basado en patrones históricos
+- **Cost Optimization**: Optimización automática de costos
+
+### Configuración de Recursos por Fase
+
+```yaml
+# Evolución de recursos por fase
+resource_evolution:
+  phase_1:
+    backend:
+      requests: { cpu: "500m", memory: "1Gi" }
+      limits: { cpu: "1000m", memory: "2Gi" }
+      replicas: 2
+  
+  phase_2:
+    backend:
+      requests: { cpu: "500m", memory: "1Gi" }
+      limits: { cpu: "1000m", memory: "2Gi" }
+      replicas: 2
+    observability:
+      prometheus: { cpu: "500m", memory: "2Gi", storage: "50Gi" }
+      grafana: { cpu: "200m", memory: "512Mi", storage: "10Gi" }
+      jaeger: { cpu: "300m", memory: "1Gi", storage: "100Gi" }
+  
+  phase_3:
+    backend:
+      requests: { cpu: "500m", memory: "1Gi" }
+      limits: { cpu: "1000m", memory: "2Gi" }
+      replicas: 2
+    argocd:
+      requests: { cpu: "200m", memory: "256Mi" }
+      limits: { cpu: "500m", memory: "512Mi" }
+      replicas: 2
+  
+  phase_4:
+    backend:
+      # VPA optimiza automáticamente
+      min_allowed: { cpu: "200m", memory: "512Mi" }
+      max_allowed: { cpu: "2000m", memory: "4Gi" }
+      hpa: { min_replicas: 2, max_replicas: 20 }
+```
+
+### Métricas de Éxito por Fase
+
+```yaml
+success_metrics:
+  phase_1:
+    availability: "99.5%"
+    response_time_p95: "< 500ms"
+    deployment_time: "< 10 minutes"
+    rollback_time: "< 5 minutes"
+  
+  phase_2:
+    mttr: "< 5 minutes"  # Mean Time To Recovery
+    mtbf: "> 720 hours"  # Mean Time Between Failures
+    observability_coverage: "100%"
+    alert_response_time: "< 2 minutes"
+  
+  phase_3:
+    deployment_frequency: "Multiple per day"
+    lead_time: "< 1 hour"
+    change_failure_rate: "< 5%"
+    recovery_time: "< 1 hour"
+  
+  phase_4:
+    cost_efficiency: "20% reduction vs manual"
+    resource_utilization: "> 70% average"
+    scaling_response_time: "< 2 minutes"
+    sla_compliance: "99.9%"
+```
+
+### Configuraciones de Pod Affinity y Multi-Environment
+
+#### Pod Affinity para Alta Disponibilidad
+
+```yaml
+# Pod Affinity para Backend - Distribución anti-afinidad
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: keiko-prod
+spec:
+  replicas: 3
+  template:
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - backend
+              topologyKey: kubernetes.io/hostname
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - backend
+            topologyKey: topology.kubernetes.io/zone
+        
+        # Afinidad para colocar en nodos con recursos suficientes
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 50
+            preference:
+              matchExpressions:
+              - key: node-type
+                operator: In
+                values:
+                - applications
+          - weight: 30
+            preference:
+              matchExpressions:
+              - key: workload-type
+                operator: In
+                values:
+                - backend
+
+---
+# Pod Affinity para API Gateway - Distribución por zona
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: keiko-prod
+spec:
+  replicas: 3
+  template:
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - api-gateway
+            topologyKey: topology.kubernetes.io/zone
+        
+        # Afinidad para nodos con mejor conectividad de red
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 80
+            preference:
+              matchExpressions:
+              - key: network-tier
+                operator: In
+                values:
+                - premium
+```
+
+#### Multi-Environment Strategy (4 Entornos)
+
+```yaml
+# Configuración de 4 entornos con promotion automática
+environments:
+  dev:
+    namespace: keiko-dev
+    replicas:
+      backend: 1
+      api-gateway: 1
+      grpc-gateway: 1
+    resources:
+      backend:
+        requests: { cpu: "200m", memory: "512Mi" }
+        limits: { cpu: "500m", memory: "1Gi" }
+    autoscaling:
+      enabled: false
+    monitoring:
+      prometheus: false
+      grafana: false
+    database:
+      postgresql: "dev-postgres"  # Instancia compartida
+      redis: "dev-redis"
+    branch: "develop"
+    auto_deploy: true  # Auto-deploy desde develop branch
+
+  qa:
+    namespace: keiko-qa
+    replicas:
+      backend: 2
+      api-gateway: 2
+      grpc-gateway: 1
+    resources:
+      backend:
+        requests: { cpu: "300m", memory: "768Mi" }
+        limits: { cpu: "750m", memory: "1.5Gi" }
+    autoscaling:
+      enabled: false
+    monitoring:
+      prometheus: true
+      grafana: true
+    database:
+      postgresql: "qa-postgres"
+      redis: "qa-redis"
+    branch: "qa"
+    auto_deploy: true  # Auto-deploy desde qa branch
+
+  stage:
+    namespace: keiko-stage
+    replicas:
+      backend: 3
+      api-gateway: 3
+      grpc-gateway: 2
+    resources:
+      backend:
+        requests: { cpu: "500m", memory: "1Gi" }
+        limits: { cpu: "1000m", memory: "2Gi" }
+    autoscaling:
+      enabled: true
+      hpa:
+        backend:
+          min_replicas: 2
+          max_replicas: 10
+          target_cpu: 70
+    monitoring:
+      prometheus: true
+      grafana: true
+      jaeger: true
+    database:
+      postgresql: "stage-postgres"
+      redis: "stage-redis"
+    branch: "staging"
+    auto_deploy: true  # Auto-deploy desde staging branch
+
+  prod:
+    namespace: keiko-prod
+    replicas:
+      backend: 3
+      api-gateway: 3
+      grpc-gateway: 2
+    resources:
+      backend:
+        requests: { cpu: "500m", memory: "1Gi" }
+        limits: { cpu: "2000m", memory: "4Gi" }
+    autoscaling:
+      enabled: true
+      hpa:
+        backend:
+          min_replicas: 2
+          max_replicas: 20
+          target_cpu: 70
+          target_memory: 80
+      vpa:
+        backend:
+          update_mode: "Auto"
+    monitoring:
+      prometheus: true
+      grafana: true
+      jaeger: true
+      alerting: true
+    database:
+      postgresql: "prod-postgres"  # Alta disponibilidad
+      redis: "prod-redis"
+    branch: "main"
+    auto_deploy: false  # Manual approval required
+    approval_required: true
+```
+
+#### GitOps Multi-Environment con ArgoCD
+
+```yaml
+# ArgoCD App of Apps para Multi-Environment
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: keiko-environments
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/keikolatam/dapp-monorepo
+    targetRevision: HEAD
+    path: k8s/argocd/environments
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+# Aplicación DEV
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: keiko-dev
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/keikolatam/dapp-monorepo
+    targetRevision: develop  # Branch específico
+    path: k8s/overlays/dev
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: keiko-dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+---
+# Aplicación QA
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: keiko-qa
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/keikolatam/dapp-monorepo
+    targetRevision: qa  # Branch específico
+    path: k8s/overlays/qa
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: keiko-qa
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+---
+# Aplicación STAGE
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: keiko-stage
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/keikolatam/dapp-monorepo
+    targetRevision: staging  # Branch específico
+    path: k8s/overlays/stage
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: keiko-stage
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+---
+# Aplicación PROD
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: keiko-prod
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/keikolatam/dapp-monorepo
+    targetRevision: main  # Branch específico
+    path: k8s/overlays/prod
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: keiko-prod
+  syncPolicy:
+    # Sin automated sync - requiere aprobación manual
+    syncOptions:
+      - CreateNamespace=true
+```
+
+#### Pipeline CI/CD Multi-Environment
+
+```yaml
+# GitHub Actions Workflow para Multi-Environment
+name: Multi-Environment Deployment
+
+on:
+  push:
+    branches: [develop, qa, staging, main]
+  pull_request:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: keikolatam/dapp-monorepo
+
+jobs:
+  # Job para DEV (auto-deploy desde develop)
+  deploy-dev:
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Build and Push
+      run: |
+        docker build -t $REGISTRY/$IMAGE_NAME:dev-${{ github.sha }} .
+        docker push $REGISTRY/$IMAGE_NAME:dev-${{ github.sha }}
+    
+    - name: Update ArgoCD
+      run: |
+        # ArgoCD se sincroniza automáticamente desde develop branch
+        echo "Deployment to DEV triggered via ArgoCD"
+
+  # Job para QA (auto-deploy desde qa)
+  deploy-qa:
+    if: github.ref == 'refs/heads/qa'
+    runs-on: ubuntu-latest
+    environment: qa
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Build and Push
+      run: |
+        docker build -t $REGISTRY/$IMAGE_NAME:qa-${{ github.sha }} .
+        docker push $REGISTRY/$IMAGE_NAME:qa-${{ github.sha }}
+    
+    - name: Run QA Tests
+      run: |
+        # Ejecutar tests específicos de QA
+        make test-qa
+    
+    - name: Update ArgoCD
+      run: |
+        echo "Deployment to QA triggered via ArgoCD"
+
+  # Job para STAGE (auto-deploy desde staging)
+  deploy-stage:
+    if: github.ref == 'refs/heads/staging'
+    runs-on: ubuntu-latest
+    environment: stage
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Build and Push
+      run: |
+        docker build -t $REGISTRY/$IMAGE_NAME:stage-${{ github.sha }} .
+        docker push $REGISTRY/$IMAGE_NAME:stage-${{ github.sha }}
+    
+    - name: Run Integration Tests
+      run: |
+        # Ejecutar tests de integración completos
+        make test-integration
+    
+    - name: Update ArgoCD
+      run: |
+        echo "Deployment to STAGE triggered via ArgoCD"
+
+  # Job para PROD (requiere aprobación manual)
+  deploy-prod:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: 
+      name: prod
+      url: https://keiko-dapp.xyz
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Build and Push
+      run: |
+        docker build -t $REGISTRY/$IMAGE_NAME:prod-${{ github.sha }} .
+        docker push $REGISTRY/$IMAGE_NAME:prod-${{ github.sha }}
+    
+    - name: Run Production Tests
+      run: |
+        # Tests finales antes de producción
+        make test-prod
+    
+    - name: Manual Approval Required
+      run: |
+        echo "Manual approval required for production deployment"
+        # Este job se pausa hasta aprobación manual en GitHub
+    
+    - name: Update ArgoCD
+      run: |
+        echo "Deployment to PROD approved and triggered via ArgoCD"
+```
+
+#### Configuración de Branch Strategy
+
+```yaml
+# Git Branch Strategy para 4 entornos
+branch_strategy:
+  develop:
+    purpose: "Desarrollo continuo y testing de features"
+    auto_deploy: true
+    environment: dev
+    testing: "unit tests, basic integration"
+    approval: "automated"
+    
+  qa:
+    purpose: "Quality Assurance y testing de regresión"
+    auto_deploy: true
+    environment: qa
+    testing: "comprehensive testing, performance tests"
+    approval: "automated"
+    promotion_from: "develop"
+    
+  staging:
+    purpose: "User Acceptance Testing (UAT) y pre-producción"
+    auto_deploy: true
+    environment: stage
+    testing: "end-to-end tests, load testing"
+    approval: "automated"
+    promotion_from: "qa"
+    
+  main:
+    purpose: "Producción estable y confiable"
+    auto_deploy: false
+    environment: prod
+    testing: "production readiness tests"
+    approval: "manual"
+    promotion_from: "staging"
+    
+promotion_workflow:
+  steps:
+    1. "Feature development in develop branch"
+    2. "Merge to qa branch for QA testing"
+    3. "Merge to staging branch for UAT"
+    4. "Manual approval and merge to main for production"
+    
+automated_promotion:
+  conditions:
+    - "All tests passing"
+    - "No critical security issues"
+    - "Performance metrics within SLA"
+    - "Manual approval for main branch"
+```
+
+### Configuraciones Detalladas de Autoscaling
+
+#### Horizontal Pod Autoscaler (HPA) - Configuración Avanzada
+
+```yaml
+# HPA para Backend Monolítico
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: backend-hpa
+  namespace: keiko-prod
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: backend
+  minReplicas: 2
+  maxReplicas: 20
+  metrics:
+  # Métricas de CPU
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  
+  # Métricas de Memoria
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  
+  # Métricas personalizadas de negocio
+  - type: Pods
+    pods:
+      metric:
+        name: learning_interactions_per_second
+      target:
+        type: AverageValue
+        averageValue: "100"
+  
+  # Métricas de Redis Streams
+  - type: Pods
+    pods:
+      metric:
+        name: redis_stream_queue_length
+      target:
+        type: AverageValue
+        averageValue: "50"
+
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+      - type: Pods
+        value: 4
+        periodSeconds: 15
+      selectPolicy: Max
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60
+      selectPolicy: Min
+
+---
+# HPA para API Gateway con métricas específicas
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: api-gateway-hpa
+  namespace: keiko-prod
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api-gateway
+  minReplicas: 2
+  maxReplicas: 15
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 60
+  - type: Pods
+    pods:
+      metric:
+        name: graphql_requests_per_second
+      target:
+        type: AverageValue
+        averageValue: "200"
+  - type: Pods
+    pods:
+      metric:
+        name: websocket_connections
+      target:
+        type: AverageValue
+        averageValue: "1000"
+```
+
+#### Vertical Pod Autoscaler (VPA) - Configuración Detallada
+
+```yaml
+# VPA para Backend con políticas específicas
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: backend-vpa
+  namespace: keiko-prod
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: backend
+  
+  updatePolicy:
+    updateMode: "Auto"  # Auto, Initial, Off
+  
+  resourcePolicy:
+    containerPolicies:
+    - containerName: backend
+      minAllowed:
+        cpu: 200m
+        memory: 512Mi
+      maxAllowed:
+        cpu: 2000m
+        memory: 4Gi
+      controlledResources: ["cpu", "memory"]
+      controlledValues: RequestsAndLimits
+      # Política de escalado más conservadora para memoria
+      memoryRequestsToLimitsRatio: 0.8
+      cpuRequestsToLimitsRatio: 0.7
+
+---
+# VPA para gRPC Gateway
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: grpc-gateway-vpa
+  namespace: keiko-prod
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: grpc-gateway
+  
+  updatePolicy:
+    updateMode: "Auto"
+  
+  resourcePolicy:
+    containerPolicies:
+    - containerName: grpc-gateway
+      minAllowed:
+        cpu: 100m
+        memory: 256Mi
+      maxAllowed:
+        cpu: 1000m
+        memory: 2Gi
+      controlledResources: ["cpu", "memory"]
+      controlledValues: RequestsAndLimits
+```
+
+#### Cluster Autoscaler - Configuración OVHCloud
+
+```yaml
+# Cluster Autoscaler para OVHCloud
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-autoscaler-status
+  namespace: kube-system
+data:
+  nodes.max: "20"
+  nodes.min: "3"
+  scale-down-delay-after-add: "10m"
+  scale-down-unneeded-time: "10m"
+  max-node-provision-time: "15m"
+  expander: "priority"
+  node-groups: |
+    [
+      {
+        "name": "applications",
+        "min_size": 3,
+        "max_size": 20,
+        "machine_types": ["b2-15", "b2-30", "c2-30"],
+        "priority": 10
+      },
+      {
+        "name": "system",
+        "min_size": 3,
+        "max_size": 5,
+        "machine_types": ["b2-7", "b2-15"],
+        "priority": 5
+      }
+    ]
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cluster-autoscaler
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cluster-autoscaler
+  template:
+    metadata:
+      labels:
+        app: cluster-autoscaler
+    spec:
+      serviceAccountName: cluster-autoscaler
+      containers:
+      - image: k8s.gcr.io/autoscaling/cluster-autoscaler:v1.21.0
+        name: cluster-autoscaler
+        resources:
+          limits:
+            cpu: 100m
+            memory: 300Mi
+          requests:
+            cpu: 100m
+            memory: 300Mi
+        command:
+        - ./cluster-autoscaler
+        - --v=4
+        - --stderrthreshold=info
+        - --cloud-provider=ovhcloud
+        - --skip-nodes-with-local-storage=false
+        - --expander=priority
+        - --node-group-auto-discovery=mig:name=applications,min=3,max=20
+        env:
+        - name: OVH_CLOUD_REGION
+          value: "GRA"
+        - name: OVH_CLOUD_PROJECT_ID
+          valueFrom:
+            secretKeyRef:
+              name: ovhcloud-credentials
+              key: project-id
+```
+
+#### Métricas Personalizadas para Autoscaling
+
+```yaml
+# Prometheus Adapter para métricas custom
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: adapter-config
+  namespace: monitoring
+data:
+  config.yaml: |
+    rules:
+    # Métricas de interacciones de aprendizaje
+    - seriesQuery: 'learning_interactions_total{namespace!="",pod!=""}'
+      resources:
+        overrides:
+          namespace: {resource: "namespace"}
+          pod: {resource: "pod"}
+      name:
+        matches: "learning_interactions_total"
+        as: "learning_interactions_per_second"
+      metricsQuery: 'rate(<<.Series>>{<<.LabelMatchers>>}[1m])'
+    
+    # Métricas de conexiones WebSocket
+    - seriesQuery: 'websocket_connections_active{namespace!="",pod!=""}'
+      resources:
+        overrides:
+          namespace: {resource: "namespace"}
+          pod: {resource: "pod"}
+      name:
+        matches: "websocket_connections_active"
+        as: "websocket_connections"
+      metricsQuery: '<<.Series>>{<<.LabelMatchers>>}'
+    
+    # Métricas de cola Redis
+    - seriesQuery: 'redis_stream_length{namespace!="",pod!=""}'
+      resources:
+        overrides:
+          namespace: {resource: "namespace"}
+          pod: {resource: "pod"}
+      name:
+        matches: "redis_stream_length"
+        as: "redis_stream_queue_length"
+      metricsQuery: '<<.Series>>{<<.LabelMatchers>>}'
+
+---
+# ServiceMonitor para exponer métricas del backend
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: backend-metrics
+  namespace: keiko-prod
+spec:
+  selector:
+    matchLabels:
+      app: backend
+  endpoints:
+  - port: metrics
+    path: /metrics
+    interval: 30s
+```
+
+#### Configuración de Alertas para Autoscaling
+
+```yaml
+# Alertas de Prometheus para autoscaling
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-alerts
+  namespace: monitoring
+data:
+  autoscaling-alerts.yaml: |
+    groups:
+    - name: autoscaling.rules
+      rules:
+      # Alerta cuando HPA no puede escalar
+      - alert: HPAUnableToScale
+        expr: |
+          kube_horizontalpodautoscaler_status_condition{
+            condition="AbleToScale",
+            status="false"
+          } == 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "HPA {{ $labels.name }} unable to scale"
+          description: "HPA {{ $labels.name }} is unable to scale: {{ $labels.reason }}"
+      
+      # Alerta cuando se alcanza el máximo de replicas
+      - alert: HPAMaxReplicasReached
+        expr: |
+          kube_horizontalpodautoscaler_status_current_replicas == 
+          kube_horizontalpodautoscaler_spec_max_replicas
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "HPA {{ $labels.name }} reached max replicas"
+          description: "HPA {{ $labels.name }} has reached maximum replicas ({{ $value }})"
+      
+      # Alerta cuando VPA recomienda cambios significativos
+      - alert: VPARecommendationSignificant
+        expr: |
+          (vpa_status_recommendation_cpu / vpa_spec_resource_policy_container_policies_cpu) > 1.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "VPA recommends significant CPU increase for {{ $labels.name }}"
+          description: "VPA recommends {{ $value }}x more CPU for {{ $labels.name }}"
+      
+      # Alerta cuando Cluster Autoscaler no puede agregar nodos
+      - alert: ClusterAutoscalerFailedToScale
+        expr: |
+          cluster_autoscaler_status_condition{
+            condition="ScaleUp",
+            status="false"
+          } == 1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Cluster Autoscaler failed to scale up"
+          description: "Cluster Autoscaler failed to add nodes: {{ $labels.reason }}"
+```
+
+### Scripts de Implementación por Fase
+
+#### Script de Despliegue Fase 1
+
+```bash
+#!/bin/bash
+# scripts/deploy-phase1.sh
+
+set -e
+
+echo "🚀 Iniciando despliegue Fase 1 - Backend Monolítico con PostgreSQL Managed"
+
+# Verificar prerrequisitos
+kubectl version --client
+helm version --client
+
+# Crear namespace
+kubectl create namespace keiko-prod --dry-run=client -o yaml | kubectl apply -f -
+
+# Desplegar PostgreSQL Managed (via Terraform)
+cd terraform/environments/production
+terraform init
+terraform plan -var="environment=production"
+terraform apply -auto-approve
+
+# Esperar a que PostgreSQL esté disponible
+echo "⏳ Esperando PostgreSQL Managed..."
+kubectl wait --for=condition=ready --timeout=300s postgresql/keiko-postgres
+
+# Desplegar aplicaciones
+helm upgrade --install keiko-backend ./helm/keiko-backend \
+  --namespace keiko-prod \
+  --set image.tag=latest \
+  --set database.host=$POSTGRES_HOST \
+  --set database.password=$POSTGRES_PASSWORD \
+  --set redis.host=$REDIS_HOST \
+  --wait
+
+helm upgrade --install keiko-api-gateway ./helm/keiko-api-gateway \
+  --namespace keiko-prod \
+  --set image.tag=latest \
+  --set backend.host=keiko-backend-service \
+  --wait
+
+helm upgrade --install keiko-grpc-gateway ./helm/keiko-grpc-gateway \
+  --namespace keiko-prod \
+  --set image.tag=latest \
+  --set keikochain.rpc=wss://keikochain.karnot.xyz \
+  --wait
+
+# Verificar despliegue
+echo "✅ Verificando despliegue..."
+kubectl get pods -n keiko-prod
+kubectl get services -n keiko-prod
+
+echo "🎉 Fase 1 desplegada exitosamente!"
+```
+
+#### Script de Migración a Fase 2
+
+```bash
+#!/bin/bash
+# scripts/migrate-to-phase2.sh
+
+set -e
+
+echo "📊 Migrando a Fase 2 - Agregando Observabilidad"
+
+# Desplegar Prometheus
+helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
+  --namespace monitoring \
+  --create-namespace \
+  --set prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.storageClassName=ceph-ssd \
+  --set prometheus.prometheusSpec.retention=30d \
+  --set grafana.persistence.enabled=true \
+  --set grafana.persistence.storageClassName=ceph-ssd \
+  --wait
+
+# Desplegar Jaeger
+helm upgrade --install jaeger jaegertracing/jaeger \
+  --namespace monitoring \
+  --set storage.type=elasticsearch \
+  --set storage.elasticsearch.nodeCount=3 \
+  --set storage.elasticsearch.storage.storageClassName=ceph-ssd \
+  --set storage.elasticsearch.storage.size=100Gi \
+  --wait
+
+# Desplegar OpenTelemetry Collector
+helm upgrade --install otel-collector open-telemetry/opentelemetry-collector \
+  --namespace monitoring \
+  --set mode=daemonset \
+  --set config.exporters.jaeger.endpoint=jaeger-collector:14250 \
+  --wait
+
+# Actualizar aplicaciones para exponer métricas
+helm upgrade keiko-backend ./helm/keiko-backend \
+  --namespace keiko-prod \
+  --set metrics.enabled=true \
+  --set tracing.enabled=true \
+  --wait
+
+helm upgrade keiko-api-gateway ./helm/keiko-api-gateway \
+  --namespace keiko-prod \
+  --set metrics.enabled=true \
+  --set tracing.enabled=true \
+  --wait
+
+echo "✅ Fase 2 - Observabilidad implementada!"
+```
+
 ### Infraestructura como Código
 
 #### Terraform para OVHCloud
@@ -1003,14 +2267,14 @@ sequenceDiagram
     APIGateway-->>Flutter: Success response
 ```
 
-### Microservicios Independientes por Dominio
+### Módulos Independientes por Dominio
 
-#### Identity Service
+#### Identity Module
 
 Gestiona autenticación, autorización y perfiles de usuario:
 
 ```rust
-// services/identity-service/src/domain/user.rs
+// backend/modules/identity/src/domain/user.rs
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct User {
     pub id: UserId,
@@ -1021,14 +2285,14 @@ pub struct User {
     pub updated_at: DateTime<Utc>,
 }
 
-// API REST endpoints
+// API REST endpoints (expuestos via API Gateway)
 // POST /api/v1/auth/login
 // POST /api/v1/auth/register
 // GET /api/v1/users/{id}
 // PUT /api/v1/users/{id}/profile
 ```
 
-#### Learning Service
+#### Learning Module
 
 Procesa xAPI statements y interacciones de aprendizaje:
 
@@ -4089,6 +5353,639 @@ describe("LRS Integration", () => {
 });
 ```
 
+## Arquitectura de Infraestructura OVHCloud
+
+### Diagrama de Arquitectura General
+
+```mermaid
+graph TB
+    subgraph "OVHCloud Infrastructure"
+        subgraph "Development Environment"
+            DevK8s[Kubernetes Cluster - Dev]
+            DevDB[(PostgreSQL Databases - Dev)]
+            DevRegistry[Container Registry - Dev]
+        end
+        
+        subgraph "QA Environment"
+            QAK8s[Kubernetes Cluster - QA]
+            QADB[(PostgreSQL Databases - QA)]
+            QARegistry[Container Registry - QA]
+        end
+        
+        subgraph "Staging Environment"
+            StagingK8s[Kubernetes Cluster - Staging]
+            StagingDB[(PostgreSQL Databases - Staging)]
+            StagingRegistry[Container Registry - Staging]
+        end
+        
+        subgraph "Production Environment"
+            ProdK8s[Kubernetes Cluster - Production]
+            ProdDB[(PostgreSQL Databases - Production)]
+            ProdRegistry[Container Registry - Production]
+        end
+        
+        subgraph "Shared Services"
+            ObjectStorage[Object Storage - Terraform State]
+            KMS[Key Management Service]
+            LoadBalancer[Load Balancer]
+        end
+    end
+    
+    subgraph "GitOps Workflow"
+        GitHub[GitHub Repository]
+        Terraform[Terraform]
+        ArgoCD[ArgoCD]
+    end
+    
+    GitHub --> Terraform
+    Terraform --> DevK8s
+    Terraform --> QAK8s
+    Terraform --> StagingK8s
+    Terraform --> ProdK8s
+    Terraform --> ObjectStorage
+    
+    ArgoCD --> DevK8s
+    ArgoCD --> QAK8s
+    ArgoCD --> StagingK8s
+    ArgoCD --> ProdK8s
+```
+
+### Configuración de Clusters Kubernetes
+
+#### Especificaciones por Entorno
+
+```hcl
+# Development Environment
+dev_cluster = {
+  name = "keikolatam-dev"
+  region = "GRA"
+  node_pools = {
+    system = {
+      flavor = "b2-7"    # 2 vCPU, 7GB RAM
+      desired_nodes = 2
+      min_nodes = 2
+      max_nodes = 3
+    }
+    applications = {
+      flavor = "b2-15"   # 4 vCPU, 15GB RAM
+      desired_nodes = 2
+      min_nodes = 2
+      max_nodes = 5
+    }
+  }
+}
+
+# QA Environment
+qa_cluster = {
+  name = "keikolatam-qa"
+  region = "GRA"
+  node_pools = {
+    system = {
+      flavor = "b2-15"   # 4 vCPU, 15GB RAM
+      desired_nodes = 2
+      min_nodes = 2
+      max_nodes = 4
+    }
+    applications = {
+      flavor = "b2-30"   # 8 vCPU, 30GB RAM
+      desired_nodes = 2
+      min_nodes = 2
+      max_nodes = 6
+    }
+  }
+}
+
+# Staging Environment
+staging_cluster = {
+  name = "keikolatam-staging"
+  region = "GRA"
+  node_pools = {
+    system = {
+      flavor = "b2-15"   # 4 vCPU, 15GB RAM
+      desired_nodes = 3
+      min_nodes = 3
+      max_nodes = 5
+    }
+    applications = {
+      flavor = "b2-30"   # 8 vCPU, 30GB RAM
+      desired_nodes = 3
+      min_nodes = 3
+      max_nodes = 8
+    }
+  }
+}
+
+# Production Environment
+production_cluster = {
+  name = "keikolatam-production"
+  region = "GRA"
+  node_pools = {
+    system = {
+      flavor = "b2-30"   # 8 vCPU, 30GB RAM
+      desired_nodes = 3
+      min_nodes = 3
+      max_nodes = 5
+    }
+    applications = {
+      flavor = "b2-60"   # 16 vCPU, 60GB RAM
+      desired_nodes = 5
+      min_nodes = 3
+      max_nodes = 15
+    }
+  }
+}
+```
+
+## GitOps con ArgoCD
+
+### App of Apps Pattern
+
+```yaml
+# argocd/app-of-apps.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: keiko-apps
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/keikolatam/keiko-dapp
+    targetRevision: HEAD
+    path: k8s/overlays/production
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+```
+
+### Estructura de Manifiestos Kubernetes
+
+```
+k8s/
+├── base/                           # Configuración base
+│   ├── backend/
+│   │   ├── deployment.yaml
+│   │   ├── service.yaml
+│   │   ├── configmap.yaml
+│   │   └── kustomization.yaml
+│   ├── api-gateway/
+│   ├── grpc-gateway/
+│   └── observability/
+│       ├── prometheus/
+│       ├── grafana/
+│       ├── jaeger/
+│       └── opentelemetry/
+└── overlays/                       # Overlays por entorno
+    ├── dev/
+    │   ├── kustomization.yaml
+    │   ├── backend-patch.yaml
+    │   └── configmap-patch.yaml
+    ├── qa/
+    ├── staging/
+    └── production/
+```
+
+## CI/CD Pipeline Automatizado
+
+### GitHub Actions Workflow
+
+```yaml
+# .github/workflows/backend-deploy.yml
+name: Backend Deploy
+
+on:
+  push:
+    branches: [develop, qa, staging, main]
+    paths:
+      - 'backend/**'
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      components: ${{ steps.changes.outputs.components }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+            api-gateway:
+              - 'api-gateway/**'
+            grpc-gateway:
+              - 'grpc-gateway/**'
+
+  build-and-deploy:
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        component: ${{ fromJSON(needs.detect-changes.outputs.components) }}
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      
+      - name: Login to OVH Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: registry.gra.cloud.ovh.net
+          username: ${{ secrets.OVH_REGISTRY_USERNAME }}
+          password: ${{ secrets.OVH_REGISTRY_PASSWORD }}
+      
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./${{ matrix.component }}
+          push: true
+          tags: |
+            registry.gra.cloud.ovh.net/keikolatam/${{ matrix.component }}:${{ github.sha }}
+            registry.gra.cloud.ovh.net/keikolatam/${{ matrix.component }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
+      - name: Update Kubernetes manifests
+        run: |
+          # Determinar entorno basado en branch
+          if [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
+            ENVIRONMENT="dev"
+          elif [[ "${{ github.ref }}" == "refs/heads/qa" ]]; then
+            ENVIRONMENT="qa"
+          elif [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
+            ENVIRONMENT="staging"
+          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            ENVIRONMENT="production"
+          fi
+          
+          # Usar kustomize para actualizar la imagen
+          cd k8s/overlays/$ENVIRONMENT
+          kustomize edit set image ${{ matrix.component }}=registry.gra.cloud.ovh.net/keikolatam/${{ matrix.component }}:${{ github.sha }}
+          
+          # Commit y push de cambios
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "Update ${{ matrix.component }} image to ${{ github.sha }} in $ENVIRONMENT"
+          git push
+```
+
+## Observabilidad con OpenTelemetry
+
+### Arquitectura de Observabilidad
+
+```mermaid
+graph TB
+    subgraph "Backend Modular"
+        Backend[Backend Monolítico]
+        APIGateway[API Gateway]
+        GRPCGateway[gRPC Gateway]
+    end
+
+    subgraph "OpenTelemetry Stack"
+        OTelCollector[OpenTelemetry Collector]
+        OTelSDK[OpenTelemetry SDK]
+    end
+
+    subgraph "Observability Backends"
+        Jaeger[Jaeger - Tracing]
+        Prometheus[Prometheus - Metrics]
+        Grafana[Grafana - Dashboards]
+    end
+
+    Backend --> OTelSDK
+    APIGateway --> OTelSDK
+    GRPCGateway --> OTelSDK
+
+    OTelSDK --> OTelCollector
+    OTelCollector --> Jaeger
+    OTelCollector --> Prometheus
+    Prometheus --> Grafana
+```
+
+### Configuración OpenTelemetry Collector
+
+```yaml
+# k8s/base/observability/otel-collector.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+data:
+  config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+      prometheus:
+        config:
+          scrape_configs:
+            - job_name: 'kubernetes-pods'
+              kubernetes_sd_configs:
+                - role: pod
+
+    processors:
+      batch:
+        timeout: 1s
+        send_batch_size: 1024
+      memory_limiter:
+        limit_mib: 512
+
+    exporters:
+      jaeger:
+        endpoint: jaeger-collector:14250
+        tls:
+          insecure: true
+      prometheus:
+        endpoint: "0.0.0.0:8889"
+
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [jaeger]
+        metrics:
+          receivers: [otlp, prometheus]
+          processors: [memory_limiter, batch]
+          exporters: [prometheus]
+```
+
+## Seguridad y Configuración
+
+### External Secrets Operator con OVHCloud Secret Manager
+
+```yaml
+# k8s/base/security/external-secrets-ovh.yaml
+apiVersion: external-secrets.io/v1beta1
+kind: SecretStore
+metadata:
+  name: ovh-secret-store
+  namespace: keiko-system
+spec:
+  provider:
+    ovhcloud:
+      endpoint: "https://api.ovh.com"
+      region: "eu-west-par"
+      auth:
+        credentials:
+          accessKeyId:
+            name: ovh-credentials
+            key: access-key-id
+          secretAccessKey:
+            name: ovh-credentials
+            key: secret-access-key
+          consumerKey:
+            name: ovh-credentials
+            key: consumer-key
+
+---
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: database-credentials
+  namespace: keiko-system
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: ovh-secret-store
+    kind: SecretStore
+  target:
+    name: database-secret
+    creationPolicy: Owner
+  data:
+  - secretKey: username
+    remoteRef:
+      key: keiko-db-credentials
+      property: username
+  - secretKey: password
+    remoteRef:
+      key: keiko-db-credentials
+      property: password
+  - secretKey: host
+    remoteRef:
+      key: keiko-db-credentials
+      property: host
+```
+
+### Configuración de Secretos Específicos para Keiko
+
+```yaml
+# Configuración de secretos por entorno
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: keiko-app-secrets
+  namespace: keiko-system
+spec:
+  refreshInterval: 30m
+  secretStoreRef:
+    name: ovh-secret-store
+    kind: SecretStore
+  target:
+    name: keiko-app-secret
+    creationPolicy: Owner
+  data:
+  # JWT Secrets
+  - secretKey: jwt-secret
+    remoteRef:
+      key: keiko-jwt-secrets
+      property: secret-key
+  # Redis Credentials
+  - secretKey: redis-password
+    remoteRef:
+      key: keiko-redis-credentials
+      property: password
+  # gRPC Gateway Secrets
+  - secretKey: grpc-tls-cert
+    remoteRef:
+      key: keiko-grpc-tls
+      property: cert
+  - secretKey: grpc-tls-key
+    remoteRef:
+      key: keiko-grpc-tls
+      property: key
+  # Proof-of-Humanity Secrets
+  - secretKey: humanity-proof-salt
+    remoteRef:
+      key: keiko-poh-secrets
+      property: salt
+```
+
+### Rotación Automática de Secretos
+
+```yaml
+# Rotación automática de secretos críticos
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: rotating-secrets
+  namespace: keiko-system
+spec:
+  refreshInterval: 24h  # Rotación diaria
+  secretStoreRef:
+    name: ovh-secret-store
+    kind: SecretStore
+  target:
+    name: rotating-secrets
+    creationPolicy: Owner
+  data:
+  - secretKey: api-key
+    remoteRef:
+      key: keiko-api-keys
+      property: current-key
+  - secretKey: encryption-key
+    remoteRef:
+      key: keiko-encryption
+      property: current-key
+```
+
+### Network Policies
+
+```yaml
+# k8s/base/security/network-policies.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: keiko-network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/part-of: keiko
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/part-of: keiko
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/part-of: keiko
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 5432  # PostgreSQL
+    - protocol: TCP
+      port: 6379  # Redis
+    - protocol: TCP
+      port: 53    # DNS
+    - protocol: UDP
+      port: 53    # DNS
+```
+
+## Backup y Disaster Recovery
+
+### Configuración de Backups
+
+```yaml
+# k8s/base/backup/postgres-backup.yaml
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+spec:
+  schedule: "0 */6 * * *"  # Cada 6 horas
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: postgres-backup
+            image: postgres:14
+            env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: database-secret
+                  key: password
+            command:
+            - /bin/bash
+            - -c
+            - |
+              TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+              pg_dump -h postgres-service -U postgres keiko_db > /backup/keiko_backup_$TIMESTAMP.sql
+              # Upload to OVH Object Storage
+              aws s3 cp /backup/keiko_backup_$TIMESTAMP.sql s3://keikolatam-backups/postgres/
+            volumeMounts:
+            - name: backup-storage
+              mountPath: /backup
+          volumes:
+          - name: backup-storage
+            emptyDir: {}
+          restartPolicy: OnFailure
+```
+
+## Flujo de Deployment
+
+### Promoción entre Entornos
+
+```mermaid
+graph LR
+    Dev[Development] --> QA[QA]
+    QA --> Staging[Staging]
+    Staging --> Prod[Production]
+    
+    subgraph "Development"
+        DevBuild[Build & Test]
+        DevDeploy[Deploy to Dev]
+        DevValidate[Validate]
+    end
+    
+    subgraph "QA"
+        QADeploy[Deploy to QA]
+        QATest[QA Tests]
+        QAValidate[Validate]
+    end
+    
+    subgraph "Staging"
+        StagingDeploy[Deploy to Staging]
+        UATTest[UAT Tests]
+        StagingValidate[Validate]
+    end
+    
+    subgraph "Production"
+        ProdDeploy[Deploy to Production]
+        SmokeTest[Smoke Tests]
+        ProdValidate[Validate]
+    end
+    
+    DevBuild --> DevDeploy
+    DevDeploy --> DevValidate
+    DevValidate --> QADeploy
+    QADeploy --> QATest
+    QATest --> QAValidate
+    QAValidate --> StagingDeploy
+    StagingDeploy --> UATTest
+    UATTest --> StagingValidate
+    StagingValidate --> ProdDeploy
+    ProdDeploy --> SmokeTest
+    SmokeTest --> ProdValidate
+```
+
+### Rollback Strategy
+
+1. **Automatic Rollback**: Si los health checks fallan después del deployment
+2. **Manual Rollback**: Via ArgoCD UI o CLI
+3. **Database Rollback**: Scripts de migración reversible
+4. **Traffic Rollback**: Blue-green deployment con Istio
+
 ## Decisiones de Diseño y Justificaciones
 
 ### 1. Jerarquía de Datos de Aprendizaje
@@ -4102,7 +5999,25 @@ describe("LRS Integration", () => {
 - Mantiene compatibilidad con sistemas educativos tradicionales
 - Soporta diferentes modalidades de aprendizaje (formal, informal, autodirigido)
 
-### 2. Expiración de Calificaciones (30 días)
+### 2. Gestión de Secretos con OVHCloud Secret Manager
+
+**Decisión**: Usar OVHCloud Secret Manager como servicio principal de gestión de secretos con External Secrets Operator como integración con Kubernetes.
+
+**Justificación**:
+
+- **Integración Nativa**: Perfecta integración con el ecosistema OVHCloud y IAM
+- **Costo-Efectivo**: Servicio gestionado más económico que mantener HashiCorp Vault
+- **Compliance**: Integración automática con GDPR y auditoría completa
+- **Simplicidad Operacional**: Sin overhead de mantenimiento de infraestructura adicional
+- **Escalabilidad**: Servicio gestionado que escala automáticamente con las necesidades
+
+**Alternativas Consideradas**:
+
+- **HashiCorp Vault**: Descartado por complejidad operacional y costos
+- **Kubernetes Secrets nativos**: Insuficiente para gestión centralizada y rotación
+- **Cloud Provider Secrets**: OVHCloud Secret Manager es la opción nativa más adecuada
+
+### 3. Expiración de Calificaciones (30 días)
 
 **Decisión**: Las calificaciones pierden peso gradualmente hasta expirar completamente a los 30 días
 

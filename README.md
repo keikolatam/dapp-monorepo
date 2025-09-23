@@ -45,7 +45,7 @@ En suma, el nombre Keiko simboliza la importancia de practicar y reflexionar sob
 
 ## 🏗️ Arquitectura Híbrida
 
-Keiko utiliza una arquitectura híbrida de 5 capas que combina las ventajas de blockchain con la flexibilidad de microservicios:
+Keiko utiliza una arquitectura híbrida de 5 capas que combina las ventajas de blockchain con la simplicidad de una aplicación monolítica modular:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -59,10 +59,10 @@ Keiko utiliza una arquitectura híbrida de 5 capas que combina las ventajas de b
 └─────────────────────┬───────────────────────────────────────┘
                       │ gRPC + Event-driven (Redis Streams)
 ┌─────────────────────▼───────────────────────────────────────┐
-│                   Service Layer                             │
-│    Microservicios (gRPC + PostgreSQL Cache + Events)        │
+│                   Backend Layer                             │
+│  Aplicación Monolítica Modular (Rust + PostgreSQL + Redis)  │
 └─────────────────────┬───────────────────────────────────────┘
-                      │ gRPC (Rust ↔ Rust)
+                      │ HTTP/REST (API Gateway ↔ Backend)
 ┌─────────────────────▼───────────────────────────────────────┐
 │                  gRPC Gateway Layer                         │
 │         Traductor Rust ↔ Cairo (Starknet Appchain)          │
@@ -76,16 +76,16 @@ Keiko utiliza una arquitectura híbrida de 5 capas que combina las ventajas de b
 
 ### Flujos de Datos
 
-- **📝 Escritura**: Flutter → GraphQL → gRPC → Microservicio → gRPC Gateway → Keikochain Contract → Evento Redis → GraphQL Subscription
-- **📖 Lectura**: Flutter → GraphQL → gRPC → Cache PostgreSQL → (fallback) gRPC Gateway → Keikochain Contract
-- **⚡ Tiempo Real**: Keikochain Contract → gRPC Gateway → Microservicio → Redis Streams → API Gateway → GraphQL Subscription → Flutter
-- **📥 Importación**: LRS Externos → REST Webhooks → API Gateway → gRPC → Learning Service → gRPC Gateway → Keikochain Contract
+- **📝 Escritura**: Flutter → GraphQL → HTTP/REST → Backend → gRPC Gateway → Keikochain Contract → Evento Redis → GraphQL Subscription
+- **📖 Lectura**: Flutter → GraphQL → HTTP/REST → Backend → Cache PostgreSQL → (fallback) gRPC Gateway → Keikochain Contract
+- **⚡ Tiempo Real**: Keikochain Contract → gRPC Gateway → Backend → Redis Streams → API Gateway → GraphQL Subscription → Flutter
+- **📥 Importación**: LRS Externos → REST Webhooks → API Gateway → HTTP/REST → Backend → gRPC Gateway → Keikochain Contract
 
 ## 📁 Estructura del Proyecto
 
 ```
 keiko/
-├── appchain/                         # 🔗 Keikochain Layer (Starknet Appchain)
+├── appchain/                         # Keikochain Layer (Starknet Appchain)
 │   ├── contracts/                    # Contratos Cairo
 │   │   ├── learning_interactions/    # xAPI statements
 │   │   ├── life_learning_passport/   # Pasaportes de aprendizaje
@@ -94,31 +94,34 @@ keiko/
 │   │   └── marketplace/              # Espacios de aprendizaje
 │   ├── tests/                        # Tests de contratos
 │   └── config/                       # Configuración de Keikochain (Starknet Appchain)
-├── grpc-gateway/                     # 🌉 gRPC Gateway Layer
+├── grpc-gateway/                     # gRPC Gateway Layer
 │   ├── client/                       # Cliente Starknet RPC
 │   ├── proto/                        # Definiciones gRPC
 │   ├── server/                       # Servidor gRPC Gateway
 │   ├── translator/                   # Traductor Rust ↔ Cairo
 │   └── config/                       # Configuración del gateway para Keikochain
-├── services/                         # 🔧 Service Layer
-│   ├── identity_service/             # Autenticación y usuarios
-│   ├── learning_service/             # Procesamiento xAPI
-│   ├── reputation_service/           # Cálculo de reputación
-│   ├── passport_service/             # Agregación de pasaportes
-│   ├── governance_service/           # Herramientas de gobernanza
-│   ├── marketplace_service/          # Gestión de espacios
-│   └── ai_tutor_service/             # Tutores IA especializados
-├── api-gateway/                      # 🌐 API Layer
+├── backend/                          # Backend Layer (Monolítico Modular)
+│   ├── modules/                      # Módulos organizados por dominio
+│   │   ├── identity/                 # Autenticación y usuarios
+│   │   ├── learning/                 # Procesamiento xAPI
+│   │   ├── reputation/               # Cálculo de reputación
+│   │   ├── passport/                 # Agregación de pasaportes
+│   │   ├── governance/               # Herramientas de gobernanza
+│   │   ├── marketplace/              # Gestión de espacios
+│   │   └── selfstudy_guides/         # Guías de auto-estudio evaluadas por agente IA
+│   ├── shared/                       # Componentes compartidos del backend
+│   └── main.rs                       # Punto de entrada monolítico
+├── api-gateway/                      # API Layer
 │   ├── graphql_server/               # Servidor GraphQL principal
 │   ├── rest_endpoints/               # Endpoints REST para LRS externos
 │   └── admin_panel/                  # Panel admin Leptos
-├── frontend/                         # 📱 Frontend Layer
+├── frontend/                         # Frontend Layer
 │   └── lib/                          # Aplicación Flutter
-├── shared/                           # 🔄 Componentes compartidos
+├── shared/                           # Componentes compartidos
 │   ├── types/                        # Tipos compartidos
 │   ├── proto/                        # Definiciones gRPC
 │   └── utils/                        # Utilidades comunes
-└── docs/                             # 📚 Documentación
+└── docs/                             # Documentación
 ```
 
 ## 🚀 Tecnologías Clave
@@ -134,16 +137,16 @@ keiko/
 ### gRPC Gateway Layer
 
 - **Rust** - Lenguaje principal para el gateway
-- **gRPC (tonic)** - Comunicación con microservicios
+- **gRPC (tonic)** - Comunicación con backend monolítico
 - **Starknet RPC** - Comunicación con Keikochain
 - **Cairo Translator** - Traductor de tipos Rust ↔ Cairo
 
-### Service Layer
+### Backend Layer (Monolítico Modular)
 
-- **Rust** - Lenguaje principal para microservicios
-- **gRPC (tonic)** - Comunicación inter-servicios
-- **PostgreSQL** - Base de datos por servicio (schemas separados para recursos limitados)
-- **Redis Streams** - Event-driven architecture
+- **Rust** - Lenguaje principal para la aplicación monolítica
+- **HTTP/REST** - Comunicación con API Gateway
+- **PostgreSQL** - Base de datos única con schemas separados por módulo
+- **Redis Streams** - Event-driven architecture entre módulos
 - **OpenCV** - Procesamiento de datos biométricos (iris con Gabor filters)
 - **BioPython** - Análisis de datos genómicos (SNPs en VCF/FASTA)
 - **cairo-lang** - Generación de pruebas STARK para verificación de humanidad
@@ -192,6 +195,48 @@ Keiko implementa un sistema único de **Proof-of-Humanity** que garantiza que ca
 - **🔄 Recuperación**: Permite recuperar identidad de aprendizaje sin perder historial
 - **✅ Verificabilidad**: Cualquier tercero puede verificar la humanidad de las interacciones
 
+## 🏛️ Arquitectura Modular del Backend
+
+El backend de Keiko está diseñado como una **aplicación monolítica modular** que combina las ventajas de una arquitectura simple con la organización por dominios de negocio:
+
+### **Ventajas de la Arquitectura Modular**
+
+- **🚀 Desarrollo Rápido**: Una sola aplicación Rust es más fácil de desarrollar y debuggear que múltiples microservicios
+- **🔧 Debugging Simplificado**: Stack traces completos y debugging local sin red
+- **📦 Deployment Único**: Un solo binario para desplegar, sin coordinación entre servicios
+- **💰 Recursos Limitados**: Una sola base de datos PostgreSQL con schemas separados por módulo
+- **🔄 Comunicación Directa**: Llamadas de función directas entre módulos, sin latencia de red
+
+### **Organización por Módulos**
+
+Cada módulo representa un **bounded context** del dominio educativo:
+
+```
+backend/modules/
+├── identity/           # Autenticación, usuarios, Proof-of-Humanity
+├── learning/           # xAPI statements, interacciones atómicas
+├── reputation/         # Sistema de calificaciones y reputación
+├── passport/           # Agregación de pasaportes de aprendizaje
+├── governance/         # Gobernanza comunitaria y estándares
+├── marketplace/        # Tutores, espacios, transacciones
+└── auto_study/        # Guías de auto-estudio adaptativas
+```
+
+### **Comunicación Entre Módulos**
+
+- **Llamadas Directas**: Los módulos se comunican via llamadas de función directas
+- **Eventos Redis**: Para desacoplamiento y notificaciones asíncronas
+- **Base de Datos Compartida**: PostgreSQL con schemas separados por módulo
+- **gRPC Gateway**: Solo para comunicación con Keikochain (no entre módulos)
+
+### **Escalabilidad Futura**
+
+La arquitectura está diseñada para permitir la **extracción gradual a microservicios** cuando sea necesario:
+- Interfaces bien definidas entre módulos
+- Separación clara de responsabilidades
+- Event-driven architecture preparada
+- Schemas de base de datos independientes
+
 ## � ─Patrones de Comunicación
 
 ### 1. Frontend ↔ API Gateway (GraphQL)
@@ -212,29 +257,29 @@ final result = await client.query(
 );
 ```
 
-### 2. API Gateway ↔ Microservicios
+### 2. API Gateway ↔ Backend
 
 ```rust
-// API Gateway traduce GraphQL → gRPC
+// API Gateway traduce GraphQL → HTTP/REST
 async fn get_user_passport(ctx: &Context, user_id: String) -> Result<Passport> {
-    // Llamadas gRPC paralelas
+    // Llamadas HTTP paralelas al backend monolítico
     let (passport_data, reputation_data) = tokio::join!(
-        ctx.passport_client.get_passport(user_id.clone()),
-        ctx.reputation_client.get_reputation(user_id)
+        ctx.http_client.get(&format!("/api/passport/{}", user_id)),
+        ctx.http_client.get(&format!("/api/reputation/{}", user_id))
     );
 
     // Orquestar respuesta
     Ok(Passport {
-        data: passport_data?,
-        reputation: reputation_data?,
+        data: passport_data?.json().await?,
+        reputation: reputation_data?.json().await?,
     })
 }
 ```
 
-### 3. Microservicios ↔ gRPC Gateway
+### 3. Backend ↔ gRPC Gateway
 
 ```rust
-// Microservicio escribe via gRPC Gateway
+// Backend monolítico escribe via gRPC Gateway
 async fn create_interaction(&self, interaction: Interaction) -> Result<()> {
     // 1. Escribir via gRPC Gateway (fuente de verdad)
     let tx_hash = self.grpc_gateway_client
@@ -310,9 +355,12 @@ async fn import_xapi_statements(
         .map(|stmt| transform_xapi_to_interaction(stmt))
         .collect::<Result<Vec<_>>>()?;
 
-    // 3. Enviar a Learning Service via gRPC
+    // 3. Enviar a Backend via HTTP/REST
     for interaction in interactions {
-        learning_client.create_interaction(interaction).await?;
+        http_client.post("/api/learning/interactions")
+            .json(&interaction)
+            .send()
+            .await?;
     }
 
     Ok(Json(ImportResponse { imported: interactions.len() }))
@@ -363,58 +411,58 @@ Para acelerar el desarrollo en local, puedes usar los siguientes scripts automat
 - **Appchain Quick Start (Starknet/Cairo)**: configura Keikochain local, compila y despliega contratos Cairo.
 
 ```bash
-bash appchain/quick-start.sh
+bash scripts/appchain-quick-start.sh
 ```
 
 - **gRPC Gateway Quick Start**: inicializa y levanta el gateway gRPC.
 
 ```bash
-bash grpc-gateway/quick-start.sh
+bash scripts/grpc-gateway-quick-start.sh
 ```
 
-- **Services Quick Start**: prepara dependencias (PostgreSQL, Redis) y levanta los microservicios base.
+- **Backend Quick Start**: prepara dependencias (PostgreSQL, Redis) y levanta el backend monolítico modular.
 
 ```bash
-bash services/quick-start.sh
+bash scripts/backend-quick-start.sh
 ```
 
 #### Parámetros y uso
 
-- **Appchain (`appchain/quick-start.sh`)**
+- **Appchain (`scripts/appchain-quick-start.sh`)**
   - Uso básico:
     ```bash
-    bash appchain/quick-start.sh --non-interactive
+    bash scripts/appchain-quick-start.sh --non-interactive
     ```
   - Flags disponibles:
     - `-f, --force-recreate`: Forzar recreación de la devnet existente
     - `-y, --yes, --non-interactive`: Ejecutar sin confirmaciones
     - `--use-existing`: Usar una devnet existente (falla si no hay)
-    - `--provider <auto|podman|docker>`: Seleccionar proveedor (default: auto)
+    - `--provider <auto|podman|docker>`: Seleccionar proveedor (default: auto, preferido: podman)
     - `--wait-blocks <n>`: Esperar n bloques (default: 55)
     - `--wait-minutes <m>`: Espera aproximada en minutos (default: 10)
     - `--no-deps-check`: Omitir verificación de dependencias
     - `-h, --help`: Mostrar ayuda
   - Ejemplos:
     ```bash
-    # Auto, sin prompts
-    bash appchain/quick-start.sh --non-interactive
+    # Auto, sin prompts (usa Podman por defecto)
+    bash scripts/appchain-quick-start.sh --non-interactive
 
     # Forzar Podman y recrear
-    bash appchain/quick-start.sh --provider podman --force-recreate --non-interactive
+    bash scripts/appchain-quick-start.sh --provider podman --force-recreate --non-interactive
 
     # Usar devnet existente
-    bash appchain/quick-start.sh --use-existing
+    bash scripts/appchain-quick-start.sh --use-existing
     ```
 
-- **gRPC Gateway (`grpc-gateway/quick-start.sh`)**
+- **gRPC Gateway (`scripts/grpc-gateway-quick-start.sh`)**
   - Sin parámetros. Instala y configura asdf, Scarb y Starknet Foundry.
 
-- **Services (`services/quick-start.sh`)**
-  - Sin parámetros. Instala Rust, herramientas de microservicios y genera estructura base.
+- **Backend (`scripts/backend-quick-start.sh`)**
+  - Sin parámetros. Instala Rust, herramientas del backend monolítico modular y genera estructura base.
 
 ### Entorno PoH (ZK) - Python
 
-Tras ejecutar `services/quick-start.sh`, se crea `.venv` con dependencias para biometría y Cairo.
+Tras ejecutar `scripts/backend-quick-start.sh`, se crea `.venv` con dependencias para biometría y Cairo.
 
 ```bash
 # Activar el entorno virtual
@@ -491,6 +539,89 @@ EOF
 deactivate
 ```
 
+## 🚀 Estrategia de Despliegue en OVHCloud Kubernetes
+
+Keiko implementa una estrategia de despliegue en 4 fases evolutivas diseñada para aprovechar al máximo las capacidades de OVHCloud Managed Kubernetes:
+
+### **📋 Fase 1: Backend Monolítico con PostgreSQL Managed**
+- **Infraestructura base** con PostgreSQL y Redis Managed de OVHCloud
+- **Escalado manual** con replicas fijas (2 backend, 2 api-gateway, 1 grpc-gateway)
+- **Monitoreo básico** con logs nativos de Kubernetes
+- **CI/CD básico** con GitHub Actions
+
+### **📊 Fase 2: Observabilidad Completa**
+- **Prometheus** para métricas con almacenamiento persistente (50Gi)
+- **Grafana** para dashboards y visualización (10Gi)
+- **Jaeger** para distributed tracing (100Gi)
+- **OpenTelemetry Collector** como DaemonSet
+- **Métricas granulares** por cada módulo del backend
+
+### **🔄 Fase 3: GitOps con ArgoCD**
+- **ArgoCD** para GitOps automation con 2 replicas
+- **Pipeline CI/CD completo** con múltiples stages
+- **Multi-environment** (staging/production)
+- **Security scanning** y rollback automático
+
+### **⚡ Fase 4: Autoscaling Avanzado**
+
+#### **Horizontal Pod Autoscaler (HPA):**
+- **Métricas múltiples**: CPU (70%), memoria (80%), y métricas custom de negocio
+- **Escalado inteligente**: Backend (2-20 pods), API Gateway (2-15 pods)
+- **Métricas específicas**: 
+  - `learning_interactions_per_second` (target: 100)
+  - `graphql_requests_per_second` (target: 200)
+  - `websocket_connections` (target: 1000)
+  - `redis_stream_queue_length` (target: 50)
+
+#### **Vertical Pod Autoscaler (VPA):**
+- **Optimización automática** de requests y limits
+- **Rangos definidos**: Backend (200m-2000m CPU, 512Mi-4Gi RAM)
+- **Update mode "Auto"** para optimización continua
+
+#### **Cluster Autoscaler:**
+- **Escalado de nodos** automático en OVHCloud (3-20 nodos)
+- **Machine types variados**: b2-15, b2-30, c2-30
+- **Node groups prioritarios**: applications (priority 10), system (priority 5)
+
+### **📈 Métricas de Éxito:**
+- **Disponibilidad**: 99.9% SLA compliance
+- **Escalado**: <2 minutos response time de scaling
+- **Eficiencia**: >70% resource utilization promedio
+- **Costos**: 20% reducción vs configuración manual
+
+### **🔧 Configuraciones Avanzadas:**
+- **Pod Affinity**: Distribución inteligente de pods para alta disponibilidad
+- **Multi-environment**: DEV, QA, STAGE, PROD con promotion automática
+- **Gestión de Secretos**: OVHCloud Secret Manager + External Secrets Operator
+- **Alertas inteligentes**: Sistema completo de alertas para problemas de autoscaling
+- **Scripts automatizados**: Implementación por fases con scripts bash
+
+### **🔐 Gestión de Secretos con OVHCloud Secret Manager**
+
+Keiko implementa una estrategia híbrida de gestión de secretos que combina OVHCloud Secret Manager con External Secrets Operator:
+
+#### **🎯 Estrategia Recomendada: OVHCloud Secret Manager**
+- **Integración Nativa**: Perfecta integración con el ecosistema OVHCloud
+- **Costo-Efectivo**: Actualmente en fase Alpha (gratuito) y será más económico que Vault
+- **Servicio Gestionado**: Sin overhead operacional de mantener Vault
+- **Compliance**: Integrado con IAM de OVHCloud y auditoría completa
+- **Región**: Disponible en `eu-west-par` (perfecto para GDPR)
+
+#### **🔧 Implementación Técnica**
+- **External Secrets Operator**: Sincronización automática con Kubernetes Secrets
+- **Rotación transparente**: Sin downtime durante la rotación de credenciales
+- **Fallback automático**: En caso de fallos del Secret Manager
+- **Monitoring integrado**: Con Prometheus para observabilidad completa
+
+#### **📊 Secretos Específicos para Keiko**
+- **Base de datos**: Credenciales PostgreSQL por entorno
+- **JWT Secrets**: Claves para autenticación y autorización
+- **Redis**: Credenciales para Redis Streams
+- **gRPC Gateway**: Certificados TLS para comunicación segura
+- **Proof-of-Humanity**: Salt y claves para verificación biométrica
+
+Ver detalles completos en [design.md](.kiro/specs/01-keiko-dapp/design.md#estrategia-de-despliegue-en-ovhcloud-kubernetes)
+
 ## 📋 Estado del Desarrollo
 
 ### 🔄 Reiniciando (Keikochain Layer - Starknet Appchain)
@@ -510,13 +641,16 @@ deactivate
 - [ ] Servidor gRPC Gateway
 - [ ] Configuración de Keikochain (Starknet Appchain)
 
-### 🚧 En Desarrollo (Service Layer)
+### 🚧 En Desarrollo (Backend Layer)
 
-- [ ] Identity Service (con FIDO2)
-- [ ] Proof-of-Humanity Service (procesamiento biométrico + STARKs)
-- [ ] Learning Service (híbrido con firma Ed25519)
-- [ ] Reputation Service (híbrido)
-- [ ] Passport Service (híbrido)
+- [ ] Módulo de Identidad (con FIDO2)
+- [ ] Módulo Proof-of-Humanity (procesamiento biométrico + STARKs)
+- [ ] Módulo de Aprendizaje (híbrido con firma Ed25519)
+- [ ] Módulo de Reputación (híbrido)
+- [ ] Módulo de Pasaporte (híbrido)
+- [ ] Módulo de Gobernanza
+- [ ] Módulo de Marketplace
+- [ ] Módulo de Guías de Autoestudio
 
 ### 📋 Pendiente (API + Frontend)
 

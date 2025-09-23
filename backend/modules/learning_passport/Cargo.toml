@@ -1,0 +1,27 @@
+[package]
+name = "learning_passport"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+sqlx = { workspace = true }
+redis = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+cairo-lang = { workspace = true }
+starknet-rs = { workspace = true }
+url = { workspace = true }
+reqwest = { workspace = true }
+regex = { workspace = true }
+opencv = { workspace = true }
+bio = { workspace = true }
+base64 = { workspace = true }
+sha2 = { workspace = true }
+ed25519-dalek = { workspace = true }
+shared = { path = "../../shared" }

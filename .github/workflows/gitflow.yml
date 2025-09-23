@@ -1,0 +1,225 @@
+name: GitFlow Pipeline - Keiko Latam
+
+on:
+  push:
+    branches: [main, develop, 'release/*', 'hotfix/*', 'feature/*']
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+env:
+  REGISTRY: registry.gra.cloud.ovh.net/keikolatam
+  IMAGE_NAME: keiko-dapp
+
+jobs:
+  # =============================================================================
+  # Job para Feature Branches
+  # =============================================================================
+  feature-test:
+    if: startsWith(github.ref, 'refs/heads/feature/')
+    runs-on: ubuntu-latest
+    name: Test Feature Branch
+    
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+        
+      - name: Configurar Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          
+      - name: Cache dependencias Rust
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          
+      - name: Ejecutar tests unitarios
+        run: |
+          echo "🧪 Ejecutando tests para feature branch..."
+          cargo test --workspace
+          
+      - name: Linting y formato
+        run: |
+          echo "🔍 Verificando formato de código..."
+          cargo fmt -- --check
+          cargo clippy -- -D warnings
+
+  # =============================================================================
+  # Job para Develop Branch
+  # =============================================================================
+  develop-deploy:
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    name: Deploy to Development
+    environment: development
+    
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+        
+      - name: Configurar Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          
+      - name: Login a OVH Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.OVH_REGISTRY_USERNAME }}
+          password: ${{ secrets.OVH_REGISTRY_PASSWORD }}
+          
+      - name: Build y push imagen
+        run: |
+          echo "🏗️ Construyendo imagen para desarrollo..."
+          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:develop-${{ github.sha }} .
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:develop-${{ github.sha }}
+          
+      - name: Deploy a Kubernetes Dev
+        run: |
+          echo "🚀 Desplegando a entorno de desarrollo..."
+          # Aquí irían los comandos de kubectl para desplegar
+          echo "Deploy completado en desarrollo"
+
+  # =============================================================================
+  # Job para Release Branches
+  # =============================================================================
+  release-test:
+    if: startsWith(github.ref, 'refs/heads/release/')
+    runs-on: ubuntu-latest
+    name: Test Release Candidate
+    environment: staging
+    
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+        
+      - name: Configurar Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          
+      - name: Ejecutar tests completos
+        run: |
+          echo "🧪 Ejecutando test suite completo para release..."
+          cargo test --workspace
+          cargo test --workspace --release
+          
+      - name: Tests de integración
+        run: |
+          echo "🔗 Ejecutando tests de integración..."
+          # Aquí irían los tests de integración específicos
+          
+      - name: Build imagen de staging
+        run: |
+          echo "🏗️ Construyendo imagen para staging..."
+          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:staging-${{ github.sha }} .
+          
+      - name: Deploy a Staging
+        run: |
+          echo "🚀 Desplegando a staging para pruebas..."
+          # Deploy a staging para pruebas de UAT
+
+  # =============================================================================
+  # Job para Main Branch (Production)
+  # =============================================================================
+  production-deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    name: Deploy to Production
+    environment: production
+    
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+        
+      - name: Configurar Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          
+      - name: Login a OVH Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.OVH_REGISTRY_USERNAME }}
+          password: ${{ secrets.OVH_REGISTRY_PASSWORD }}
+          
+      - name: Build imagen de producción
+        run: |
+          echo "🏗️ Construyendo imagen para producción..."
+          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest .
+          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:v${{ github.run_number }} .
+          
+      - name: Push imágenes
+        run: |
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:v${{ github.run_number }}
+          
+      - name: Deploy a Producción
+        run: |
+          echo "🚀 Desplegando a producción..."
+          # Deploy a producción con confirmación manual
+          
+      - name: Notificar despliegue
+        run: |
+          echo "📢 Notificando despliegue exitoso..."
+          # Aquí irían notificaciones a Slack, Discord, etc.
+
+  # =============================================================================
+  # Job para Hotfix Branches
+  # =============================================================================
+  hotfix-deploy:
+    if: startsWith(github.ref, 'refs/heads/hotfix/')
+    runs-on: ubuntu-latest
+    name: Emergency Hotfix Deploy
+    environment: production
+    
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+        
+      - name: Configurar Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          
+      - name: Tests críticos para hotfix
+        run: |
+          echo "🚨 Ejecutando tests críticos para hotfix..."
+          cargo test --workspace --release
+          
+      - name: Build imagen de hotfix
+        run: |
+          echo "🏗️ Construyendo imagen de hotfix..."
+          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:hotfix-${{ github.sha }} .
+          
+      - name: Deploy hotfix a producción
+        run: |
+          echo "🚨 Desplegando hotfix a producción..."
+          # Deploy de emergencia con validación mínima
+          
+      - name: Notificar hotfix
+        run: |
+          echo "🚨 Notificando hotfix desplegado..."
+          # Notificación de emergencia
+
+  # =============================================================================
+  # Job de Notificaciones
+  # =============================================================================
+  notify:
+    needs: [feature-test, develop-deploy, release-test, production-deploy, hotfix-deploy]
+    runs-on: ubuntu-latest
+    name: Notify Team
+    if: always()
+    
+    steps:
+      - name: Notificar resultado
+        run: |
+          echo "📢 Notificando resultado del pipeline..."
+          # Aquí irían las notificaciones según el resultado

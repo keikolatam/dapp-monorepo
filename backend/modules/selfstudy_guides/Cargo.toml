@@ -1,0 +1,23 @@
+[package]
+name = "selfstudy_guides"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+sqlx = { workspace = true }
+redis = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+opencv = { workspace = true }
+bio = { workspace = true }
+prometheus = { workspace = true }
+opentelemetry = { workspace = true }
+opentelemetry-jaeger = { workspace = true }
+opentelemetry-prometheus = { workspace = true }
+shared = { path = "../../shared" }

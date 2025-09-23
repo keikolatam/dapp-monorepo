@@ -1,0 +1,242 @@
+# =============================================================================
+# Material for MkDocs - Configuración para Keiko Latam
+# Documentación moderna e interactiva para la plataforma educativa descentralizada
+# =============================================================================
+
+site_name: Keiko Latam - Plataforma de Colaboración Educativa Descentralizada
+site_description: "Transformando el aprendizaje en capital humano verificable mediante blockchain"
+site_url: https://keikolatam.github.io/dapp-monorepo
+repo_url: https://github.com/keikolatam/dapp-monorepo
+repo_name: keikolatam/dapp-monorepo
+edit_uri: edit/main/docs/
+
+# =============================================================================
+# Configuración del Tema Material
+# =============================================================================
+theme:
+  name: material
+  language: es
+  palette:
+    # Esquema de color claro
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Cambiar a modo oscuro
+    # Esquema de color oscuro  
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Cambiar a modo claro
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.top
+    - search.highlight
+    - search.share
+    - search.suggest
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - content.action.edit
+    - content.action.view
+  icon:
+    repo: fontawesome/brands/github
+    edit: material/pencil
+    view: material/eye
+  logo: assets/images/keiko-logo.png
+  favicon: assets/images/keiko-favicon.png
+
+# =============================================================================
+# Plugins y Extensiones
+# =============================================================================
+plugins:
+  - search:
+      lang: es
+  - git-revision-date-localized:
+      enable_creation_date: true
+  - git-committers:
+      repository: keikolatam/dapp-monorepo
+  - minify:
+      minify_html: true
+  - mkdocs-pdf-export-plugin:
+      enabled_if_env: ENABLE_PDF_EXPORT
+  - mkdocs-gitbook-plugin
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.critic
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      normalize_issue_symbols: true
+      repo_url_shorthand: true
+      user: keikolatam
+      repo: dapp-monorepo
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+      combine_header_slug: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+# =============================================================================
+# Configuración de Markdown
+# =============================================================================
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+      title: En esta página
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.critic
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      normalize_issue_symbols: true
+      repo_url_shorthand: true
+      user: keikolatam
+      repo: dapp-monorepo
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+      combine_header_slug: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+# =============================================================================
+# Configuración de Páginas
+# =============================================================================
+nav:
+  - Inicio: index.md
+  - 🚀 Empezar:
+    - Instalación: getting-started/installation.md
+    - Configuración rápida: getting-started/quick-setup.md
+    - Primeros pasos: getting-started/first-steps.md
+  - 🏗️ Arquitectura:
+    - Visión general: architecture/overview.md
+    - Capas del sistema: architecture/layers.md
+    - Flujo de datos: architecture/data-flow.md
+    - Keikochain: architecture/keikochain.md
+  - 🔧 Desarrollo:
+    - GitFlow: development/gitflow.md
+    - Configuración local: development/local-setup.md
+    - Testing: development/testing.md
+    - Contribuir: development/contributing.md
+  - 📚 API Reference:
+    - GraphQL API: api/graphql.md
+    - REST Endpoints: api/rest.md
+    - gRPC Gateway: api/grpc.md
+    - Cairo Contracts: api/cairo.md
+  - 🎓 Guías:
+    - Proof of Humanity: guides/proof-of-humanity.md
+    - Learning Interactions: guides/learning-interactions.md
+    - Marketplace: guides/marketplace.md
+    - Governance: guides/governance.md
+  - 🚀 Despliegue:
+    - OVHCloud Kubernetes: deployment/ovhcloud.md
+    - CI/CD Pipeline: deployment/cicd.md
+    - Monitoring: deployment/monitoring.md
+    - Troubleshooting: deployment/troubleshooting.md
+  - 📖 Especificaciones:
+    - Requerimientos: specifications/requirements.md
+    - Diseño: specifications/design.md
+    - Tareas: specifications/tasks.md
+  - 🤝 Comunidad:
+    - Código de conducta: community/code-of-conduct.md
+    - Contribuidores: community/contributors.md
+    - Soporte: community/support.md
+
+# =============================================================================
+# Configuración adicional
+# =============================================================================
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/keikolatam
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/keikolatam
+    - icon: fontawesome/brands/discord
+      link: https://discord.gg/keikolatam
+    - icon: fontawesome/brands/linkedin
+      link: https://linkedin.com/company/keikolatam
+  version:
+    provider: mike
+  analytics:
+    provider: google
+    property: G-XXXXXXXXXX
+  consent:
+    title: Cookie consent
+    description: >-
+      Utilizamos cookies para reconocer sus visitas repetidas y preferencias, así como para medir la eficacia de nuestras campañas y analizar el tráfico.
+      Para saber más sobre las cookies, consulte nuestra política de cookies.
+  generator: false
+
+# =============================================================================
+# Configuración de desarrollo
+# =============================================================================
+dev_addr: 0.0.0.0:8000
+watch:
+  - docs
+  - overrides
+
+# =============================================================================
+# Configuración de archivos estáticos
+# =============================================================================
+extra_css:
+  - stylesheets/keiko-custom.css
+  - stylesheets/keiko-theme.css
+
+extra_javascript:
+  - javascripts/keiko-custom.js
+  - javascripts/mermaid.min.js

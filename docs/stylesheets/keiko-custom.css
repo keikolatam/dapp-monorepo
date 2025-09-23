@@ -1,0 +1,521 @@
+/* =============================================================================
+   Keiko Latam - Estilos Personalizados para Material for MkDocs
+   Tema personalizado para la documentación de la plataforma educativa
+   ============================================================================= */
+
+/* =============================================================================
+   Variables CSS personalizadas
+   ============================================================================= */
+:root {
+  /* Colores de marca Keiko */
+  --keiko-primary: #4f46e5;
+  --keiko-primary-dark: #3730a3;
+  --keiko-secondary: #06b6d4;
+  --keiko-accent: #f59e0b;
+  --keiko-success: #10b981;
+  --keiko-warning: #f59e0b;
+  --keiko-error: #ef4444;
+  
+  /* Colores de fondo */
+  --keiko-bg-light: #f8fafc;
+  --keiko-bg-dark: #1e293b;
+  
+  /* Tipografía */
+  --keiko-font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --keiko-font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  
+  /* Espaciado */
+  --keiko-spacing-xs: 0.25rem;
+  --keiko-spacing-sm: 0.5rem;
+  --keiko-spacing-md: 1rem;
+  --keiko-spacing-lg: 1.5rem;
+  --keiko-spacing-xl: 2rem;
+  
+  /* Bordes */
+  --keiko-border-radius: 0.5rem;
+  --keiko-border-radius-lg: 1rem;
+  
+  /* Sombras */
+  --keiko-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --keiko-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --keiko-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+}
+
+/* =============================================================================
+   Configuración global
+   ============================================================================= */
+.md-content {
+  font-family: var(--keiko-font-family);
+}
+
+.md-content__inner {
+  max-width: 1200px;
+}
+
+/* =============================================================================
+   Header personalizado
+   ============================================================================= */
+.md-header {
+  background: linear-gradient(135deg, var(--keiko-primary) 0%, var(--keiko-primary-dark) 100%);
+  box-shadow: var(--keiko-shadow-md);
+}
+
+.md-header__title {
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+.md-header__button {
+  transition: all 0.2s ease;
+}
+
+.md-header__button:hover {
+  transform: scale(1.05);
+}
+
+/* =============================================================================
+   Navegación personalizada
+   ============================================================================= */
+.md-nav {
+  font-size: 0.875rem;
+}
+
+.md-nav__item {
+  margin: var(--keiko-spacing-xs) 0;
+}
+
+.md-nav__link {
+  border-radius: var(--keiko-border-radius);
+  transition: all 0.2s ease;
+  padding: var(--keiko-spacing-sm) var(--keiko-spacing-md);
+}
+
+.md-nav__link:hover {
+  background-color: var(--keiko-primary);
+  color: white;
+  transform: translateX(4px);
+}
+
+.md-nav__link--active {
+  background-color: var(--keiko-primary);
+  color: white;
+  font-weight: 600;
+}
+
+/* =============================================================================
+   Tabs personalizados
+   ============================================================================= */
+.md-tabs {
+  background: var(--keiko-bg-light);
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.md-tabs__link {
+  transition: all 0.2s ease;
+  border-radius: var(--keiko-border-radius) var(--keiko-border-radius) 0 0;
+  margin: 0 var(--keiko-spacing-xs);
+}
+
+.md-tabs__link:hover {
+  background-color: white;
+  transform: translateY(-2px);
+  box-shadow: var(--keiko-shadow-sm);
+}
+
+.md-tabs__link--active {
+  background-color: white;
+  color: var(--keiko-primary);
+  font-weight: 600;
+}
+
+/* =============================================================================
+   Cards personalizados
+   ============================================================================= */
+.grid.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--keiko-spacing-lg);
+  margin: var(--keiko-spacing-xl) 0;
+}
+
+.grid.cards .card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: var(--keiko-border-radius-lg);
+  padding: var(--keiko-spacing-lg);
+  box-shadow: var(--keiko-shadow-sm);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.grid.cards .card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--keiko-primary), var(--keiko-secondary));
+}
+
+.grid.cards .card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--keiko-shadow-lg);
+  border-color: var(--keiko-primary);
+}
+
+.grid.cards .card h3 {
+  color: var(--keiko-primary);
+  margin: 0 0 var(--keiko-spacing-md) 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.grid.cards .card p {
+  color: #6b7280;
+  margin: 0 0 var(--keiko-spacing-md) 0;
+  line-height: 1.6;
+}
+
+/* =============================================================================
+   Admonitions personalizados
+   ============================================================================= */
+.admonition {
+  border-radius: var(--keiko-border-radius);
+  border-left: 4px solid;
+  box-shadow: var(--keiko-shadow-sm);
+  margin: var(--keiko-spacing-lg) 0;
+}
+
+.admonition.tip {
+  border-left-color: var(--keiko-success);
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+}
+
+.admonition.note {
+  border-left-color: var(--keiko-secondary);
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+}
+
+.admonition.warning {
+  border-left-color: var(--keiko-warning);
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+}
+
+.admonition.danger {
+  border-left-color: var(--keiko-error);
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+}
+
+.admonition-title {
+  font-weight: 700;
+  font-size: 1rem;
+  margin: 0 0 var(--keiko-spacing-sm) 0;
+}
+
+.admonition-title::before {
+  font-size: 1.25rem;
+  margin-right: var(--keiko-spacing-sm);
+}
+
+/* =============================================================================
+   Código personalizado
+   ============================================================================= */
+.highlight {
+  border-radius: var(--keiko-border-radius);
+  box-shadow: var(--keiko-shadow-sm);
+  margin: var(--keiko-spacing-lg) 0;
+}
+
+.highlight pre {
+  font-family: var(--keiko-font-mono);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  padding: var(--keiko-spacing-lg);
+}
+
+.highlight .copy {
+  background: var(--keiko-primary);
+  border-radius: var(--keiko-border-radius);
+  padding: var(--keiko-spacing-sm);
+  transition: all 0.2s ease;
+}
+
+.highlight .copy:hover {
+  background: var(--keiko-primary-dark);
+  transform: scale(1.05);
+}
+
+/* =============================================================================
+   Tablas personalizadas
+   ============================================================================= */
+.md-typeset table:not([class]) {
+  border-radius: var(--keiko-border-radius);
+  overflow: hidden;
+  box-shadow: var(--keiko-shadow-sm);
+}
+
+.md-typeset table:not([class]) th {
+  background: var(--keiko-primary);
+  color: white;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+.md-typeset table:not([class]) tr:nth-child(even) {
+  background-color: #f8fafc;
+}
+
+.md-typeset table:not([class]) tr:hover {
+  background-color: #e0f2fe;
+  transform: scale(1.01);
+  transition: all 0.2s ease;
+}
+
+/* =============================================================================
+   Botones personalizados
+   ============================================================================= */
+.md-button {
+  border-radius: var(--keiko-border-radius);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.3s ease;
+  box-shadow: var(--keiko-shadow-sm);
+}
+
+.md-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--keiko-shadow-md);
+}
+
+.md-button--primary {
+  background: linear-gradient(135deg, var(--keiko-primary), var(--keiko-primary-dark));
+  border: none;
+}
+
+.md-button--secondary {
+  background: linear-gradient(135deg, var(--keiko-secondary), #0891b2);
+  border: none;
+  color: white;
+}
+
+/* =============================================================================
+   Footer personalizado
+   ============================================================================= */
+.md-footer {
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  color: #d1d5db;
+}
+
+.md-footer__inner {
+  padding: var(--keiko-spacing-xl) 0;
+}
+
+.md-footer__link {
+  transition: all 0.2s ease;
+  border-radius: var(--keiko-border-radius);
+  padding: var(--keiko-spacing-sm);
+}
+
+.md-footer__link:hover {
+  background-color: var(--keiko-primary);
+  color: white;
+  transform: scale(1.05);
+}
+
+/* =============================================================================
+   Responsive design
+   ============================================================================= */
+@media screen and (max-width: 768px) {
+  .grid.cards {
+    grid-template-columns: 1fr;
+    gap: var(--keiko-spacing-md);
+  }
+  
+  .md-content__inner {
+    padding: 0 var(--keiko-spacing-md);
+  }
+  
+  .highlight pre {
+    font-size: 0.75rem;
+    padding: var(--keiko-spacing-md);
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .md-header__title {
+    font-size: 1rem;
+  }
+  
+  .grid.cards .card {
+    padding: var(--keiko-spacing-md);
+  }
+  
+  .admonition {
+    margin: var(--keiko-spacing-md) 0;
+  }
+}
+
+/* =============================================================================
+   Modo oscuro personalizado
+   ============================================================================= */
+[data-md-color-scheme="slate"] {
+  --keiko-bg-dark: #0f172a;
+  --keiko-bg-light: #1e293b;
+}
+
+[data-md-color-scheme="slate"] .grid.cards .card {
+  background: #1e293b;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+
+[data-md-color-scheme="slate"] .grid.cards .card:hover {
+  background: #334155;
+  border-color: var(--keiko-primary);
+}
+
+[data-md-color-scheme="slate"] .admonition {
+  background: rgba(30, 41, 59, 0.8);
+}
+
+[data-md-color-scheme="slate"] .highlight {
+  background: #1e293b;
+  border: 1px solid #334155;
+}
+
+/* =============================================================================
+   Animaciones personalizadas
+   ============================================================================= */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.md-content__inner {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.grid.cards .card {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.grid.cards .card:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.grid.cards .card:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.grid.cards .card:nth-child(4) {
+  animation-delay: 0.3s;
+}
+
+/* =============================================================================
+   Utilidades
+   ============================================================================= */
+.text-center {
+  text-align: center;
+}
+
+.text-primary {
+  color: var(--keiko-primary);
+}
+
+.text-secondary {
+  color: var(--keiko-secondary);
+}
+
+.bg-gradient {
+  background: linear-gradient(135deg, var(--keiko-primary), var(--keiko-secondary));
+}
+
+.shadow-lg {
+  box-shadow: var(--keiko-shadow-lg);
+}
+
+.rounded-lg {
+  border-radius: var(--keiko-border-radius-lg);
+}
+
+/* =============================================================================
+   Estilos para diagramas Mermaid
+   ============================================================================= */
+.mermaid {
+  background: white;
+  border-radius: var(--keiko-border-radius);
+  padding: var(--keiko-spacing-lg);
+  box-shadow: var(--keiko-shadow-sm);
+  margin: var(--keiko-spacing-lg) 0;
+}
+
+[data-md-color-scheme="slate"] .mermaid {
+  background: #1e293b;
+  border: 1px solid #334155;
+}
+
+/* =============================================================================
+   Estilos para tabs
+   ============================================================================= */
+.tabbed {
+  border-radius: var(--keiko-border-radius);
+  overflow: hidden;
+  box-shadow: var(--keiko-shadow-sm);
+}
+
+.tabbed > input {
+  display: none;
+}
+
+.tabbed > label {
+  background: var(--keiko-bg-light);
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.tabbed > input:checked + label {
+  background: white;
+  border-bottom-color: var(--keiko-primary);
+  color: var(--keiko-primary);
+  font-weight: 600;
+}
+
+.tabbed > .tabbed-content {
+  background: white;
+  border-top: 1px solid #e5e7eb;
+}
+
+[data-md-color-scheme="slate"] .tabbed > label {
+  background: #1e293b;
+  color: #e2e8f0;
+}
+
+[data-md-color-scheme="slate"] .tabbed > input:checked + label {
+  background: #334155;
+  color: var(--keiko-primary);
+}
+
+[data-md-color-scheme="slate"] .tabbed > .tabbed-content {
+  background: #1e293b;
+  border-top-color: #334155;
+}
