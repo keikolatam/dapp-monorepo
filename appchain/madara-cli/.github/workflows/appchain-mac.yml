@@ -1,0 +1,26 @@
+name: Task - Appchain Mac
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  appchain_mac:
+    strategy:
+      fail-fast: false
+    runs-on: macos-latest
+    env:
+      CPU_LIMIT: 2.0
+      PATHFINDER_DATA_DIR: /tmp/pathfinder
+      MADARA_DATA_DIR: /tmp/madara
+      ANVIL_DATA_DIR: /tmp/anvil
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - uses: ./.github/actions/setup-mac
+
+      - name: Setup app chain and run tests
+        run: |
+          make run-appchain-transfer-ci

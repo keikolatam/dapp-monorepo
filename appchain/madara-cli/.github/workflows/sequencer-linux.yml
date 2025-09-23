@@ -1,0 +1,19 @@
+name: Task - Sequencer Linux
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  sequencer_linux:
+    strategy:
+      fail-fast: false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup sequencer chain
+        run: |
+          make run-madara-ci MADARA_MODE=sequencer

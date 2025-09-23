@@ -1,0 +1,19 @@
+name: Task - Devnet Linux
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  devnet_linux:
+    strategy:
+      fail-fast: false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup dev chain
+        run: |
+          make run-madara-ci MADARA_MODE=devnet

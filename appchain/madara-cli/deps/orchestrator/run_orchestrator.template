@@ -1,0 +1,26 @@
+#!/bin/sh
+
+# Configure Orchestrator to start on the following block after Bootstrapper finishes the L2 configuration
+# RPC call to get Madara last block and then replace the MIN_BLOCK from .env file with X+1 value
+LAST_BLOCK_NUMBER=$(( $(curl --silent --location 'madara:9945'/v0_7_1/ \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "jsonrpc": "2.0",
+    "method": "starknet_blockNumber",
+    "params": [],
+    "id": 1
+  }' | jq -r '.result') + 1 ))
+
+if [ $? -ne 0 ]; then
+  echo "Error: Failed to fetch the block number."
+  exit 1
+fi
+
+echo "Block number: $LAST_BLOCK_NUMBER"
+awk -v val="$LAST_BLOCK_NUMBER" '/MADARA_ORCHESTRATOR_MIN_BLOCK_NO_TO_PROCESS=/{$0="MADARA_ORCHESTRATOR_MIN_BLOCK_NO_TO_PROCESS="val}1' .env_tmp > .new_env && mv .new_env .env
+
+# Orchestrator setup
+./orchestrator setup --aws --aws-s3 --aws-sqs --aws-sns --aws-event-bridge --event-bridge-type {{ EVENT_BRIDGE_TYPE | default("rule") }}
+
+# Orchestrator run
+RUST_LOG=info ./orchestrator run --{{ PROVER_TYPE | default("sharp") }} --{{ AWS_ENABLED | default("aws") }} --{{ SETTLEMENT_NETWORK | default("settle-on-ethereum") }} --aws-s3 --aws-sqs --aws-sns --{{ DA_NETWORK | default("da-on-ethereum") }} --mongodb
