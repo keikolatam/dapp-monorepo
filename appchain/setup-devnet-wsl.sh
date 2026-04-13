@@ -124,7 +124,7 @@ learning_interactions = "0x0"
 life_learning_passport = "0x0"
 reputation_system = "0x0"
 governance = "0x0"
-marketplace = "0x0"
+learning_marketplace = "0x0"
 
 [testing]
 # Configuración para tests

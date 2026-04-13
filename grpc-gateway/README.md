@@ -162,7 +162,7 @@ learning_interactions = "0x..."
 life_learning_passport = "0x..."
 reputation_system = "0x..."
 governance = "0x..."
-marketplace = "0x..."
+learning_marketplace = "0x..."
 ```
 
 ### Ejemplo de uso

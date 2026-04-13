@@ -60,7 +60,7 @@ appchain/
 │   ├── life_learning_passport.cairo     # Contrato de LLP
 │   ├── reputation_system.cairo          # Contrato de sistema de reputación
 │   ├── governance.cairo                 # Contrato de gobernanza
-│   └── marketplace.cairo                # Contrato de marketplace
+│   └── learning_marketplace.cairo       # Contrato de marketplace de aprendizaje
 ├── config/                              # Configuraciones de la Appchain
 │   └── keikochain.toml                 # Configuración principal
 ├── tests/                               # Tests de contratos
