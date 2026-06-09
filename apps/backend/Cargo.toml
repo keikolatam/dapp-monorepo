@@ -31,4 +31,4 @@ reputation = { path = "modules/reputation" }
 governance = { path = "modules/governance" }
 marketplace = { path = "modules/marketplace" }
 selfstudy_guides = { path = "modules/selfstudy_guides" }
-shared = { path = "../shared" }
+shared = { path = "../../shared" }
