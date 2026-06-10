@@ -1,0 +1,28 @@
+# Interview prep: en la vista clásica cada ítem es un ExpansionTile (_PrepTile).
+# Expande el primer topic del demo ("GitOps con Argo CD…", knowledge_base.dart)
+# y verifica que aparece la pregunta de ejemplo (el texto con ❓).
+appId: com.keikolatam.keiko_app
+tags:
+  - coach
+  - prep
+---
+- launchApp
+- tapOn: "Ver versión clásica"
+- extendedWaitUntil:
+    visible:
+      text: "Desde Band 8 — Experienced"
+    timeout: 20000
+# Bajar hasta la sección de interview prep y expandir el primer topic.
+- scrollUntilVisible:
+    element:
+      text: ".*GitOps con Argo CD.*"
+    direction: DOWN
+- tapOn:
+    text: ".*GitOps con Argo CD.*"
+# El contenido expandido puede quedar bajo el fold: scrollear hasta la pregunta.
+- scrollUntilVisible:
+    element:
+      text: ".*¿Cómo coordinás el orden de despliegue.*"
+    direction: DOWN
+- assertVisible:
+    text: ".*¿Cómo coordinás el orden de despliegue.*"

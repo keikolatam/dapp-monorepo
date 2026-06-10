@@ -194,6 +194,33 @@ test-flutter: ## Ejecutar tests de Flutter
 	@echo "$(BLUE)🧪 Ejecutando tests de Flutter...$(NC)"
 	@cd apps/mobile && flutter test
 
+# --- Maestro E2E (device físico vía adb; NUNCA lanza emuladores) ---
+
+.PHONY: dev-mobile-maestro-install
+dev-mobile-maestro-install: ## Instalar Maestro CLI en $$HOME/.maestro (sin sudo)
+	@echo "$(BLUE)📲 Instalando Maestro CLI...$(NC)"
+	@curl -fsSL "https://get.maestro.mobile.dev" | bash
+
+.PHONY: dev-mobile-maestro-test
+dev-mobile-maestro-test: ## Correr todos los flows E2E del Coach contra el device adb conectado
+	@echo "$(BLUE)🧪 Maestro E2E (Coach) contra device físico...$(NC)"
+	@bash apps/mobile/tool/run_maestro.sh
+
+.PHONY: dev-mobile-maestro-smoke
+dev-mobile-maestro-smoke: ## Correr solo los flows Maestro con tag smoke
+	@echo "$(BLUE)🧪 Maestro smoke (Coach) contra device físico...$(NC)"
+	@MAESTRO_TAGS=smoke bash apps/mobile/tool/run_maestro.sh
+
+.PHONY: dev-mobile-maestro-analyze
+dev-mobile-maestro-analyze: ## Correr flows Maestro con AI test analysis (requiere maestro login)
+	@echo "$(BLUE)🤖 Maestro E2E + AI analysis contra device físico...$(NC)"
+	@MAESTRO_ANALYZE=1 bash apps/mobile/tool/run_maestro.sh
+
+.PHONY: dev-mobile-maestro-studio
+dev-mobile-maestro-studio: ## Abrir Maestro Studio conectado al device físico
+	@echo "$(BLUE)🎛️ Abriendo Maestro Studio...$(NC)"
+	@PATH="$$PATH:$$HOME/.maestro/bin:$$HOME/Android/Sdk/platform-tools" maestro studio
+
 .PHONY: lint-all
 lint-all: lint-rust lint-python lint-flutter ## Ejecutar linting completo
 

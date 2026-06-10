@@ -1,0 +1,20 @@
+# Smoke: la app lanza y la home GenUI pinta el assessment demo.
+# Selectores = texto real de lib/main.dart y coach_a2ui_builder.dart.
+appId: com.keikolatam.keiko_app
+tags:
+  - smoke
+  - coach
+---
+- launchApp
+# AppBar de la home GenUI (regex parcial: los paréntesis de "(GenUI)" son
+# metacaracteres, así que no se usa el título literal).
+- assertVisible:
+    text: ".*Keiko · Coach de Carrera.*GenUI.*"
+# La superficie A2UI se pinta async (loadDemoPlan + SurfaceController):
+# esperar el header de readiness "45% preparación · Band 8 → Band 10".
+- extendedWaitUntil:
+    visible:
+      text: ".*45%.*preparación.*"
+    timeout: 20000
+- assertVisible:
+    text: ".*Band 10 — Thought Leader.*"
