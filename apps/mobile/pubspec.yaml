@@ -21,8 +21,11 @@ dependencies:
   # Networking & Blockchain (Starknet — ver ADR-0004)
   dio: ^5.0.0
   # Removed Substrate-era deps web3dart/polkadot_dart (Fase 0, 2026-06-09);
-  # Keikochain es Starknet/Madara. starknet.dart se encapsula tras GraphQL/gRPC.
-  starknet: ^0.5.0
+  # Keikochain es Starknet/Madara. starknet.dart se encapsula tras GraphQL/gRPC,
+  # por lo que NO es dependencia directa de la app todavía. Se quitó el
+  # placeholder `starknet: ^0.5.0` (versión inexistente en pub.dev; la última
+  # es 0.2.0 y además choca con freezed_annotation ^3.x). Reintroducir solo
+  # cuando exista integración real, detrás del cliente GraphQL/gRPC.
 
   # UI compartida (Atomic Design + Material 3)
   keiko_ui:
@@ -82,7 +85,9 @@ dev_dependencies:
   very_good_analysis: ^5.0.0
 
   # Documentation
-  dartdoc: 8.3.4
+  # dartdoc 8.3.4 (pin exacto) chocaba con bloc_test ^10.0.0 bajo Flutter 3.41;
+  # ^9.0.0 es la sugerencia del solver de pub.
+  dartdoc: ^9.0.0
 
 flutter:
   uses-material-design: true
