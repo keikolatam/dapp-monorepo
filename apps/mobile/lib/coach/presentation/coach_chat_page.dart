@@ -3,10 +3,12 @@
 ///
 /// The user types in a Material 3 input ([KeikoChatInputBar]); the gateway
 /// forwards to NIM/nemotron and the answer composes widgets from the Keiko
-/// catalog through the A2UI protocol. The app holds NO LLM credentials — it
-/// only needs `--dart-define=KEIKO_AGENT_WS=ws://localhost:8080/ws` (plus
-/// `adb reverse tcp:8080 tcp:8080` on a USB device). Without the endpoint
-/// the page shows an empty state and the input stays disabled.
+/// catalog through the A2UI protocol. The app holds NO LLM credentials — the
+/// endpoint defaults to `ws://localhost:8080/ws` (override with
+/// `--dart-define=KEIKO_AGENT_WS=...`; on a USB device run
+/// `adb reverse tcp:8080 tcp:8080`). If the gateway is unreachable the page
+/// shows a retryable "Gateway no disponible" state and the input stays
+/// disabled.
 library;
 
 import 'package:flutter/material.dart';
@@ -23,13 +25,18 @@ class CoachChatPage extends StatefulWidget {
   const CoachChatPage({
     super.key,
     this.repository = const CoachRepository(),
-    this.wsUrl = const String.fromEnvironment('KEIKO_AGENT_WS'),
+    this.wsUrl = const String.fromEnvironment(
+      'KEIKO_AGENT_WS',
+      defaultValue: 'ws://localhost:8080/ws',
+    ),
     this.streamTurn,
   });
 
   final CoachRepository repository;
 
-  /// agentic-core gateway endpoint. Empty (no `--dart-define`) disables chat.
+  /// agentic-core gateway endpoint; `--dart-define=KEIKO_AGENT_WS` overrides
+  /// the localhost default. Availability is purely connectivity-based: if the
+  /// gateway is unreachable the page shows a retryable error state.
   final String wsUrl;
 
   /// Test seam: overrides the gateway client (no socket needed).
@@ -62,13 +69,12 @@ class _CoachChatPageState extends State<CoachChatPage> {
   bool _connecting = false;
   Object? _initError;
 
-  bool get _hasBackend => widget.streamTurn != null || widget.wsUrl.isNotEmpty;
   bool get _ready => _conversation != null;
 
   @override
   void initState() {
     super.initState();
-    if (_hasBackend) _init();
+    _init();
   }
 
   Future<void> _init() async {
@@ -83,7 +89,13 @@ class _CoachChatPageState extends State<CoachChatPage> {
       var streamTurn = widget.streamTurn;
       if (streamTurn == null) {
         final client = AgentWsClient(wsUrl: widget.wsUrl);
-        await client.connect();
+        try {
+          await client.connect();
+        } catch (_) {
+          // Close the half-open channel so a failed connect leaks nothing.
+          client.dispose();
+          rethrow;
+        }
         _client = client;
         streamTurn = client.streamTurn;
       }
@@ -181,11 +193,9 @@ class _CoachChatPageState extends State<CoachChatPage> {
       appBar: AppBar(title: const Text('Coach · Chat (Nemotron)')),
       body: Column(
         children: [
-          Expanded(
-            child: !_hasBackend ? _MissingEndpointState() : _buildBody(),
-          ),
+          Expanded(child: _buildBody()),
           KeikoChatInputBar(
-            enabled: _hasBackend && _ready,
+            enabled: _ready,
             isLoading: _isWaiting,
             hintText: 'Preguntale al Coach...',
             onSend: _send,
@@ -316,12 +326,13 @@ class _ConnectionErrorState extends StatelessWidget {
           children: [
             Icon(Icons.cloud_off, size: 48, color: theme.colorScheme.outline),
             const SizedBox(height: 16),
-            Text('No pude conectar con el gateway',
-                style: theme.textTheme.titleMedium),
+            Text('Gateway no disponible', style: theme.textTheme.titleMedium),
             const SizedBox(height: 8),
             Text(
               '¿Está corriendo agentic-core?\n'
-              'apps/coach-sidecar/run-local.sh\n\n$error',
+              'apps/coach-sidecar/run-local.sh\n'
+              '(device USB: adb reverse tcp:8080 tcp:8080;\n'
+              'otro endpoint: --dart-define=KEIKO_AGENT_WS=...)\n\n$error',
               textAlign: TextAlign.center,
               style: theme.textTheme.bodySmall,
             ),
@@ -338,31 +349,3 @@ class _ConnectionErrorState extends StatelessWidget {
   }
 }
 
-class _MissingEndpointState extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.link_off, size: 48, color: theme.colorScheme.outline),
-            const SizedBox(height: 16),
-            Text('Configurá KEIKO_AGENT_WS', style: theme.textTheme.titleMedium),
-            const SizedBox(height: 8),
-            Text(
-              'Corré la app con\n'
-              'flutter run --dart-define=KEIKO_AGENT_WS=ws://localhost:8080/ws\n'
-              '(en device USB: adb reverse tcp:8080 tcp:8080)\n'
-              'para chatear con el Coach.',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

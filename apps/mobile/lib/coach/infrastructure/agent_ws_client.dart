@@ -35,6 +35,7 @@ class AgentWsClient {
 
   WebSocketChannel? _channel;
   Stream<Map<String, dynamic>>? _messages;
+  StreamSubscription<Map<String, dynamic>>? _drain;
   String? _sessionId;
 
   bool get isConnected => _sessionId != null;
@@ -42,12 +43,17 @@ class AgentWsClient {
   /// Opens the socket and creates the chat session on the gateway.
   Future<void> connect() async {
     final channel = WebSocketChannel.connect(Uri.parse(wsUrl));
-    await channel.ready.timeout(connectTimeout);
     final messages = channel.stream
         .map((data) => jsonDecode(data as String) as Map<String, dynamic>)
         .asBroadcastStream();
+    // Permanent listener: a failed connect emits its error through the
+    // channel's stream too, and with no listener that surfaces as an
+    // unhandled async error. Swallow it here — callers already see the
+    // failure via `ready`.
+    _drain = messages.listen((_) {}, onError: (_) {});
     _channel = channel;
     _messages = messages;
+    await channel.ready.timeout(connectTimeout);
 
     channel.sink.add(jsonEncode({
       'type': 'create_session',
@@ -92,6 +98,8 @@ class AgentWsClient {
   }
 
   void dispose() {
+    _drain?.cancel();
+    _drain = null;
     _channel?.sink.close();
     _channel = null;
     _messages = null;
