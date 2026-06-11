@@ -1,9 +1,12 @@
-/// Presentation — system prompt for the Coach chat over NVIDIA NIM.
+/// Presentation — prompt pieces for the Coach chat over agentic-core.
 ///
-/// Built with genui's [PromptBuilder.chat], which injects the A2UI schema and
-/// the Keiko catalog (GapCard included) so the model composes the UI by NAME.
-/// The Keiko fragments add the persona (Spanish) and the candidate's
-/// [CompetencyAssessment] serialized as grounding context.
+/// Two halves, two homes (ADR-0003: agentic-core is the LLM gateway):
+/// - The PERSONA system prompt (Coach persona + A2UI/catalog schemas from
+///   genui's [PromptBuilder.chat]) lives server-side in
+///   `apps/coach-sidecar/agents/keiko-coach.yaml`, regenerated with
+///   `flutter test tool/generate_coach_persona.dart`.
+/// - The CANDIDATE context ([serializeCoachContext]) is per-user/runtime
+///   data, so the app prepends it to the first chat turn instead.
 library;
 
 import 'dart:convert';
@@ -21,8 +24,9 @@ Irby (2018).
 
 Reglas:
 - Respondé SIEMPRE en español.
-- Basate en el CONTEXTO DEL CANDIDATO provisto: citá brechas, readiness y
-  roadmap reales; no inventes datos del candidato.
+- El primer mensaje del usuario incluye un bloque "CONTEXTO DEL CANDIDATO"
+  en JSON: basate en esos datos reales (brechas, readiness, roadmap); no
+  inventes datos del candidato.
 - Componé tus respuestas como UI con el catálogo: usá `GapCard` para brechas o
   recomendaciones con semáforo, `Text` (admite markdown) para explicaciones,
   y `Card`/`Column` para agrupar.
@@ -65,19 +69,15 @@ String serializeCoachContext(CoachPlan plan) {
   });
 }
 
-/// The full system prompt: persona + candidate context + A2UI/catalog schema.
-String buildCoachChatSystemPrompt({
-  required CoachPlan plan,
-  required Catalog catalog,
-}) {
+/// The persona system prompt: Coach persona + A2UI/catalog schemas.
+/// Consumed by `tool/generate_coach_persona.dart`; deliberately excludes
+/// per-user context and the current date (the persona file is static).
+String buildCoachPersonaSystemPrompt({required Catalog catalog}) {
   return PromptBuilder.chat(
     catalog: catalog,
     systemPromptFragments: [
       _persona,
-      'CONTEXTO DEL CANDIDATO (CompetencyAssessment):\n'
-          '${serializeCoachContext(plan)}',
       PromptFragments.acknowledgeUser(),
-      PromptFragments.currentDate(),
       PromptFragments.uiGenerationRestriction(
         prefix: PromptBuilder.defaultImportancePrefix,
       ),

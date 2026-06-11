@@ -4,26 +4,30 @@ import 'package:keiko_app/coach/presentation/coach_chat_page.dart';
 import 'package:keiko_ui/keiko_ui.dart';
 
 void main() {
-  testWidgets('sin NVIDIA_API_KEY muestra el estado vacío y el input '
+  testWidgets('sin KEIKO_AGENT_WS muestra el estado vacío y el input '
       'deshabilitado', (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(home: CoachChatPage(apiKey: '')),
+      const MaterialApp(home: CoachChatPage(wsUrl: '')),
     );
     await tester.pump();
 
-    expect(find.text('Configurá NVIDIA_API_KEY'), findsOneWidget);
-    expect(find.textContaining('--dart-define=NVIDIA_API_KEY'), findsOneWidget);
+    expect(find.text('Configurá KEIKO_AGENT_WS'), findsOneWidget);
+    expect(
+      find.textContaining('--dart-define=KEIKO_AGENT_WS'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('adb reverse'), findsOneWidget);
     final field = tester.widget<TextField>(find.byType(TextField));
     expect(field.enabled, isFalse);
   });
 
-  testWidgets('flujo completo con NIM mockeado: enviar → GenUI renderizada',
+  testWidgets('flujo completo con gateway mockeado: enviar → GenUI renderizada',
       (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: CoachChatPage(
-          apiKey: '',
-          streamCompletion: (history) => Stream.value(
+          wsUrl: '',
+          streamTurn: (content) => Stream.value(
             '```json\n{"version":"v0.9","createSurface":'
             '{"surfaceId":"model-1","catalogId":"keiko-coach"}}\n```\n'
             '```json\n{"version":"v0.9","updateComponents":'

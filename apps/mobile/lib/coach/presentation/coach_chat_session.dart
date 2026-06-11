@@ -1,42 +1,55 @@
-/// Presentation — chat session bridging NVIDIA NIM and the GenUI surfaces.
+/// Presentation — chat session bridging the agentic-core gateway and GenUI.
 ///
 /// [CoachChatSession] implements genui's [Transport]: a [Conversation] wires
-/// it to the [SurfaceController]. Each turn streams the completion from NIM,
-/// strips Nemotron reasoning traces, and feeds the FULL response to a
-/// per-turn [A2uiTransportAdapter] — A2UI JSON becomes surfaces, and anything
-/// that does NOT parse as valid A2UI (plain prose, malformed JSON, transport
-/// errors) falls back to a synthetic surface with a markdown `Text`
-/// component, so the chat never breaks on bad model output.
+/// it to the [SurfaceController]. Each turn streams tokens from the gateway
+/// (agentic-core → NIM/nemotron, per ADR-0003), strips Nemotron reasoning
+/// traces, and feeds the FULL response to a per-turn [A2uiTransportAdapter]
+/// — A2UI JSON becomes surfaces, and anything that does NOT parse as valid
+/// A2UI (plain prose, malformed JSON, transport errors) falls back to a
+/// synthetic surface with a markdown `Text` component, so the chat never
+/// breaks on bad model output.
+///
+/// The gateway's WS proxy is stateless per turn (system + one human message),
+/// so the session compensates client-side: the candidate context plus the
+/// recent turn history travel inside the content of every request.
 library;
 
 import 'dart:async';
 
 import 'package:genui/genui.dart';
 
-import '../infrastructure/nim_chat_client.dart';
+import '../infrastructure/agent_ws_client.dart';
 
-/// Produces the streaming completion for a conversation history.
-/// Injectable so tests can run without network or API key.
-typedef NimStreamFn = Stream<String> Function(List<NimMessage> history);
+/// Streams the gateway's tokens for one turn's content.
+/// Injectable so tests can run without a gateway
+/// (production wiring: [AgentWsClient.streamTurn]).
+typedef AgentTurnFn = Stream<String> Function(String content);
+
+/// One past exchange kept client-side for the stateless gateway.
+class _Turn {
+  const _Turn(this.user, this.assistant);
+  final String user;
+  final String assistant;
+}
 
 class CoachChatSession implements Transport {
   CoachChatSession({
-    required NimStreamFn streamCompletion,
-    required String systemPrompt,
+    required AgentTurnFn streamTurn,
+    required String candidateContext,
     this.catalogId = 'keiko-coach',
-  })  : _streamCompletion = streamCompletion,
-        _history = [NimMessage.system(systemPrompt)];
+    this.maxHistoryTurns = 6,
+  })  : _streamTurn = streamTurn,
+        _candidateContext = candidateContext;
 
-  final NimStreamFn _streamCompletion;
+  final AgentTurnFn _streamTurn;
+  final String _candidateContext;
   final String catalogId;
-  final List<NimMessage> _history;
+  final int maxHistoryTurns;
 
+  final _turns = <_Turn>[];
   final _messagesOut = StreamController<A2uiMessage>.broadcast();
   final _textOut = StreamController<String>.broadcast();
   var _turn = 0;
-
-  /// Conversation history sent to NIM (system + user/assistant turns).
-  List<NimMessage> get history => List.unmodifiable(_history);
 
   @override
   Stream<A2uiMessage> get incomingMessages => _messagesOut.stream;
@@ -45,6 +58,31 @@ class CoachChatSession implements Transport {
   /// (see [sendRequest]) instead of flowing as loose chat text.
   @override
   Stream<String> get incomingText => _textOut.stream;
+
+  /// Packs candidate context + recent history + the new message into the
+  /// single content string the stateless WS proxy forwards to the model.
+  String buildTurnContent(String userText) {
+    final buffer = StringBuffer()
+      ..writeln('CONTEXTO DEL CANDIDATO:')
+      ..writeln(_candidateContext);
+    if (_turns.isNotEmpty) {
+      buffer
+        ..writeln()
+        ..writeln('HISTORIAL RECIENTE:');
+      for (final t in _turns.skip(
+        _turns.length > maxHistoryTurns ? _turns.length - maxHistoryTurns : 0,
+      )) {
+        buffer
+          ..writeln('Usuario: ${t.user}')
+          ..writeln('Coach: ${t.assistant}');
+      }
+    }
+    buffer
+      ..writeln()
+      ..writeln('MENSAJE ACTUAL DEL USUARIO:')
+      ..write(userText);
+    return buffer.toString();
+  }
 
   @override
   Future<void> sendRequest(ChatMessage message) async {
@@ -91,16 +129,15 @@ class CoachChatSession implements Transport {
           emitFallback('No pude renderizar parte de la respuesta como UI.'),
     );
     try {
-      _history.add(NimMessage.user(message.text));
       final raw = StringBuffer();
-      await for (final delta in _streamCompletion(List.unmodifiable(_history))) {
-        raw.write(delta);
+      await for (final token in _streamTurn(buildTurnContent(message.text))) {
+        raw.write(token);
       }
       final full = stripThinking(raw.toString());
       if (full.isEmpty) {
         emitFallback('El modelo devolvió una respuesta vacía. Probá de nuevo.');
       } else {
-        _history.add(NimMessage.assistant(full));
+        _turns.add(_Turn(message.text, full));
         adapter.addChunk(full);
       }
       // flush() closes the input so the parser drains its buffer (a
@@ -109,7 +146,7 @@ class CoachChatSession implements Transport {
       // zones; the deliveries themselves are microtasks, drained below.
       unawaited(adapter.flush());
     } catch (e) {
-      emitFallback('No pude contactar a Nemotron: $e');
+      emitFallback('No pude contactar al gateway del Coach: $e');
     } finally {
       // A zero timer runs after the whole microtask cascade: every queued
       // stream delivery lands before the subscriptions are cancelled.

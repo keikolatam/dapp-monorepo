@@ -6,13 +6,13 @@ import 'package:keiko_app/coach/presentation/coach_catalog.dart';
 import 'package:keiko_app/coach/presentation/coach_chat_session.dart';
 
 /// Harness: a session wired to a real [SurfaceController] through a real
-/// [Conversation], with the NIM stream mocked.
+/// [Conversation], with the gateway stream mocked.
 class _Harness {
-  _Harness(NimStreamFn stream) {
+  _Harness(AgentTurnFn streamTurn) {
     controller = SurfaceController(catalogs: [buildCoachCatalog()]);
     session = CoachChatSession(
-      streamCompletion: stream,
-      systemPrompt: 'system de prueba',
+      streamTurn: streamTurn,
+      candidateContext: '{"candidateName": "Andrés"}',
     );
     conversation = Conversation(controller: controller, transport: session);
     sub = controller.surfaceUpdates.listen((update) {
@@ -47,8 +47,8 @@ class _Harness {
   }
 }
 
-NimStreamFn _emitting(List<String> chunks) =>
-    (_) => Stream.fromIterable(chunks);
+AgentTurnFn _emitting(List<String> tokens) =>
+    (_) => Stream.fromIterable(tokens);
 
 void main() {
   test('una respuesta A2UI válida se vuelve surface en el controller',
@@ -99,27 +99,38 @@ void main() {
     h.dispose();
   });
 
-  test('error de red cae al fallback con mensaje, sin lanzar', () async {
-    final h = _Harness((_) => Stream.error(Exception('DNS caído')));
+  test('error del gateway cae al fallback con mensaje, sin lanzar', () async {
+    final h = _Harness((_) => Stream.error(Exception('gateway caído')));
 
     await h.send('hola');
 
-    expect(h.rootTextOf('chat-text-1'), contains('No pude contactar'));
+    expect(h.rootTextOf('chat-text-1'),
+        contains('No pude contactar al gateway'));
     h.dispose();
   });
 
-  test('el historial acumula system/user/assistant y stripea el thinking',
-      () async {
-    final h = _Harness(_emitting([
-      '<think>pensando mucho</think>Respuesta final.',
-    ]));
+  test(
+      'el content del turno lleva contexto del candidato, historial reciente '
+      'y stripea el thinking', () async {
+    final contents = <String>[];
+    final h = _Harness((content) {
+      contents.add(content);
+      return Stream.value('<think>pensando mucho</think>Respuesta final.');
+    });
 
     await h.send('hola');
+    await h.send('seguimos');
 
-    final roles = h.session.history.map((m) => m.role).toList();
-    expect(roles, ['system', 'user', 'assistant']);
-    expect(h.session.history.last.content, 'Respuesta final.');
-    expect(h.session.history.last.content, isNot(contains('pensando')));
+    // Primer turno: contexto + mensaje, sin historial.
+    expect(contents[0], contains('CONTEXTO DEL CANDIDATO'));
+    expect(contents[0], contains('"candidateName": "Andrés"'));
+    expect(contents[0], contains('MENSAJE ACTUAL DEL USUARIO:\nhola'));
+    expect(contents[0], isNot(contains('HISTORIAL RECIENTE')));
+    // Segundo turno: historial con el thinking ya stripeado.
+    expect(contents[1], contains('HISTORIAL RECIENTE'));
+    expect(contents[1], contains('Usuario: hola'));
+    expect(contents[1], contains('Coach: Respuesta final.'));
+    expect(contents[1], isNot(contains('pensando')));
     h.dispose();
   });
 
