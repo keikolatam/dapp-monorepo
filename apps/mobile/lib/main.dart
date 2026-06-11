@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:keiko_ui/keiko_ui.dart';
 
 import 'coach/presentation/coach_genui_page.dart';
 import 'coach/presentation/coach_page.dart';
 
-void main() => runApp(const KeikoApp());
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Edge-to-edge explícito; cada página protege su contenido con SafeArea
+  // (patrón probado en altrupets apps/mobile).
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  runApp(const KeikoApp());
+}
 
 class KeikoApp extends StatelessWidget {
   const KeikoApp({super.key});

@@ -64,8 +64,11 @@ class _CoachGenUiPageState extends State<CoachGenUiPage> {
     if (_error != null) {
       return Center(child: Text('Error: $_error'));
     }
+    // Edge-to-edge: el scroll fluye detrás de la barra de navegación del
+    // sistema, pero el final del contenido queda legible sobre ella.
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + bottomInset),
       child: Surface(
         surfaceContext: _controller.contextFor(_surfaceId),
         defaultBuilder: (_) => const Center(

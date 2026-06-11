@@ -59,8 +59,11 @@ class _PlanView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final a = plan.assessment;
+    // Edge-to-edge: padding inferior dinámico para no quedar detrás de la
+    // barra de navegación del sistema.
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + bottomInset),
       children: [
         KeikoMetricHeaderCard(
           title: a.candidateName,
