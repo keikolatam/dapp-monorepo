@@ -107,7 +107,7 @@
 
 - [ ] 07. Implementar contrato Marketplace
 
-  - Crear contrato marketplace.cairo con gestión de espacios de aprendizaje
+  - Crear contrato learning_marketplace.cairo con gestión de espacios de aprendizaje
   - Implementar sistema de reservas y disponibilidad de espacios
   - Implementar calificaciones multidimensionales de espacios
   - Crear funciones para verificación de credenciales de espacios

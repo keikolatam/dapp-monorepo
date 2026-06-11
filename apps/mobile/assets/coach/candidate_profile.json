@@ -1,0 +1,67 @@
+{
+  "$comment": "Demo fixture for Keiko Coach de Carrera. Derived from Andrés Peña's Reactive Resume (rxresu.me schema), career-relevant fields only — contact PII (phone) intentionally omitted. Proves ADR-0007: vacancy-first, CV schema-agnostic.",
+  "$schema": "https://rxresu.me/schema.json",
+  "basics": {
+    "name": "Andrés Peña Castillo",
+    "headline": "Site Reliability Engineer | Serial Entrepreneur | 10+ Years in Tech",
+    "location": "Heredia, Costa Rica"
+  },
+  "summary": {
+    "content": "Site Reliability Engineer and serial entrepreneur with over 10 years of experience, having worked at IBM, Western Union, Roche, Hewlett Packard Enterprise, and Provectus. Expertise in Site Reliability Engineering (Cloud and Clusters Management using GitOps), Patch Management, and Endpoints Administration. CTO and co-founder of startups in EdTech, AgriTech, and Web3."
+  },
+  "sections": {
+    "experience": {
+      "items": [
+        {
+          "company": "IBM",
+          "position": "Site Reliability Engineer",
+          "period": "Feb 2024 – Sept 2025",
+          "highlights": [
+            "Administered Red Hat OpenShift across multiple AWS clusters, editing CRDs and operators",
+            "Deployed MAS application upgrades using ArgoCD GitOps workflows",
+            "Application observability with IBM Instana and Grafana",
+            "Real-time incident response using PagerDuty and On Call Manager",
+            "Built Bash automation for OpenShift and WebSphere data recovery",
+            "Documented Disaster Recovery scenario for Db2U on OpenShift"
+          ],
+          "skills": ["OpenShift", "ArgoCD", "IBM Instana", "Grafana", "RHEL", "Bash", "PagerDuty", "SQL"]
+        },
+        {
+          "company": "Provectus",
+          "position": "IT Cloud Engineer",
+          "period": "Sept 2021 – Nov 2023",
+          "highlights": [
+            "Automated Patch Management workflows for Windows and macOS",
+            "Upgraded +1,100 endpoints from Windows 10 v1703 to 21H2"
+          ],
+          "skills": ["ManageEngine", "Jamf Pro", "PowerShell", "Bash"]
+        }
+      ]
+    },
+    "skills": {
+      "items": [
+        {"name": "Containerization", "proficiency": "Advanced", "level": 5, "keywords": ["OpenShift", "Kubernetes", "Minikube", "Podman", "GHCR"]},
+        {"name": "Automation", "proficiency": "Advanced", "level": 5, "keywords": ["Ansible", "AWX", "Bash", "PowerShell", "Python"]},
+        {"name": "Observability", "proficiency": "Advanced", "level": 4, "keywords": ["IBM Instana", "Grafana", "Datadog", "Mezmo", "CloudWatch"]},
+        {"name": "GitOps & CI/CD", "proficiency": "Advanced", "level": 5, "keywords": ["ArgoCD", "Helm", "GitHub Actions", "GitFlow"]},
+        {"name": "Infrastructure-as-Code", "proficiency": "Advanced", "level": 4, "keywords": ["Terraform", "OpenTofu", "CloudFormation"]},
+        {"name": "AWS Cloud", "proficiency": "Advanced", "level": 4, "keywords": ["EC2", "IAM", "Lambda", "SQS", "SNS", "Route 53"]},
+        {"name": "MLOps & AI", "proficiency": "Intermediate", "level": 3, "keywords": ["LangChain", "LangGraph", "LangSmith", "MLFlow"]},
+        {"name": "ITSM (ITIL v3)", "proficiency": "Advanced", "level": 5, "keywords": ["ServiceNow", "PagerDuty", "Jira"]}
+      ]
+    },
+    "certifications": {
+      "items": [
+        {"title": "Scrum Product Owner Professional", "issuer": "CertiProf", "date": "2020"},
+        {"title": "Management 3.0 Fundamentals", "issuer": "Management 3.0", "date": "2020"}
+      ]
+    },
+    "volunteer": {
+      "items": [
+        {"organization": "Ciencia de Datos en Latinoamérica", "period": "Jul 2019 – Present", "description": "LinkedIn community ~3,000 members on Data Science in LATAM. Founder and administrator."},
+        {"organization": "Flutter Apps en Latinoamérica", "period": "Aug 2025 – Present", "description": "LinkedIn community for Flutter developers in LATAM."},
+        {"organization": "Startups 506", "period": "2022 – 2024", "description": "Co-founder and co-administrator of a startup community in Costa Rica."}
+      ]
+    }
+  }
+}

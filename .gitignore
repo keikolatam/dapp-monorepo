@@ -139,3 +139,7 @@ pids/
 
 # Git credentials (security)
 .git-credentials
+
+# Flutter build artifacts (apps/mobile)
+apps/mobile/.dart_tool/
+apps/mobile/.flutter-plugins-dependencies

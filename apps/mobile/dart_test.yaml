@@ -1,0 +1,5 @@
+# Tags de la suite. `integration` marca tests que pegan a servicios reales
+# (NVIDIA NIM); se saltan solos si NVIDIA_API_KEY no está en el entorno.
+tags:
+  integration:
+    timeout: 4x

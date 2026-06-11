@@ -1,0 +1,83 @@
+{
+  "$comment": "Target-role rubric for Keiko Coach. Encodes the IBM SRE Band Progression (Performance Expectations Guidance, Feb 2025) as the vacancy. dimension ∈ {outcomes,knowledge,proficiency,behaviors,scope}. supportType follows Irby (2018): knowledge/proficiency gaps → tutor; behaviors/scope/outcomes (leadership, brand, influence) → mentor. evidenceSignals are matched (substring, case-insensitive) against the candidate profile.",
+  "roleId": "ibm-sre-band-10",
+  "roleTitle": "IBM Site Reliability Engineer — Band 10 (Thought Leader)",
+  "expertiseLevel": "Thought Leader",
+  "currentBandId": 8,
+  "targetBandId": 10,
+  "bands": [
+    {
+      "id": 8,
+      "title": "Band 8 — Experienced",
+      "expertiseLevel": "Experienced"
+    },
+    {
+      "id": 9,
+      "title": "Band 9 — Expert",
+      "expertiseLevel": "Expert"
+    },
+    {
+      "id": 10,
+      "title": "Band 10 — Thought Leader",
+      "expertiseLevel": "Thought Leader",
+      "requirements": [
+        {
+          "dimension": "outcomes",
+          "descriptor": "Leads the formulation of SRE vision, roadmap and strategy; impact on divisional KPIs (Availability, MTTR, Adherence to SLO, Rate of Automation/Toil, % incidents detected by monitoring).",
+          "evidenceSignals": ["MTTR", "incident response", "Availability", "SLO", "Instana", "Grafana", "automation", "toil"],
+          "supportType": "mentor",
+          "weight": 3
+        },
+        {
+          "dimension": "outcomes",
+          "descriptor": "Solid contribution to cost controls of cloud spend at organizational scale.",
+          "evidenceSignals": ["cost", "cloud spend", "FinOps", "optimization"],
+          "supportType": "mentor",
+          "weight": 2
+        },
+        {
+          "dimension": "knowledge",
+          "descriptor": "In-depth knowledge of developing AND administrating in a multi-cloud environment; AI-driven self-healing / predictive failure mitigation.",
+          "evidenceSignals": ["OpenShift", "Kubernetes", "AWS", "GCP", "multi-cloud", "ArgoCD", "GitOps", "self-healing", "predictive"],
+          "supportType": "tutor",
+          "weight": 3
+        },
+        {
+          "dimension": "proficiency",
+          "descriptor": "Completed IBM SRE (L3) Thought Leader Certification and passed the Technical Leadership Review Board (TLRB).",
+          "evidenceSignals": ["SRE L3", "Thought Leader Certification", "TLRB"],
+          "supportType": "tutor",
+          "weight": 3
+        },
+        {
+          "dimension": "proficiency",
+          "descriptor": "Applied software engineering principles (Agile, Design Thinking) to enhance software reliability as an engineering discipline.",
+          "evidenceSignals": ["software engineering", "Agile", "Design Thinking", "Python", "reliability engineering"],
+          "supportType": "tutor",
+          "weight": 2
+        },
+        {
+          "dimension": "behaviors",
+          "descriptor": "Giveback to IBM and Industry SRE communities through Mentoring, Intellectual Capital / IP, Speaking/Presenting, Teaching, Profession Champion, Mental Health Ally.",
+          "evidenceSignals": ["mentoring", "speaking", "conference", "teaching", "blog", "intellectual capital", "community", "founder", "champion"],
+          "supportType": "mentor",
+          "weight": 3
+        },
+        {
+          "dimension": "behaviors",
+          "descriptor": "Established a personal brand across multiple SRE core skills; known as a thought leader in one or more SRE skills.",
+          "evidenceSignals": ["personal brand", "thought leader", "recognized", "invited to speak", "industry"],
+          "supportType": "mentor",
+          "weight": 2
+        },
+        {
+          "dimension": "scope",
+          "descriptor": "Leads functional strategy at the business-unit level; cross-org influence championing SRE features across Engineering, Support, Services and Offering Management.",
+          "evidenceSignals": ["cross-functional", "cross-org", "business unit", "led teams", "strategy", "roadmap"],
+          "supportType": "mentor",
+          "weight": 3
+        }
+      ]
+    }
+  ]
+}
