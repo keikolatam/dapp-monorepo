@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:keiko_ui/keiko_ui.dart';
 
+import 'coach/presentation/coach_chat_page.dart';
 import 'coach/presentation/coach_genui_page.dart';
 import 'coach/presentation/coach_page.dart';
 
@@ -41,6 +42,13 @@ class CoachHome extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Keiko · Coach de Carrera (GenUI)'),
         actions: [
+          IconButton(
+            tooltip: 'Chatear con el Coach (Nemotron)',
+            icon: const Icon(Icons.chat_outlined),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const CoachChatPage()),
+            ),
+          ),
           IconButton(
             tooltip: 'Ver versión clásica',
             icon: const Icon(Icons.view_agenda_outlined),
