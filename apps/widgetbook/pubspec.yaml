@@ -1,0 +1,27 @@
+name: keiko_widgetbook
+description: >-
+  Catálogo Widgetbook de packages/keiko_ui — stories organizadas por taxonomía
+  Atomic Design (atoms → molecules → organisms) sobre Material 3. Artefacto
+  deployable como web estática (Vercel).
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.10.0
+  flutter: ">=3.38.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  keiko_ui:
+    path: ../../packages/keiko_ui
+  # 3.23.x es la última serie compatible con Flutter 3.41 (3.24 exige >=3.44).
+  widgetbook: ">=3.23.0 <3.24.0"
+
+dev_dependencies:
+  flutter_lints: ^4.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true

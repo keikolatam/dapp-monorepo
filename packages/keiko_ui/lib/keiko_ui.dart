@@ -4,4 +4,7 @@
 /// atoms → molecules → organisms (see `/atomic-design-toolkit:generate`).
 library keiko_ui;
 
+export 'atoms/index.dart';
+export 'molecules/index.dart';
+export 'organisms/index.dart';
 export 'theme/index.dart';
