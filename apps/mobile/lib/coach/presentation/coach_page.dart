@@ -7,6 +7,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:keiko_ui/keiko_ui.dart';
 
 import '../application/coach_repository.dart';
 import '../domain/career_band.dart';
@@ -61,98 +62,30 @@ class _PlanView extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        _ReadinessHeader(assessment: a),
+        KeikoMetricHeaderCard(
+          title: a.candidateName,
+          subtitle: a.roleTitle,
+          percent: a.readinessPercent,
+          progressLabel: 'Preparación para ${a.targetBand.expertiseLevel}',
+          progressCaption: 'Desde ${a.currentBand.title}',
+        ),
         const SizedBox(height: 24),
-        _SectionTitle('Brechas de competencia → ${a.targetBand.title}'),
+        KeikoSectionTitle('Brechas de competencia → ${a.targetBand.title}'),
         for (final g in a.gaps) _GapCard(gap: g),
         const SizedBox(height: 24),
-        _SectionTitle('Roadmap sugerido'),
-        for (final step in plan.roadmap) _RoadmapTile(step: step),
+        const KeikoSectionTitle('Roadmap sugerido'),
+        for (final step in plan.roadmap)
+          KeikoStepTile(
+            order: step.order,
+            title: step.title,
+            description: step.description,
+            tag: step.horizon,
+          ),
         const SizedBox(height: 24),
-        _SectionTitle('Interview prep (de tus libros)'),
+        const KeikoSectionTitle('Interview prep (de tus libros)'),
         for (final item in plan.interviewPrep) _PrepTile(item: item),
         const SizedBox(height: 32),
       ],
-    );
-  }
-}
-
-class _ReadinessHeader extends StatelessWidget {
-  const _ReadinessHeader({required this.assessment});
-
-  final CompetencyAssessment assessment;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final text = Theme.of(context).textTheme;
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(assessment.candidateName, style: text.titleLarge),
-            const SizedBox(height: 4),
-            Text(assessment.roleTitle, style: text.bodyMedium),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                _BigPercent(value: assessment.readinessPercent, scheme: scheme),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Preparación para ${assessment.targetBand.expertiseLevel}',
-                        style: text.titleMedium,
-                      ),
-                      const SizedBox(height: 8),
-                      LinearProgressIndicator(
-                        value: assessment.readiness,
-                        minHeight: 8,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Desde ${assessment.currentBand.title}',
-                        style: text.bodySmall,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _BigPercent extends StatelessWidget {
-  const _BigPercent({required this.value, required this.scheme});
-
-  final int value;
-  final ColorScheme scheme;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 72,
-      height: 72,
-      decoration: BoxDecoration(
-        color: scheme.primaryContainer,
-        shape: BoxShape.circle,
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        '$value%',
-        style: Theme.of(context)
-            .textTheme
-            .titleLarge
-            ?.copyWith(color: scheme.onPrimaryContainer),
-      ),
     );
   }
 }
@@ -162,15 +95,14 @@ class _GapCard extends StatelessWidget {
 
   final Gap gap;
 
-  Color _statusColor(ColorScheme s) => switch (gap.status) {
-        GapStatus.met => Colors.green,
-        GapStatus.partial => Colors.orange,
-        GapStatus.gap => s.error,
+  KeikoStatus get _status => switch (gap.status) {
+        GapStatus.met => KeikoStatus.success,
+        GapStatus.partial => KeikoStatus.warning,
+        GapStatus.gap => KeikoStatus.error,
       };
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
     return Card(
       child: Padding(
@@ -180,15 +112,12 @@ class _GapCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.circle, size: 12, color: _statusColor(scheme)),
+                KeikoStatusDot(status: _status),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(gap.dimension.label, style: text.titleSmall),
                 ),
-                Chip(
-                  label: Text(gap.status.label),
-                  visualDensity: VisualDensity.compact,
-                ),
+                KeikoTagChip(label: gap.status.label),
               ],
             ),
             const SizedBox(height: 8),
@@ -217,29 +146,6 @@ class _GapCard extends StatelessWidget {
             ],
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _RoadmapTile extends StatelessWidget {
-  const _RoadmapTile({required this.step});
-
-  final RoadmapStep step;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: scheme.secondaryContainer,
-        child: Text('${step.order}'),
-      ),
-      title: Text(step.title),
-      subtitle: Text(step.description),
-      trailing: Chip(
-        label: Text(step.horizon),
-        visualDensity: VisualDensity.compact,
       ),
     );
   }
@@ -279,16 +185,3 @@ class _PrepTile extends StatelessWidget {
   }
 }
 
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(text, style: Theme.of(context).textTheme.headlineSmall),
-    );
-  }
-}

@@ -82,21 +82,29 @@ class CoachA2uiBuilder {
     divider();
 
     // --- Gaps ---
+    // Cada recomendación es un componente CUSTOM del catálogo Keiko
+    // (GapCard, ver coach_catalog.dart): Material 3 + semáforo, sin emojis.
     section('Brechas de competencia');
     for (final g in a.gaps) {
-      final mark = switch (g.status) {
-        GapStatus.met => '🟢',
-        GapStatus.partial => '🟠',
-        GapStatus.gap => '🔴',
-      };
-      final support = g.supportType == SupportType.tutor
-          ? '📖 Tutor'
-          : '🤝 Mentor';
-      final body = text(
-        '$mark **${g.dimension.label}** · ${g.status.label} · $support\n\n'
-        '${g.requirement.descriptor}',
+      final id = nextId('gap');
+      components.add(
+        Component(
+          id: id,
+          type: 'GapCard',
+          properties: {
+            'title': g.dimension.label,
+            'status': g.status.name,
+            'statusLabel': g.status.label,
+            'body': g.requirement.descriptor,
+            'support': g.supportType.name,
+            'supportLabel': g.supportType == SupportType.tutor
+                ? 'Cierra con un Tutor'
+                : 'Cierra con un Mentor',
+            if (g.status != GapStatus.met) 'rationale': g.rationale,
+          },
+        ),
       );
-      card(body);
+      rootChildren.add(id);
     }
     divider();
 
@@ -113,7 +121,8 @@ class CoachA2uiBuilder {
     section('Interview prep (de tus libros)');
     for (final i in plan.interviewPrep) {
       final body = text(
-        '**${i.topic}**\n\n_${i.source}_\n\n${i.why}\n\n❓ ${i.sampleQuestion}',
+        '**${i.topic}**\n\n_${i.source}_\n\n${i.why}\n\n'
+        'Pregunta de práctica: ${i.sampleQuestion}',
       );
       card(body);
     }

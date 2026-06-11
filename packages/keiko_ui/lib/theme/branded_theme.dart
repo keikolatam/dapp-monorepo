@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "semantic_colors.dart";
 import "theme_constants.dart";
 
 class MaterialTheme {
@@ -29,8 +30,8 @@ class MaterialTheme {
       surface: BrandColors.primary100,
       onSurface: BrandColors.primary900,
       onSurfaceVariant: BrandColors.primary800,
-      // Outline colors
-      outline: BrandColors.primary400,
+      // Outline colors (tone ~40 reads as a border on light surfaces)
+      outline: BrandColors.primary500,
       outlineVariant: BrandColors.primary300,
       // Shadow and scrim
       shadow: BrandColors.primary900,
@@ -48,14 +49,15 @@ class MaterialTheme {
       onSecondaryFixed: BrandColors.secondary100,
       secondaryFixedDim: BrandColors.secondary400,
       onSecondaryFixedVariant: BrandColors.secondary800,
-      // Surface containers
+      // Surface containers — stay in the light tones (≤300) so onSurface
+      // text keeps AA contrast on chips, tables and dialogs.
       surfaceDim: BrandColors.primary200,
       surfaceBright: BrandColors.primary100,
       surfaceContainerLowest: BrandColors.primary100,
       surfaceContainerLow: BrandColors.primary200,
-      surfaceContainer: BrandColors.primary300,
-      surfaceContainerHigh: BrandColors.primary400,
-      surfaceContainerHighest: BrandColors.primary500,
+      surfaceContainer: BrandColors.primary200,
+      surfaceContainerHigh: BrandColors.primary300,
+      surfaceContainerHighest: BrandColors.primary300,
     );
   }
 
@@ -86,8 +88,8 @@ class MaterialTheme {
       surface: BrandColors.primary900,
       onSurface: BrandColors.primary100,
       onSurfaceVariant: BrandColors.primary200,
-      // Outline colors
-      outline: BrandColors.primary600,
+      // Outline colors (tone ~40 reads as a border on dark surfaces)
+      outline: BrandColors.primary500,
       outlineVariant: BrandColors.primary700,
       // Shadow and scrim
       shadow: BrandColors.primary900,
@@ -124,6 +126,14 @@ class MaterialTheme {
         useMaterial3: true,
         brightness: colorScheme.brightness,
         colorScheme: colorScheme,
+
+        // Semantic roles M3 doesn't cover (success/warning) — see
+        // KeikoSemanticColors.of(context).
+        extensions: [
+          colorScheme.brightness == Brightness.light
+              ? KeikoSemanticColors.light
+              : KeikoSemanticColors.dark,
+        ],
 
         // Typography
         textTheme: TextTheme(

@@ -10,6 +10,7 @@ import 'package:genui/genui.dart';
 
 import '../application/coach_repository.dart';
 import 'coach_a2ui_builder.dart';
+import 'coach_catalog.dart';
 
 class CoachGenUiPage extends StatefulWidget {
   const CoachGenUiPage({super.key, this.repository = const CoachRepository()});
@@ -23,8 +24,8 @@ class CoachGenUiPage extends StatefulWidget {
 class _CoachGenUiPageState extends State<CoachGenUiPage> {
   static const _surfaceId = 'coach';
 
-  final Catalog _catalog =
-      BasicCatalogItems.asCatalog().copyWith(catalogId: 'keiko-coach');
+  // Catálogo Keiko: built-ins de genui + componentes custom (GapCard M3).
+  final Catalog _catalog = buildCoachCatalog();
   late final SurfaceController _controller =
       SurfaceController(catalogs: [_catalog]);
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:keiko_ui/keiko_ui.dart';
 
 import 'coach/presentation/coach_genui_page.dart';
 import 'coach/presentation/coach_page.dart';
@@ -10,16 +11,13 @@ class KeikoApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TODO(keiko_ui): swap for keiko_ui's MaterialTheme once its BrandColors
-    // palette is filled via /atomic-design-toolkit:generate. Today that palette
-    // is an all-black placeholder, so we seed a usable M3 scheme here.
-    final scheme = ColorScheme.fromSeed(
-      seedColor: const Color(0xFF215278), // Keiko primary (from resume accent)
-    );
+    // Tema compartido de keiko_ui (Atomic Design + M3, seed #215278).
+    const materialTheme = MaterialTheme(TextTheme());
     return MaterialApp(
       title: 'Keiko',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(useMaterial3: true, colorScheme: scheme),
+      theme: materialTheme.light(),
+      darkTheme: materialTheme.dark(),
       home: const CoachHome(),
     );
   }

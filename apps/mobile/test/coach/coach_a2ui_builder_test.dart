@@ -9,6 +9,7 @@ import 'package:keiko_app/coach/domain/career_band.dart';
 import 'package:keiko_app/coach/domain/competency_assessment.dart';
 import 'package:keiko_app/coach/infrastructure/reactive_resume_parser.dart';
 import 'package:keiko_app/coach/presentation/coach_a2ui_builder.dart';
+import 'package:keiko_app/coach/presentation/coach_catalog.dart';
 import 'package:keiko_app/coach/presentation/coach_genui_page.dart';
 
 CoachPlan _demoPlan() {
@@ -24,9 +25,9 @@ CoachPlan _demoPlan() {
 
 void main() {
   test('A2UI surface is referentially sound (root exists, refs resolve)', () {
-    final catalog =
-        BasicCatalogItems.asCatalog().copyWith(catalogId: 'keiko-coach');
-    final messages = const CoachA2uiBuilder().build(_demoPlan(), catalog: catalog);
+    final catalog = buildCoachCatalog();
+    final messages =
+        const CoachA2uiBuilder().build(_demoPlan(), catalog: catalog);
 
     final byId = {for (final c in messages.update.components) c.id: c};
 
@@ -51,7 +52,46 @@ void main() {
     }
   });
 
-  testWidgets('GenUI page renders the surface without throwing',
+  test('every recommendation is a custom GapCard with semaphore status', () {
+    final messages = const CoachA2uiBuilder()
+        .build(_demoPlan(), catalog: buildCoachCatalog());
+
+    final gapCards = messages.update.components
+        .where((c) => c.type == 'GapCard')
+        .toList();
+
+    // One card per rubric requirement (the Band 10 rubric has 8).
+    expect(gapCards, hasLength(8));
+
+    for (final c in gapCards) {
+      expect(c.properties['title'], isNotEmpty);
+      expect(c.properties['statusLabel'], isNotEmpty);
+      expect(c.properties['body'], isNotEmpty);
+      expect(
+        ['met', 'partial', 'gap'],
+        contains(c.properties['status']),
+        reason: 'semaphore status must be met/partial/gap',
+      );
+      expect(['tutor', 'mentor'], contains(c.properties['support']));
+    }
+
+    // The GapCard type exists in the catalog the page renders with.
+    expect(
+      buildCoachCatalog().items.any((i) => i.name == 'GapCard'),
+      isTrue,
+    );
+  });
+
+  test('surface carries no emojis — semaphore is color, not glyphs', () {
+    final messages = const CoachA2uiBuilder()
+        .build(_demoPlan(), catalog: buildCoachCatalog());
+    final payload = jsonEncode(messages.update.toJson());
+    for (final emoji in ['🟢', '🟠', '🔴', '📖', '🤝', '❓']) {
+      expect(payload.contains(emoji), isFalse, reason: 'emoji $emoji presente');
+    }
+  });
+
+  testWidgets('GenUI page renders GapCards with semaphore chips',
       (tester) async {
     await tester.pumpWidget(
       const MaterialApp(home: Scaffold(body: CoachGenUiPage())),
@@ -60,7 +100,9 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.byType(Surface), findsOneWidget);
-    // The SDK assembled at least some text from the A2UI messages.
-    expect(find.byType(Text), findsWidgets);
+    // Custom GapCards rendered: status chips + a known dimension title.
+    expect(find.byType(Chip), findsWidgets);
+    expect(find.text('Conocimiento técnico'), findsWidgets);
+    expect(find.textContaining('Cierra con un'), findsWidgets);
   });
 }
