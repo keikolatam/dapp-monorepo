@@ -1,0 +1,34 @@
+# Brechas de competencia: navega a la vista clásica (CoachPage) donde cada
+# gap es un Card con Chip de estado, y verifica los tres estados del demo:
+# Cumplido / Parcial / Brecha (labels de GapStatus en competency_assessment.dart).
+appId: com.keikolatam.keiko_app
+tags:
+  - coach
+  - gaps
+---
+- launchApp
+# IconButton del AppBar con tooltip "Ver versión clásica" (main.dart) —
+# el tooltip se expone como label de accesibilidad para Maestro.
+- tapOn: "Ver versión clásica"
+# Header de la clásica: "Desde Band 8 — Experienced" (_ReadinessHeader).
+- extendedWaitUntil:
+    visible:
+      text: "Desde Band 8 — Experienced"
+    timeout: 20000
+# Chips de estado (texto exacto; "Brecha" no matchea el título de sección
+# "Brechas de competencia…" porque Maestro exige match completo del texto).
+- scrollUntilVisible:
+    element:
+      text: "Cumplido"
+    direction: DOWN
+- assertVisible: "Cumplido"
+- scrollUntilVisible:
+    element:
+      text: "Parcial"
+    direction: DOWN
+- assertVisible: "Parcial"
+- scrollUntilVisible:
+    element:
+      text: "Brecha"
+    direction: DOWN
+- assertVisible: "Brecha"

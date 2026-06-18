@@ -1,0 +1,14 @@
+# Workspace Maestro del Coach de Carrera (apps/mobile).
+# Correr con: maestro test apps/mobile/.maestro/
+# o vía: apps/mobile/tool/run_maestro.sh (valida device físico adb primero).
+flows:
+  - "flows/*"
+
+# Orden secuencial: smoke primero; si falla igual corren los demás
+# para tener el panorama completo en una sola pasada.
+executionOrder:
+  continueOnFailure: true
+  flowsOrder:
+    - coach_smoke
+    - coach_gaps
+    - coach_prep_expand
